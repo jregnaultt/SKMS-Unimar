@@ -36,19 +36,11 @@ class ExtractMetadataJob implements ShouldQueue
     public function handle(MetadataExtractorService $extractorService): void
     {
         try {
-            $text = $extractorService->extractText($this->pdfPath);
-
-            $metadata = [
-                'title' => $extractorService->extractTitle($text),
-                'abstract' => $extractorService->extractAbstract($text),
-                'keywords' => $extractorService->extractKeywords($text),
-                'authors' => $extractorService->extractAuthors($text),
-                'tutor' => $extractorService->extractTutor($text),
-            ];
+            $metadata = $extractorService->extractMetadata($this->pdfPath);
 
             event(new MetadataExtracted($this->userId, $this->fileId, $metadata));
         } catch (\Exception $e) {
-            Log::error('Failed to extract text from PDF: '.$e->getMessage());
+            Log::error('Failed to extract metadata: '.$e->getMessage());
         }
     }
 }

@@ -2,10 +2,147 @@
 
 namespace App\Services;
 
+use App\Services\AiExtraction\GroqExtractor;
+use App\Services\AiExtraction\OllamaExtractor;
+use App\Services\Parsers\ToonParser;
+use Illuminate\Support\Facades\Log;
 use Spatie\PdfToText\Pdf;
 
 class MetadataExtractorService
 {
+    /**
+     * MetadataExtractorService constructor.
+    public function __construct(
+        protected ?ToonParser $toonParser = null,
+        protected ?GroqExtractor $groqExtractor = null,
+        protected ?OllamaExtractor $ollamaExtractor = null
+    ) {
+        $this->toonParser = $toonParser ?? new ToonParser();
+        $this->groqExtractor = $groqExtractor ?? new GroqExtractor();
+        $this->ollamaExtractor = $ollamaExtractor ?? new OllamaExtractor();
+    }
+
+    /**
+     * Set the extractor services manually (useful for testing and mocks).
+     */
+    public function setExtractorServices(ToonParser $toonParser, GroqExtractor $groqExtractor, OllamaExtractor $ollamaExtractor): void
+    {
+        $this->toonParser = $toonParser;
+        $this->groqExtractor = $groqExtractor;
+        $this->ollamaExtractor = $ollamaExtractor;
+    }
+
+    /**
+     * Extracts full metadata from a file, using a hybrid cascading pipeline (Regex -> Groq -> Ollama).
+     *
+     * @return array{title: ?string, authors: ?string, tutor: ?string, abstract: ?string, keywords: ?string}
+     */
+    public function extractMetadata(string $filePath): array
+    {
+        $text = $this->extractText($filePath);
+
+        $metadata = [
+            'title' => $this->extractTitle($text),
+            'authors' => $this->extractAuthors($text),
+            'tutor' => $this->extractTutor($text),
+            'abstract' => $this->extractAbstract($text),
+            'keywords' => $this->extractKeywords($text),
+        ];
+
+        if ($this->needsAiRefinement($metadata)) {
+            Log::info('El motor Regex no completó todos los metadatos. Activando refinamiento con IA para: '.basename($filePath));
+            try {
+                $aiText = $this->extractTextForAi($filePath);
+                $toonResult = $this->groqExtractor->extract($aiText);
+                $refined = $this->toonParser->parse($toonResult);
+
+                $metadata = $this->mergeMetadata($metadata, $refined);
+            } catch (\Exception $groqEx) {
+                Log::warning('La extracción con Groq falló, intentando fallback local con Ollama (Qwen2.5): '.$groqEx->getMessage());
+                try {
+                    $aiText = $this->extractTextForAi($filePath);
+                    $toonResult = $this->ollamaExtractor->extract($aiText);
+                    $refined = $this->toonParser->parse($toonResult);
+
+                    $metadata = $this->mergeMetadata($metadata, $refined);
+                } catch (\Exception $ollamaEx) {
+                    Log::error('Todos los métodos de extracción con IA fallaron para '.basename($filePath).': '.$ollamaEx->getMessage());
+                }
+            }
+        }
+
+        return $metadata;
+    }
+
+    /**
+     * Determines if the extracted metadata is incomplete and needs AI refinement.
+     */
+    protected function needsAiRefinement(array $metadata): bool
+    {
+        foreach (['title', 'authors', 'tutor', 'abstract'] as $field) {
+            $value = $metadata[$field] ?? null;
+            if (empty($value) || $value === '? No encontrado' || trim($value) === '') {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Merges regex-extracted metadata with LLM-refined metadata.
+     */
+    protected function mergeMetadata(array $original, array $refined): array
+    {
+        $merged = $original;
+        foreach ($refined as $key => $value) {
+            if (! empty($value) && $value !== '? No encontrado' && trim($value) !== '') {
+                $merged[$key] = $value;
+            }
+        }
+
+        return $merged;
+    }
+
+    /**
+     * Extracts a limited fragment of text suitable for LLM processing (cover pages + abstract).
+     */
+    public function extractTextForAi(string $filePath): string
+    {
+        if (! file_exists($filePath)) {
+            throw new \Exception('Archivo no encontrado: '.$filePath);
+        }
+
+        $extension = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
+
+        $tempDir = storage_path('app/temp');
+        if (! is_dir($tempDir)) {
+            mkdir($tempDir, 0777, true);
+        }
+        $safePath = $tempDir.DIRECTORY_SEPARATOR.'temp_extract_ai_'.uniqid().'.'.$extension;
+
+        if (! copy($filePath, $safePath)) {
+            throw new \Exception('No se pudo copiar el archivo al directorio temporal para procesamiento: '.$filePath);
+        }
+
+        try {
+            if ($extension === 'docx') {
+                $text = $this->extractTextFromDocx($safePath);
+
+                return mb_substr($text, 0, 15000, 'UTF-8');
+            } else {
+                return (new Pdf('pdftotext'))
+                    ->setPdf($safePath)
+                    ->setOptions(['-enc UTF-8', '-f 1', '-l 15'])
+                    ->text();
+            }
+        } finally {
+            if (file_exists($safePath)) {
+                unlink($safePath);
+            }
+        }
+    }
+
     /**
      * Extracts raw text from a PDF or DOCX file, handling encoding and path issues.
      */

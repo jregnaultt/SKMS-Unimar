@@ -20,12 +20,16 @@ class MetadataExtractionJobTest extends TestCase
 
         // Mock the service so we don't rely on local files in CI
         $this->mock(MetadataExtractorService::class, function ($mock) {
-            $mock->shouldReceive('extractText')->once()->with('dummy-path.pdf')->andReturn('raw text content');
-            $mock->shouldReceive('extractTitle')->once()->andReturn('MÓDULO DE PRUEBA');
-            $mock->shouldReceive('extractAbstract')->once()->andReturn('El resumen de la investigación...');
-            $mock->shouldReceive('extractKeywords')->once()->andReturn('clave1, clave2');
-            $mock->shouldReceive('extractAuthors')->once()->andReturn('Autor de Prueba');
-            $mock->shouldReceive('extractTutor')->once()->andReturn('Tutor de Prueba');
+            $mock->shouldReceive('extractMetadata')
+                ->once()
+                ->with('dummy-path.pdf')
+                ->andReturn([
+                    'title' => 'MÓDULO DE PRUEBA',
+                    'authors' => 'Autor de Prueba',
+                    'tutor' => 'Tutor de Prueba',
+                    'abstract' => 'El resumen de la investigación...',
+                    'keywords' => 'clave1, clave2',
+                ]);
         });
 
         $user = User::factory()->create();
