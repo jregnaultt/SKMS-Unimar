@@ -16,6 +16,28 @@
             <x-input-error :messages="$errors->get('email')" class="mt-2" />
         </div>
 
+        <!-- Cédula -->
+        <div class="mt-4" x-data="{ prefix: '{{ old('cedula') ? Str::before(old('cedula'), '-') : 'V' }}', number: '{{ old('cedula') ? Str::after(old('cedula'), '-') : '' }}' }">
+            <x-input-label for="cedula_number" :value="__('Cédula de Identidad')" />
+            <div class="flex mt-1">
+                <select x-model="prefix" class="border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-l-md shadow-sm">
+                    <option value="V">V</option>
+                    <option value="E">E</option>
+                </select>
+                <input type="hidden" name="cedula" :value="number ? prefix + '-' + number : ''">
+                <x-text-input id="cedula_number" x-model="number" class="block w-full border-l-0 rounded-l-none" type="text" required placeholder="12345678" />
+            </div>
+            <x-input-error :messages="$errors->get('cedula')" class="mt-2" />
+        </div>
+
+        <!-- Teléfono -->
+        <div class="mt-4">
+            <x-input-label for="telefono" :value="__('Teléfono (Internacional)')" />
+            <x-text-input id="telefono" class="block mt-1 w-full" type="tel" name="telefono" :value="old('telefono')" required placeholder="+584141234567" />
+            <p class="text-xs text-gray-500 mt-1">Debe incluir el código de país (ej. +58)</p>
+            <x-input-error :messages="$errors->get('telefono')" class="mt-2" />
+        </div>
+
         <!-- Password -->
         <div class="mt-4">
             <x-input-label for="password" :value="__('Password')" />
