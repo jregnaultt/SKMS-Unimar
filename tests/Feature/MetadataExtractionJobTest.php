@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Events\MetadataExtracted;
 use App\Jobs\ExtractMetadataJob;
 use App\Models\User;
+use App\Services\MetadataExtractorService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Tests\TestCase;
@@ -17,15 +18,26 @@ class MetadataExtractionJobTest extends TestCase
     {
         Event::fake();
 
-        $user = User::factory()->create();
-        $pdfPath = base_path('context/tesispruebas/TI - MARTINA MARIANA LODEIRO CALCAÑO.pdf');
+        // Mock the service so we don't rely on local files in CI
+        $this->mock(MetadataExtractorService::class, function ($mock) {
+            $mock->shouldReceive('extractText')->once()->with('dummy-path.pdf')->andReturn('raw text content');
+            $mock->shouldReceive('extractTitle')->once()->andReturn('MÓDULO DE PRUEBA');
+            $mock->shouldReceive('extractAbstract')->once()->andReturn('El resumen de la investigación...');
+            $mock->shouldReceive('extractKeywords')->once()->andReturn('clave1, clave2');
+            $mock->shouldReceive('extractAuthors')->once()->andReturn('Autor de Prueba');
+            $mock->shouldReceive('extractTutor')->once()->andReturn('Tutor de Prueba');
+        });
 
-        $job = new ExtractMetadataJob($user->id, $pdfPath, 'dummy-file-id');
+        $user = User::factory()->create();
+
+        $job = new ExtractMetadataJob($user->id, 'dummy-path.pdf', 'dummy-file-id');
         dispatch_sync($job);
 
         Event::assertDispatched(MetadataExtracted::class, function ($event) use ($user) {
             return $event->userId === $user->id
-                && $event->fileId === 'dummy-file-id';
+                && $event->fileId === 'dummy-file-id'
+                && $event->metadata['title'] === 'MÓDULO DE PRUEBA'
+                && $event->metadata['authors'] === 'Autor de Prueba';
         });
     }
 }
