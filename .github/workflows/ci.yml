@@ -47,6 +47,17 @@ jobs:
       - name: Install Dependencies
         run: composer install --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install NPM dependencies
+        run: npm ci
+
+      - name: Build assets (Vite)
+        run: npm run build
+
       - name: Generate Application Key
         run: php artisan key:generate
 
