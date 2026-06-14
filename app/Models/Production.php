@@ -16,6 +16,12 @@ class Production extends Model implements HasMedia
 
     protected $guarded = ['id'];
 
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('documento')
+            ->singleFile();
+    }
+
     protected function casts(): array
     {
         return [
