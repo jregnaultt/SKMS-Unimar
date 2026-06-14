@@ -14,10 +14,10 @@ class SuperAdminSeeder extends Seeder
     public function run(): void
     {
         $god = User::updateOrCreate(
-            ['email' => 'god@unimar.edu.ve'],
+            ['email' => env('SUPER_ADMIN_EMAIL', 'god@unimar.edu.ve')],
             [
                 'name' => 'God',
-                'password' => Hash::make('--god--'),
+                'password' => Hash::make(env('SUPER_ADMIN_PASSWORD', 'change-me-in-env')),
                 'cedula' => '00000000',
                 'telefono' => '0000-0000000',
             ]

@@ -1,0 +1,44 @@
+language: "es"
+
+reviews:
+  # Solo comentarios procesables — sin spam de sugerencias
+  request_changes_workflow: false
+  high_level_summary: true
+  poem: false
+  review_status: true
+  collapse_walkthrough: false
+
+  path_filters:
+    # Ignorar archivos de instrucciones para asistentes IA — son intencionalmente duplicados
+    - "!CLAUDE.md"
+    - "!AGENTS.md"
+    - "!GEMINI.md"
+
+  path_instructions:
+    # Las vistas Blade usan strings en español de forma intencional.
+    # Este es un sistema monouniversitario (UNIMAR). No se requiere i18n.
+    - path: "resources/views/**/*.blade.php"
+      instructions: |
+        Este proyecto es un sistema académico monouniversitario para la Universidad de Margarita (UNIMAR),
+        Venezuela. El idioma del sistema es exclusivamente español. No sugerir internacionalización (i18n),
+        archivos de idioma (lang files) ni el helper __() para reemplazar strings hardcodeados en las vistas.
+        Las strings en español en las vistas son correctas e intencionales.
+
+    # Workflows de CI: no sugerir SHA pinning — innecesario para proyecto académico
+    - path: ".github/workflows/*.yml"
+      instructions: |
+        No sugerir reemplazar etiquetas de versión (como @v4) con SHA commits en las actions.
+        Este es un proyecto académico sin requerimientos de seguridad enterprise de supply chain.
+        Tampoco sugerir permisos explícitos por job a menos que haya un riesgo concreto identificado.
+
+    # CLAUDE.md es intencionalmente similar a AGENTS.md — son instrucciones para distintos AI assistants
+    - path: "CLAUDE.md"
+      instructions: |
+        Este archivo contiene instrucciones para el asistente Claude AI. Es intencionalmente
+        similar a AGENTS.md (que es para otros asistentes). No reportar como duplicado.
+
+  auto_review:
+    enabled: true
+    drafts: false
+    base_branches:
+      - "main"

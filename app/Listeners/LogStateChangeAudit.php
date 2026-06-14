@@ -23,7 +23,7 @@ class LogStateChangeAudit
                 'workflow_state' => $event->newState,
                 'comment' => $event->comment,
             ],
-            'ip_address' => request()->ip(),
+            'ip_address' => request()->ip() ?? '',
         ]);
     }
 }

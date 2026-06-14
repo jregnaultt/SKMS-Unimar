@@ -202,7 +202,8 @@ class WorkflowService
             ->preservingOriginal()
             ->toMediaCollection('documento_version');
 
-        // Overwrite production's main document with the new one
+        // Overwrite production's main document with the new one (clear first to avoid accumulation)
+        $production->clearMediaCollection('documento');
         $production->addMedia($tempFullPath)
             ->toMediaCollection('documento');
 

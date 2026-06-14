@@ -85,7 +85,7 @@ class SendStateChangeNotifications
             }
         } elseif ($newState === 'published') {
             $title = '¡Trabajo Publicado!';
-            $message = "Tu trabajo \"{$production->title}\" ha sido publicado oficialmente en el repositorio de UNIMAR.";
+            $message = "Tu trabajo \"{$production->title}\" ha sido publicado oficialmente en el repositorio de ".config('app.name').'.';
 
             foreach ($authors as $author) {
                 $author->notify(new ProductionStateChangedNotification(
