@@ -157,7 +157,9 @@
                                         <tr>
                                             <td class="px-6 py-4">
                                                 <div class="text-sm font-semibold text-gray-900 dark:text-gray-100 max-w-md truncate" title="{{ $prod->title }}">
-                                                    {{ $prod->title }}
+                                                    <a href="{{ route('productions.show', $prod) }}" class="hover:text-blue-600 dark:hover:text-blue-400 hover:underline transition duration-150">
+                                                        {{ $prod->title }}
+                                                    </a>
                                                 </div>
                                                 <div class="text-xs text-gray-500 mt-1">
                                                     <span>Autores: <strong>{{ $prod->authors }}</strong></span>
@@ -224,7 +226,9 @@
                                                             </button>
                                                         </form>
                                                     @else
-                                                        <span class="text-xs text-gray-400">Lectura</span>
+                                                        <a href="{{ route('productions.show', $prod) }}" class="px-2.5 py-1.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 rounded text-xs font-semibold shadow-sm hover:shadow transition duration-150">
+                                                            Ver Detalles
+                                                        </a>
                                                     @endif
                                                 </div>
                                             </td>
