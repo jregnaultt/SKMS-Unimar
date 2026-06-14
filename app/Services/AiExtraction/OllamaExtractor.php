@@ -21,8 +21,8 @@ class OllamaExtractor
      */
     public function __construct()
     {
-        $this->host = env('OLLAMA_HOST', 'http://localhost:11434');
-        $this->model = env('OLLAMA_MODEL', 'qwen2.5:1.5b');
+        $this->host = config('services.ollama.host', 'http://localhost:11434');
+        $this->model = config('services.ollama.model', 'qwen2.5:1.5b');
     }
 
     /**

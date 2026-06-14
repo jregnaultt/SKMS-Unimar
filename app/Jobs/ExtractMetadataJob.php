@@ -41,6 +41,7 @@ class ExtractMetadataJob implements ShouldQueue
             event(new MetadataExtracted($this->userId, $this->fileId, $metadata));
         } catch (\Exception $e) {
             Log::error('Failed to extract metadata: '.$e->getMessage());
+            throw $e;
         }
     }
 }

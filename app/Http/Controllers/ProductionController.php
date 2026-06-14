@@ -6,10 +6,12 @@ use App\Http\Requests\StoreProductionRequest;
 use App\Jobs\ExtractMetadataJob;
 use App\Models\AcademicPeriod;
 use App\Models\AcademicProgram;
+use App\Models\DocumentVersion;
 use App\Models\Keyword;
 use App\Models\Production;
 use App\Models\ProductionType;
 use App\Models\ResearchLine;
+use App\Models\Revision;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -119,6 +121,67 @@ class ProductionController extends Controller
             'status' => 'processing',
             'file_id' => $fileId,
         ]);
+    }
+
+    public function show(Production $production)
+    {
+        $production->load(['academicProgram', 'researchLine', 'productionType', 'academicPeriod', 'users']);
+
+        $user = auth()->user();
+        $isAssociated = $production->users()->where('user_id', $user->id)->exists();
+        $isCoordinator = $user->hasRole(['Coordinador', 'Super Admin']);
+
+        if ($production->workflow_state !== 'published' && ! $isAssociated && ! $isCoordinator) {
+            abort(403, 'No tienes autorización para ver esta producción científica.');
+        }
+
+        $revisions = Revision::where('production_id', $production->id)
+            ->with('user')
+            ->orderBy('created_at', 'asc')
+            ->get();
+
+        $versions = DocumentVersion::where('production_id', $production->id)
+            ->orderBy('version_number', 'asc')
+            ->get();
+
+        return view('pages.productions.show', compact('production', 'revisions', 'versions'));
+    }
+
+    public function downloadDocument(Production $production)
+    {
+        $user = auth()->user();
+        $isAssociated = $production->users()->where('user_id', $user->id)->exists();
+        $isCoordinator = $user->hasRole(['Coordinador', 'Super Admin']);
+
+        if ($production->workflow_state !== 'published' && ! $isAssociated && ! $isCoordinator) {
+            abort(403, 'No tienes autorización para acceder a este documento.');
+        }
+
+        $media = $production->getFirstMedia('documento');
+        if (! $media) {
+            abort(404, 'Documento no encontrado.');
+        }
+
+        return response()->file($media->getPath());
+    }
+
+    public function downloadVersionDocument(DocumentVersion $version)
+    {
+        $production = $version->production;
+        $user = auth()->user();
+        $isAssociated = $production->users()->where('user_id', $user->id)->exists();
+        $isCoordinator = $user->hasRole(['Coordinador', 'Super Admin']);
+
+        if ($production->workflow_state !== 'published' && ! $isAssociated && ! $isCoordinator) {
+            abort(403, 'No tienes autorización para acceder a este documento.');
+        }
+
+        $media = $version->getFirstMedia('documento_version');
+        if (! $media) {
+            abort(404, 'Documento de versión no encontrado.');
+        }
+
+        return response()->file($media->getPath());
     }
 
     public function submitDraft(Request $request, Production $production): RedirectResponse
