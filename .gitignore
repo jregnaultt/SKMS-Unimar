@@ -21,3 +21,10 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
+/.claude
+/.agents
+/.junie
+/context
+/.context
+/scratch
+/test_*.php

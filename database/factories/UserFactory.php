@@ -2,12 +2,14 @@
 
 namespace Database\Factories;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\User>
+ * @extends Factory<User>
  */
 class UserFactory extends Factory
 {
@@ -19,13 +21,23 @@ class UserFactory extends Factory
     /**
      * Define the model's default state.
      *
-     * @return array<string, mixed>
+     * @return array{
+     *     name: string,
+     *     email: string,
+     *     cedula: string,
+     *     telefono: string,
+     *     email_verified_at: Carbon,
+     *     password: string,
+     *     remember_token: string
+     * }
      */
     public function definition(): array
     {
         return [
             'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
+            'cedula' => 'V-'.fake()->unique()->numberBetween(1000000, 29999999),
+            'telefono' => '+584'.fake()->randomElement(['12', '14', '16', '24', '26']).fake()->numerify('#######'),
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
