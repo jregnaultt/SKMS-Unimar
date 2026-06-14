@@ -1,0 +1,75 @@
+<?php
+
+namespace App\Http\Requests;
+
+use Illuminate\Contracts\Validation\ValidationRule;
+use Illuminate\Foundation\Http\FormRequest;
+
+class WorkflowTransitionRequest extends FormRequest
+{
+    /**
+     * Determine if the user is authorized to make this request.
+     */
+    public function authorize(): bool
+    {
+        return true;
+    }
+
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array<string, ValidationRule|array<mixed>|string>
+     */
+    public function rules(): array
+    {
+        $production = $this->route('production');
+        $currentState = $production ? $production->workflow_state : null;
+
+        return [
+            'target_state' => 'required|in:under_review,needs_corrections,approved,published,rejected',
+            'comment' => [
+                'nullable',
+                'string',
+                function ($attribute, $value, $fail) {
+                    $target = $this->input('target_state');
+                    if (in_array($target, ['needs_corrections', 'rejected']) && empty(trim($value ?? ''))) {
+                        $fail('Se requiere un comentario justificativo para esta acción.');
+                    }
+                },
+            ],
+            'file_id' => [
+                'nullable',
+                'string',
+                function ($attribute, $value, $fail) use ($currentState) {
+                    $target = $this->input('target_state');
+                    if ($currentState === 'needs_corrections' && $target === 'under_review' && empty($value)) {
+                        $fail('Debe subir el documento corregido antes de enviar.');
+                    }
+                },
+            ],
+            'changelog' => [
+                'nullable',
+                'string',
+                function ($attribute, $value, $fail) use ($currentState) {
+                    $target = $this->input('target_state');
+                    if ($currentState === 'needs_corrections' && $target === 'under_review' && empty(trim($value ?? ''))) {
+                        $fail('Debe describir los cambios realizados.');
+                    }
+                },
+            ],
+        ];
+    }
+
+    /**
+     * Get the custom validation error messages.
+     *
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'target_state.required' => 'El estado destino es obligatorio.',
+            'target_state.in' => 'El estado destino seleccionado no es válido.',
+        ];
+    }
+}
