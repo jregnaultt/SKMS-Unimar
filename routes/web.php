@@ -21,6 +21,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/productions/create', [ProductionController::class, 'create'])->name('productions.create');
     Route::post('/productions/extract', [ProductionController::class, 'extractMetadata'])->name('productions.extract');
+    Route::post('/productions', [ProductionController::class, 'store'])->name('productions.store');
 
     // Claims routes
     Route::post('/claims', [ProductionClaimController::class, 'store'])->name('claims.store');
