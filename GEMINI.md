@@ -42,7 +42,7 @@ Single source of truth for any AI assistant working on this project. Read entire
 - **NO Sanctum or token-based auth.** Session-based authentication from Breeze.
 - **Server-side rendering first.** Blade renders everything. Alpine.js only for micro-interactions.
 - **Pure Tailwind CSS.** Minimal custom CSS. Use Tailwind utility classes.
-- **Premium academic design.** Modern, responsive, micro-animations, clean professional look.
+- **Premium academic design.** Modern, responsive, micro-animations, clean professional look. Any design decisions should be based on Unimar Científica (https://www.unimarcientifica.edu.ve/) or the UI/UX style of unimar.edu.ve.
 
 ## 3. The 10 System Modules
 
