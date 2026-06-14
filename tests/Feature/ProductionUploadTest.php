@@ -195,4 +195,80 @@ class ProductionUploadTest extends TestCase
             'title' => 'Una Tesis Fantasma',
         ]);
     }
+
+    public function test_user_can_submit_draft(): void
+    {
+        $prod = Production::create([
+            'uuid' => (string) Str::uuid(),
+            'title' => 'Mi Borrador Tesis',
+            'workflow_state' => 'draft',
+        ]);
+        $prod->users()->attach($this->student->id, ['role' => 'author']);
+
+        $response = $this->actingAs($this->student)->post(route('productions.submit-draft', $prod));
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success', '¡El borrador ha sido enviado a revisión con éxito!');
+
+        $this->assertDatabaseHas('productions', [
+            'id' => $prod->id,
+            'workflow_state' => 'under_review',
+        ]);
+        $this->assertNotNull($prod->refresh()->submission_date);
+    }
+
+    public function test_user_can_delete_draft(): void
+    {
+        $prod = Production::create([
+            'uuid' => (string) Str::uuid(),
+            'title' => 'Mi Borrador Tesis a Eliminar',
+            'workflow_state' => 'draft',
+        ]);
+        $prod->users()->attach($this->student->id, ['role' => 'author']);
+
+        $response = $this->actingAs($this->student)->delete(route('productions.destroy', $prod));
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success', 'El borrador ha sido eliminado con éxito.');
+
+        $this->assertSoftDeleted('productions', [
+            'id' => $prod->id,
+        ]);
+    }
+
+    public function test_user_cannot_submit_other_users_draft(): void
+    {
+        $otherStudent = User::factory()->create();
+        $otherStudent->assignRole('Estudiante');
+
+        $prod = Production::create([
+            'uuid' => (string) Str::uuid(),
+            'title' => 'Borrador Ajeno',
+            'workflow_state' => 'draft',
+        ]);
+        $prod->users()->attach($otherStudent->id, ['role' => 'author']);
+
+        $response = $this->actingAs($this->student)->post(route('productions.submit-draft', $prod));
+        $response->assertStatus(403);
+    }
+
+    public function test_user_cannot_delete_non_draft_production(): void
+    {
+        $prod = Production::create([
+            'uuid' => (string) Str::uuid(),
+            'title' => 'Tesis En Revision',
+            'workflow_state' => 'under_review',
+        ]);
+        $prod->users()->attach($this->student->id, ['role' => 'author']);
+
+        $response = $this->actingAs($this->student)->delete(route('productions.destroy', $prod));
+
+        $response->assertRedirect();
+        $response->assertSessionHas('error', 'Solo los borradores pueden ser eliminados.');
+
+        $this->assertDatabaseHas('productions', [
+            'id' => $prod->id,
+            'deleted_at' => null,
+        ]);
+    }
 }

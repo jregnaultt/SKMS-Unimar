@@ -120,4 +120,47 @@ class ProductionController extends Controller
             'file_id' => $fileId,
         ]);
     }
+
+    public function submitDraft(Request $request, Production $production): RedirectResponse
+    {
+        $isAuthor = $production->users()
+            ->where('user_id', $request->user()->id)
+            ->wherePivot('role', 'author')
+            ->exists();
+
+        if (! $isAuthor) {
+            abort(403, 'No tienes autorización sobre esta producción científica.');
+        }
+
+        if ($production->workflow_state !== 'draft') {
+            return back()->with('error', 'Solo los borradores pueden ser enviados a revisión.');
+        }
+
+        $production->update([
+            'workflow_state' => 'under_review',
+            'submission_date' => now(),
+        ]);
+
+        return back()->with('success', '¡El borrador ha sido enviado a revisión con éxito!');
+    }
+
+    public function destroy(Request $request, Production $production): RedirectResponse
+    {
+        $isAuthor = $production->users()
+            ->where('user_id', $request->user()->id)
+            ->wherePivot('role', 'author')
+            ->exists();
+
+        if (! $isAuthor) {
+            abort(403, 'No tienes autorización sobre esta producción científica.');
+        }
+
+        if ($production->workflow_state !== 'draft') {
+            return back()->with('error', 'Solo los borradores pueden ser eliminados.');
+        }
+
+        $production->delete();
+
+        return back()->with('success', 'El borrador ha sido eliminado con éxito.');
+    }
 }
