@@ -6,6 +6,7 @@ use App\Enums\CommentStatus;
 use App\Models\Comment;
 use App\Models\Production;
 use App\Models\User;
+use App\Notifications\CommentNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -204,9 +205,14 @@ class FeedbackCommentsTest extends TestCase
             ]);
 
         $this->assertDatabaseHas('notifications', [
-            'user_id' => $this->student->id,
-            'type' => 'comment_created',
+            'notifiable_id' => $this->student->id,
+            'notifiable_type' => User::class,
+            'type' => CommentNotification::class,
         ]);
+
+        $notification = $this->student->notifications()->first();
+        $this->assertNotNull($notification);
+        $this->assertEquals('comment_created', $notification->data['type']);
     }
 
     public function test_tutor_receives_notification_when_observation_is_addressed(): void
@@ -220,9 +226,14 @@ class FeedbackCommentsTest extends TestCase
             ->patch(route('comments.update-status', $comment), ['status' => 'addressed']);
 
         $this->assertDatabaseHas('notifications', [
-            'user_id' => $this->tutor->id,
-            'type' => 'comment_addressed',
+            'notifiable_id' => $this->tutor->id,
+            'notifiable_type' => User::class,
+            'type' => CommentNotification::class,
         ]);
+
+        $notification = $this->tutor->notifications()->first();
+        $this->assertNotNull($notification);
+        $this->assertEquals('comment_addressed', $notification->data['type']);
     }
 
     // ─── Scenario 6: Audit Trail ──────────────────────────────────────────────

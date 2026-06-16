@@ -5,8 +5,8 @@ namespace App\Listeners;
 use App\Enums\CommentStatus;
 use App\Events\CommentCreated;
 use App\Events\CommentStatusChanged;
-use App\Models\Notification;
 use App\Models\User;
+use App\Notifications\CommentNotification;
 
 class SendCommentNotification
 {
@@ -22,23 +22,12 @@ class SendCommentNotification
         $production->users()
             ->wherePivot('role', 'author')
             ->each(function (User $student) use ($event, $production): void {
-                Notification::create([
-                    'user_id' => $student->id,
-                    'type' => 'comment_created',
-                    'title' => 'Nueva observación en tu producción',
-                    'message' => sprintf(
-                        '%s publicó una nueva observación en "%s".',
-                        $event->author->name,
-                        $production->title ?? 'Sin título'
-                    ),
-                    'data' => json_encode([
-                        'production_id' => $production->id,
-                        'comment_id' => $event->comment->id,
-                        'author_id' => $event->author->id,
-                        'reference_section' => $event->comment->reference_section,
-                    ]),
-                    'read' => false,
-                ]);
+                $student->notify(new CommentNotification(
+                    $production,
+                    $event->comment,
+                    $event->author,
+                    'comment_created'
+                ));
             });
     }
 
@@ -57,21 +46,12 @@ class SendCommentNotification
             $rootComment = $comment->isReply() ? $comment->parent : $comment;
             $observer = $rootComment->user;
 
-            Notification::create([
-                'user_id' => $observer->id,
-                'type' => 'comment_addressed',
-                'title' => 'Observación atendida',
-                'message' => sprintf(
-                    'El estudiante ha marcado como atendida una observación en "%s". Por favor verifícala.',
-                    $production->title ?? 'Sin título'
-                ),
-                'data' => json_encode([
-                    'production_id' => $production->id,
-                    'comment_id' => $comment->id,
-                    'changed_by' => $event->changedBy->id,
-                ]),
-                'read' => false,
-            ]);
+            $observer->notify(new CommentNotification(
+                $production,
+                $comment,
+                $event->changedBy,
+                'comment_addressed'
+            ));
         }
     }
 
