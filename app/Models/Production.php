@@ -65,4 +65,24 @@ class Production extends Model implements HasMedia
     {
         return $this->hasMany(ProductionClaim::class);
     }
+
+    public function milestones(): HasMany
+    {
+        return $this->hasMany(ProductionMilestone::class);
+    }
+
+    public function revisions(): HasMany
+    {
+        return $this->hasMany(Revision::class);
+    }
+
+    public function documentVersions(): HasMany
+    {
+        return $this->hasMany(DocumentVersion::class);
+    }
+
+    public function comments(): HasMany
+    {
+        return $this->hasMany(Comment::class);
+    }
 }

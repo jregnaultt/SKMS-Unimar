@@ -3,6 +3,7 @@
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\ProductionController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ProgressController;
 use App\Http\Controllers\WorkflowController;
 use Illuminate\Support\Facades\Route;
 
@@ -43,6 +44,11 @@ Route::middleware('auth')->group(function () {
     Route::patch('/comments/{comment}/status', [CommentController::class, 'updateStatus'])->name('comments.update-status');
     Route::post('/comments/{comment}/verify', [CommentController::class, 'verify'])->name('comments.verify');
     Route::delete('/comments/{comment}', [CommentController::class, 'destroy'])->name('comments.destroy');
+
+    // Progress tracking routes (Module 5)
+    Route::get('/productions/{production}/progreso', [ProgressController::class, 'studentShow'])->name('progress.student.show');
+    Route::get('/coordinacion/dashboard', [ProgressController::class, 'coordinatorIndex'])->name('progress.coordinator.index');
+    Route::post('/productions/{production}/hitos', [ProgressController::class, 'configureMilestones'])->name('progress.milestones.store');
 });
 
 require __DIR__.'/auth.php';
