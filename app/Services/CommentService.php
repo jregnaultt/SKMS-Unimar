@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Enums\CommentStatus;
+use App\Events\CommentCreated;
+use App\Events\CommentStatusChanged;
 use App\Models\Comment;
 use App\Models\Production;
 use App\Models\User;
@@ -105,7 +107,7 @@ class CommentService
             );
         }
 
-        return Comment::create([
+        $comment = Comment::create([
             'production_id' => $production->id,
             'user_id' => $user->id,
             'content' => $data['content'],
@@ -113,6 +115,10 @@ class CommentService
             'status' => CommentStatus::Pending->value,
             'parent_id' => null,
         ]);
+
+        CommentCreated::dispatch($comment, $production, $user);
+
+        return $comment;
     }
 
     /**
@@ -169,7 +175,10 @@ class CommentService
             throw new AuthorizationException('No tienes permiso para cambiar el estado de esta observación.');
         }
 
+        $previousStatus = $comment->status;
         $comment->update(['status' => $newStatus->value]);
+
+        CommentStatusChanged::dispatch($comment, $previousStatus, $newStatus, $user);
     }
 
     /**
