@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CommentController;
 use App\Http\Controllers\ProductionController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\WorkflowController;
@@ -35,6 +36,13 @@ Route::middleware('auth')->group(function () {
     Route::get('/admin/claims', [ProductionClaimController::class, 'index'])->name('admin.claims.index');
     Route::post('/admin/claims/{claim}/approve', [ProductionClaimController::class, 'approve'])->name('admin.claims.approve');
     Route::post('/admin/claims/{claim}/reject', [ProductionClaimController::class, 'reject'])->name('admin.claims.reject');
+
+    // Comment / Feedback routes (Module 4)
+    Route::post('/productions/{production}/comments', [CommentController::class, 'store'])->name('comments.store');
+    Route::post('/comments/{comment}/reply', [CommentController::class, 'reply'])->name('comments.reply');
+    Route::patch('/comments/{comment}/status', [CommentController::class, 'updateStatus'])->name('comments.update-status');
+    Route::post('/comments/{comment}/verify', [CommentController::class, 'verify'])->name('comments.verify');
+    Route::delete('/comments/{comment}', [CommentController::class, 'destroy'])->name('comments.destroy');
 });
 
 require __DIR__.'/auth.php';
