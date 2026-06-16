@@ -6,6 +6,7 @@ use App\Http\Requests\StoreProductionRequest;
 use App\Jobs\ExtractMetadataJob;
 use App\Models\AcademicPeriod;
 use App\Models\AcademicProgram;
+use App\Models\Comment;
 use App\Models\DocumentVersion;
 use App\Models\Keyword;
 use App\Models\Production;
@@ -144,7 +145,12 @@ class ProductionController extends Controller
             ->orderBy('version_number', 'asc')
             ->get();
 
-        return view('pages.productions.show', compact('production', 'revisions', 'versions'));
+        $comments = Comment::where('production_id', $production->id)
+            ->with(['user', 'replies.user'])
+            ->orderBy('created_at', 'asc')
+            ->get();
+
+        return view('pages.productions.show', compact('production', 'revisions', 'versions', 'comments'));
     }
 
     public function downloadDocument(Production $production)

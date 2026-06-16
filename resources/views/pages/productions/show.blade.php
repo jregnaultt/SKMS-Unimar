@@ -362,7 +362,253 @@
                         @endif
                     </div>
 
+                    @php
+                        $reviewableStates = ['under_review', 'needs_corrections'];
+                        $isReadOnly = ! in_array($production->workflow_state, $reviewableStates);
+                        $rootComments = $comments->whereNull('parent_id');
+                        $pendingCount = $rootComments->where('status.value', 'pending')->count();
+                        $inProgressCount = $rootComments->where('status.value', 'in_progress')->count();
+                        $addressedCount = $rootComments->where('status.value', 'addressed')->count();
+
+                        $isAuthor = $production->users->where('id', auth()->id())->where('pivot.role', 'author')->isNotEmpty();
+                        $isTutorOrJury = $production->users->where('id', auth()->id())->whereIn('pivot.role', ['tutor', 'jury'])->isNotEmpty();
+                    @endphp
+
+                    {{-- Feedback & Comments Panel --}}
+                    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden"
+                         x-data="{
+                             showNewObservation: false,
+                             showReplyModal: false,
+                             replyToId: null,
+                             replyToRef: '',
+                             expandedComments: {}
+                         }">
+
+                        {{-- Panel Header --}}
+                        <div class="bg-blue-900 px-6 py-4 flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <svg class="w-5 h-5 text-blue-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                                </svg>
+                                <h3 class="text-sm font-bold text-white">Observaciones de Revisión</h3>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                @if ($pendingCount > 0)
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-700 border border-red-300">
+                                        {{ $pendingCount }} Pendiente{{ $pendingCount > 1 ? 's' : '' }}
+                                    </span>
+                                @endif
+                                @if ($inProgressCount > 0)
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700 border border-yellow-300">
+                                        {{ $inProgressCount }} En Progreso
+                                    </span>
+                                @endif
+                                @if ($addressedCount > 0)
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-700 border border-green-300">
+                                        {{ $addressedCount }} Atendida{{ $addressedCount > 1 ? 's' : '' }}
+                                    </span>
+                                @endif
+                            </div>
+                        </div>
+
+                        <div class="p-6 space-y-4">
+
+                            @if ($isReadOnly && $rootComments->isEmpty())
+                                <p class="text-xs text-gray-400 dark:text-gray-500 italic text-center py-4">
+                                    No hay observaciones registradas para esta producción.
+                                </p>
+                            @endif
+
+                            @foreach ($rootComments as $observation)
+                                @php $reply = $comments->firstWhere('parent_id', $observation->id); @endphp
+                                <div class="rounded-xl border bg-gray-50 dark:bg-gray-900/40 dark:border-gray-700 {{ $observation->status->borderClass() }} overflow-hidden shadow-sm">
+
+                                    {{-- Observation header --}}
+                                    <div class="px-4 pt-4 pb-3">
+                                        <div class="flex items-start justify-between gap-2 mb-2">
+                                            <div class="flex items-center gap-2 flex-wrap">
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold {{ $observation->status->badgeClass() }}">
+                                                    {{ $observation->status->label() }}
+                                                </span>
+                                                <span class="text-xs font-semibold text-gray-700 dark:text-gray-300">
+                                                    {{ $observation->user->name }}
+                                                </span>
+                                                @if ($observation->reference_section)
+                                                    <span class="text-xs text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 px-2 py-0.5 rounded-full border border-blue-100 dark:border-blue-800">
+                                                        📍 {{ $observation->reference_section }}
+                                                    </span>
+                                                @endif
+                                            </div>
+                                            <span class="text-[10px] text-gray-400 whitespace-nowrap" title="{{ $observation->created_at }}">
+                                                {{ $observation->created_at->diffForHumans() }}
+                                            </span>
+                                        </div>
+
+                                        <p class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                                            {{ $observation->content }}
+                                        </p>
+                                    </div>
+
+                                    {{-- Student reply --}}
+                                    @if ($reply)
+                                        <div class="mx-4 mb-3 pl-3 border-l-2 border-blue-300 dark:border-blue-700 bg-blue-50/50 dark:bg-blue-900/10 rounded-r-lg py-2">
+                                            <div class="flex items-center gap-2 mb-1">
+                                                <span class="text-xs font-semibold text-blue-700 dark:text-blue-300">↳ {{ $reply->user->name }}</span>
+                                                <span class="text-[10px] text-gray-400">{{ $reply->created_at->diffForHumans() }}</span>
+                                            </div>
+                                            <p class="text-xs text-gray-600 dark:text-gray-400">{{ $reply->content }}</p>
+                                        </div>
+                                    @endif
+
+                                    {{-- Action buttons --}}
+                                    @if (! $isReadOnly)
+                                        <div class="px-4 pb-3 flex flex-wrap gap-2">
+
+                                            {{-- Student actions --}}
+                                            @if ($isAuthor)
+                                                @if ($observation->status->value === 'pending')
+                                                    <form action="{{ route('comments.update-status', $observation) }}" method="POST" class="inline">
+                                                        @csrf @method('PATCH')
+                                                        <input type="hidden" name="status" value="in_progress">
+                                                        <button type="submit" class="px-3 py-1 text-xs font-semibold bg-yellow-100 text-yellow-700 border border-yellow-300 rounded-lg hover:bg-yellow-200 transition">
+                                                            Marcar En Progreso
+                                                        </button>
+                                                    </form>
+                                                @elseif ($observation->status->value === 'in_progress')
+                                                    <form action="{{ route('comments.update-status', $observation) }}" method="POST" class="inline">
+                                                        @csrf @method('PATCH')
+                                                        <input type="hidden" name="status" value="addressed">
+                                                        <button type="submit" class="px-3 py-1 text-xs font-semibold bg-green-100 text-green-700 border border-green-300 rounded-lg hover:bg-green-200 transition">
+                                                            Marcar Atendido
+                                                        </button>
+                                                    </form>
+                                                @endif
+
+                                                @if (! $reply && in_array($observation->status->value, ['pending', 'in_progress']))
+                                                    <button type="button"
+                                                            @click="showReplyModal = true; replyToId = {{ $observation->id }}; replyToRef = '{{ addslashes($observation->reference_section ?? 'Observación') }}'"
+                                                            class="px-3 py-1 text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200 rounded-lg hover:bg-blue-100 transition">
+                                                        Responder
+                                                    </button>
+                                                @endif
+                                            @endif
+
+                                            {{-- Tutor/Jury: verify addressed --}}
+                                            @if ($isTutorOrJury && $observation->status->value === 'addressed' && $observation->user_id === auth()->id())
+                                                <form action="{{ route('comments.verify', $observation) }}" method="POST" class="inline">
+                                                    @csrf
+                                                    <button type="submit" class="px-3 py-1 text-xs font-semibold bg-emerald-100 text-emerald-700 border border-emerald-300 rounded-lg hover:bg-emerald-200 transition">
+                                                        ✓ Verificar y Cerrar
+                                                    </button>
+                                                </form>
+                                            @endif
+
+                                            {{-- Tutor/Jury: delete pending without replies --}}
+                                            @if ($isTutorOrJury && $observation->user_id === auth()->id() && $observation->status->value === 'pending' && ! $reply)
+                                                <form action="{{ route('comments.destroy', $observation) }}" method="POST" class="inline"
+                                                      onsubmit="return confirm('¿Eliminar esta observación?')">
+                                                    @csrf @method('DELETE')
+                                                    <button type="submit" class="px-3 py-1 text-xs font-semibold bg-red-50 text-red-600 border border-red-200 rounded-lg hover:bg-red-100 transition">
+                                                        Eliminar
+                                                    </button>
+                                                </form>
+                                            @endif
+                                        </div>
+                                    @endif
+
+                                    @if ($isReadOnly)
+                                        <div class="px-4 pb-3">
+                                            <span class="text-[10px] text-gray-400 italic">Solo lectura — producción {{ $production->workflow_state === 'published' ? 'publicada' : 'cerrada' }}</span>
+                                        </div>
+                                    @endif
+                                </div>
+                            @endforeach
+
+                            {{-- New Observation Button (Tutor/Jury only, active states) --}}
+                            @if ($isTutorOrJury && ! $isReadOnly)
+                                <div class="pt-2">
+                                    <button type="button" @click="showNewObservation = true"
+                                            class="w-full flex items-center justify-center gap-2 py-2.5 border-2 border-dashed border-blue-200 dark:border-blue-800 rounded-xl text-sm text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition font-semibold">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                                        </svg>
+                                        Nueva Observación
+                                    </button>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+
+                    {{-- Modal: Nueva Observación --}}
+                    <div x-show="showNewObservation"
+                         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+                         style="display: none;" x-transition @click.self="showNewObservation = false">
+                        <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-lg w-full p-6 shadow-xl border border-gray-100 dark:border-gray-700">
+                            <h3 class="text-sm font-bold text-gray-900 dark:text-gray-100 mb-1">Nueva Observación</h3>
+                            <p class="text-xs text-gray-500 mb-4">Registra una observación estructurada sobre el documento. El estudiante recibirá una notificación.</p>
+                            <form action="{{ route('comments.store', $production) }}" method="POST">
+                                @csrf
+                                <div class="mb-3">
+                                    <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">Referencia de sección (opcional)</label>
+                                    <input type="text" name="reference_section" maxlength="100"
+                                           class="w-full rounded-lg border-gray-200 dark:border-gray-700 dark:bg-gray-900 text-xs focus:ring-blue-500"
+                                           placeholder="Ej: Página 23, Sección 3.2, Metodología...">
+                                </div>
+                                <div class="mb-4">
+                                    <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">
+                                        Observación <span class="text-red-500">*</span>
+                                    </label>
+                                    <textarea name="content" required rows="5" minlength="10" maxlength="2000"
+                                              class="w-full rounded-lg border-gray-200 dark:border-gray-700 dark:bg-gray-900 text-xs focus:ring-blue-500"
+                                              placeholder="Describe la observación con detalle suficiente para que el estudiante pueda corregir..."></textarea>
+                                </div>
+                                <div class="flex justify-end gap-2">
+                                    <button type="button" @click="showNewObservation = false"
+                                            class="px-3 py-1.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-semibold">
+                                        Cancelar
+                                    </button>
+                                    <button type="submit"
+                                            class="px-4 py-1.5 bg-blue-900 hover:bg-blue-800 text-white rounded-lg text-xs font-semibold shadow transition">
+                                        Registrar Observación
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    {{-- Modal: Responder Observación --}}
+                    <div x-show="showReplyModal"
+                         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+                         style="display: none;" x-transition @click.self="showReplyModal = false">
+                        <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-lg w-full p-6 shadow-xl border border-gray-100 dark:border-gray-700">
+                            <h3 class="text-sm font-bold text-gray-900 dark:text-gray-100 mb-1">Responder Observación</h3>
+                            <p class="text-xs text-gray-500 mb-1">Respondiendo a: <strong x-text="replyToRef"></strong></p>
+                            <p class="text-xs text-gray-400 mb-4">Describe brevemente las correcciones realizadas.</p>
+                            <template x-if="replyToId">
+                                <form :action="`/comments/${replyToId}/reply`" method="POST">
+                                    @csrf
+                                    <div class="mb-4">
+                                        <textarea name="content" required rows="4" minlength="10" maxlength="2000"
+                                                  class="w-full rounded-lg border-gray-200 dark:border-gray-700 dark:bg-gray-900 text-xs focus:ring-blue-500"
+                                                  placeholder="Describe las correcciones que realizaste..."></textarea>
+                                    </div>
+                                    <div class="flex justify-end gap-2">
+                                        <button type="button" @click="showReplyModal = false"
+                                                class="px-3 py-1.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-xs font-semibold">
+                                            Cancelar
+                                        </button>
+                                        <button type="submit"
+                                                class="px-4 py-1.5 bg-blue-900 hover:bg-blue-800 text-white rounded-lg text-xs font-semibold shadow transition">
+                                            Enviar Respuesta
+                                        </button>
+                                    </div>
+                                </form>
+                            </template>
+                        </div>
+                    </div>
+
                 </div>
+
 
             </div>
         </div>
