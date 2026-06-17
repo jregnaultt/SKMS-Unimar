@@ -1,9 +1,12 @@
 <?php
 
+use App\Http\Controllers\OaiPmhController;
 use App\Http\Controllers\ProductionController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\WorkflowController;
 use Illuminate\Support\Facades\Route;
+
+Route::get('/oai', [OaiPmhController::class, 'index'])->name('oai');
 
 Route::get('/', function () {
     return view('welcome');

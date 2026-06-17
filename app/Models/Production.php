@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -34,9 +35,9 @@ class Production extends Model implements HasMedia
     /**
      * Scope to only published productions exposed by OAI-PMH and reports.
      */
-    public function scopePublished($query): void
+    public function scopePublished($query): Builder
     {
-        $query->where('workflow_state', 'published');
+        return $query->where('workflow_state', 'published');
     }
 
     public function academicProgram(): BelongsTo
