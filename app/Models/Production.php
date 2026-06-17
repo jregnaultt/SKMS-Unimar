@@ -27,7 +27,16 @@ class Production extends Model implements HasMedia
         return [
             'submission_date' => 'datetime',
             'approval_date' => 'datetime',
+            'published_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Scope to only published productions exposed by OAI-PMH and reports.
+     */
+    public function scopePublished($query): void
+    {
+        $query->where('workflow_state', 'published');
     }
 
     public function academicProgram(): BelongsTo
