@@ -15,6 +15,11 @@ Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
+use App\Http\Controllers\Admin\AdminAcademicPeriodController;
+use App\Http\Controllers\Admin\AdminAcademicProgramController;
+use App\Http\Controllers\Admin\AdminAuditLogController;
+use App\Http\Controllers\Admin\AdminResearchLineController;
+use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\ProductionClaimController;
 
 Route::middleware('auth')->group(function () {
@@ -49,6 +54,16 @@ Route::middleware('auth')->group(function () {
     Route::get('/productions/{production}/progreso', [ProgressController::class, 'studentShow'])->name('progress.student.show');
     Route::get('/coordinacion/dashboard', [ProgressController::class, 'coordinatorIndex'])->name('progress.coordinator.index');
     Route::post('/productions/{production}/hitos', [ProgressController::class, 'configureMilestones'])->name('progress.milestones.store');
+
+    // Admin panel routes (Module 10)
+    Route::middleware(['role:Coordinador|Super Admin'])->prefix('admin')->name('admin.')->group(function () {
+        Route::resource('programs', AdminAcademicProgramController::class);
+        Route::resource('lines', AdminResearchLineController::class);
+        Route::resource('periods', AdminAcademicPeriodController::class);
+        Route::resource('users', AdminUserController::class)->only(['index', 'edit', 'update']);
+        Route::get('audit-logs', [AdminAuditLogController::class, 'index'])->name('audit-logs.index');
+        Route::get('audit-logs/{auditLog}', [AdminAuditLogController::class, 'show'])->name('audit-logs.show');
+    });
 });
 
 require __DIR__.'/auth.php';
