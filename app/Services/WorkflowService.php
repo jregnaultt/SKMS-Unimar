@@ -107,6 +107,10 @@ class WorkflowService
                 $updateData['approval_date'] = now();
             }
 
+            if ($targetState === 'published') {
+                $updateData['published_at'] = now();
+            }
+
             $production->update($updateData);
 
             // 3. Handle file resubmission for needs_corrections -> under_review

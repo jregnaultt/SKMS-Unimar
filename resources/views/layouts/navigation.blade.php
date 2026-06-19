@@ -19,6 +19,9 @@
                         <x-nav-link :href="route('admin.claims.index')" :active="request()->routeIs('admin.claims.index')">
                             {{ __('Reclamaciones') }}
                         </x-nav-link>
+                        <x-nav-link :href="route('bibliometrics.index')" :active="request()->routeIs('bibliometrics.index')">
+                            {{ __('Bibliometría') }}
+                        </x-nav-link>
                     @endif
                 </div>
             </div>
@@ -78,6 +81,9 @@
             @if(Auth::user()->hasAnyRole(['Coordinador', 'Super Admin']))
                 <x-responsive-nav-link :href="route('admin.claims.index')" :active="request()->routeIs('admin.claims.index')">
                     {{ __('Reclamaciones') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('bibliometrics.index')" :active="request()->routeIs('bibliometrics.index')">
+                    {{ __('Bibliometría') }}
                 </x-responsive-nav-link>
             @endif
         </div>
