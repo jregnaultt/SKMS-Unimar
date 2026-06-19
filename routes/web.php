@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\BibliometricController;
 use App\Http\Controllers\CommentController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OaiPmhController;
 use App\Http\Controllers\ProductionController;
 use App\Http\Controllers\ProfileController;
@@ -62,6 +63,13 @@ Route::middleware('auth')->group(function () {
     Route::get('/productions/{production}/progreso', [ProgressController::class, 'studentShow'])->name('progress.student.show');
     Route::get('/coordinacion/dashboard', [ProgressController::class, 'coordinatorIndex'])->name('progress.coordinator.index');
     Route::post('/productions/{production}/hitos', [ProgressController::class, 'configureMilestones'])->name('progress.milestones.store');
+
+    // Notifications (Module 9)
+    Route::prefix('notifications')->name('notifications.')->group(function () {
+        Route::get('/', [NotificationController::class, 'index'])->name('index');
+        Route::post('/{id}/read', [NotificationController::class, 'markAsRead'])->name('read');
+        Route::post('/read-all', [NotificationController::class, 'markAllAsRead'])->name('read-all');
+    });
 
     // Admin panel routes (Module 10)
     Route::middleware(['role:Coordinador|Super Admin'])->prefix('admin')->name('admin.')->group(function () {
