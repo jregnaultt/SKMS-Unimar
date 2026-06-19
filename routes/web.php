@@ -1,12 +1,14 @@
 <?php
 
 use App\Http\Controllers\BibliometricController;
+use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OaiPmhController;
 use App\Http\Controllers\ProductionController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProgressController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\WorkflowController;
 use Illuminate\Support\Facades\Route;
 
@@ -15,6 +17,10 @@ Route::get('/oai', [OaiPmhController::class, 'index'])->name('oai');
 Route::get('/bibliometrics', [BibliometricController::class, 'index'])
     ->middleware(['auth', 'verified'])
     ->name('bibliometrics.index');
+
+Route::get('/catalog', [CatalogController::class, 'index'])
+    ->middleware(['auth', 'verified'])
+    ->name('catalog.index');
 
 Route::get('/', function () {
     return view('welcome');
@@ -79,6 +85,11 @@ Route::middleware('auth')->group(function () {
         Route::resource('users', AdminUserController::class)->only(['index', 'edit', 'update']);
         Route::get('audit-logs', [AdminAuditLogController::class, 'index'])->name('audit-logs.index');
         Route::get('audit-logs/{auditLog}', [AdminAuditLogController::class, 'show'])->name('audit-logs.show');
+
+        // Reports (Module 8)
+        Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
+        Route::post('reports/generate', [ReportController::class, 'generate'])->name('reports.generate');
+        Route::get('reports/download/{filename}', [ReportController::class, 'download'])->name('reports.download');
     });
 });
 
