@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -28,7 +29,16 @@ class Production extends Model implements HasMedia
         return [
             'submission_date' => 'datetime',
             'approval_date' => 'datetime',
+            'published_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Scope to only published productions exposed by OAI-PMH and reports.
+     */
+    public function scopePublished($query): Builder
+    {
+        return $query->where('workflow_state', 'published');
     }
 
     public function academicProgram(): BelongsTo
@@ -64,5 +74,25 @@ class Production extends Model implements HasMedia
     public function claims(): HasMany
     {
         return $this->hasMany(ProductionClaim::class);
+    }
+
+    public function milestones(): HasMany
+    {
+        return $this->hasMany(ProductionMilestone::class);
+    }
+
+    public function revisions(): HasMany
+    {
+        return $this->hasMany(Revision::class);
+    }
+
+    public function documentVersions(): HasMany
+    {
+        return $this->hasMany(DocumentVersion::class);
+    }
+
+    public function comments(): HasMany
+    {
+        return $this->hasMany(Comment::class);
     }
 }

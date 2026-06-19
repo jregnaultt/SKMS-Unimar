@@ -1,10 +1,19 @@
 <?php
 
+use App\Http\Controllers\BibliometricController;
 use App\Http\Controllers\CommentController;
+use App\Http\Controllers\OaiPmhController;
 use App\Http\Controllers\ProductionController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ProgressController;
 use App\Http\Controllers\WorkflowController;
 use Illuminate\Support\Facades\Route;
+
+Route::get('/oai', [OaiPmhController::class, 'index'])->name('oai');
+
+Route::get('/bibliometrics', [BibliometricController::class, 'index'])
+    ->middleware(['auth', 'verified'])
+    ->name('bibliometrics.index');
 
 Route::get('/', function () {
     return view('welcome');
@@ -14,6 +23,11 @@ Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
+use App\Http\Controllers\Admin\AdminAcademicPeriodController;
+use App\Http\Controllers\Admin\AdminAcademicProgramController;
+use App\Http\Controllers\Admin\AdminAuditLogController;
+use App\Http\Controllers\Admin\AdminResearchLineController;
+use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\ProductionClaimController;
 
 Route::middleware('auth')->group(function () {
@@ -43,6 +57,21 @@ Route::middleware('auth')->group(function () {
     Route::patch('/comments/{comment}/status', [CommentController::class, 'updateStatus'])->name('comments.update-status');
     Route::post('/comments/{comment}/verify', [CommentController::class, 'verify'])->name('comments.verify');
     Route::delete('/comments/{comment}', [CommentController::class, 'destroy'])->name('comments.destroy');
+
+    // Progress tracking routes (Module 5)
+    Route::get('/productions/{production}/progreso', [ProgressController::class, 'studentShow'])->name('progress.student.show');
+    Route::get('/coordinacion/dashboard', [ProgressController::class, 'coordinatorIndex'])->name('progress.coordinator.index');
+    Route::post('/productions/{production}/hitos', [ProgressController::class, 'configureMilestones'])->name('progress.milestones.store');
+
+    // Admin panel routes (Module 10)
+    Route::middleware(['role:Coordinador|Super Admin'])->prefix('admin')->name('admin.')->group(function () {
+        Route::resource('programs', AdminAcademicProgramController::class);
+        Route::resource('lines', AdminResearchLineController::class);
+        Route::resource('periods', AdminAcademicPeriodController::class);
+        Route::resource('users', AdminUserController::class)->only(['index', 'edit', 'update']);
+        Route::get('audit-logs', [AdminAuditLogController::class, 'index'])->name('audit-logs.index');
+        Route::get('audit-logs/{auditLog}', [AdminAuditLogController::class, 'show'])->name('audit-logs.show');
+    });
 });
 
 require __DIR__.'/auth.php';
