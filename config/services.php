@@ -40,4 +40,9 @@ return [
         'model' => env('OLLAMA_MODEL', 'qwen2.5:1.5b'),
     ],
 
+    'google' => [
+        'client_id' => env('GOOGLE_CLIENT_ID'),
+        'api_key' => env('GOOGLE_API_KEY'),
+    ],
+
 ];

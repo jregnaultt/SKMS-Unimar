@@ -32,7 +32,10 @@ class StoreProductionRequest extends FormRequest
             'research_line_id' => ['required', 'exists:research_lines,id'],
             'production_type_id' => ['required', 'exists:production_types,id'],
             'academic_period_id' => ['required', 'exists:academic_periods,id'],
-            'file_id' => ['required', 'string'],
+            'file_id' => ['required_without:google_drive_file_id', 'nullable', 'string'],
+            'google_drive_file_id' => ['required_without:file_id', 'nullable', 'string'],
+            'google_document_title' => ['nullable', 'string', 'max:255'],
+            'google_access_token' => ['required_with:google_drive_file_id', 'nullable', 'string'],
             'action' => ['required', 'in:draft,submit'],
         ];
     }

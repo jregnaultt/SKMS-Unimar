@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreProductionRequest;
+use App\Jobs\ExportGoogleDocToPdfJob;
 use App\Jobs\ExtractMetadataJob;
 use App\Models\AcademicPeriod;
 use App\Models\AcademicProgram;
@@ -34,23 +35,31 @@ class ProductionController extends Controller
 
     public function store(StoreProductionRequest $request): RedirectResponse
     {
-        $fileId = $request->input('file_id');
-        $tempPathPdf = "temp_pdfs/{$fileId}.pdf";
-        $tempPathDocx = "temp_pdfs/{$fileId}.docx";
+        $googleDriveFileId = $request->input('google_drive_file_id');
+        $googleDocumentTitle = $request->input('google_document_title');
+        $googleAccessToken = $request->input('google_access_token');
 
-        $relativePath = '';
-        if (Storage::disk('local')->exists($tempPathPdf)) {
-            $relativePath = $tempPathPdf;
-        } elseif (Storage::disk('local')->exists($tempPathDocx)) {
-            $relativePath = $tempPathDocx;
-        } else {
-            return back()->withInput()->with('error', 'El archivo subido no se encuentra en el servidor o ha expirado. Por favor, sube el documento de nuevo.');
+        $tempFullPath = null;
+
+        if (! $googleDriveFileId) {
+            $fileId = $request->input('file_id');
+            $tempPathPdf = "temp_pdfs/{$fileId}.pdf";
+            $tempPathDocx = "temp_pdfs/{$fileId}.docx";
+
+            $relativePath = '';
+            if (Storage::disk('local')->exists($tempPathPdf)) {
+                $relativePath = $tempPathPdf;
+            } elseif (Storage::disk('local')->exists($tempPathDocx)) {
+                $relativePath = $tempPathDocx;
+            } else {
+                return back()->withInput()->with('error', 'El archivo subido no se encuentra en el servidor o ha expirado. Por favor, sube el documento de nuevo.');
+            }
+
+            $tempFullPath = Storage::disk('local')->path($relativePath);
         }
 
-        $tempFullPath = Storage::disk('local')->path($relativePath);
-
         try {
-            DB::transaction(function () use ($request, $tempFullPath) {
+            DB::transaction(function () use ($request, $tempFullPath, $googleDriveFileId, $googleDocumentTitle, $googleAccessToken) {
                 // 1. Create the production record
                 $production = Production::create([
                     'uuid' => (string) Str::uuid(),
@@ -64,6 +73,8 @@ class ProductionController extends Controller
                     'academic_period_id' => $request->input('academic_period_id'),
                     'workflow_state' => $request->input('action') === 'submit' ? 'under_review' : 'draft',
                     'submission_date' => $request->input('action') === 'submit' ? now() : null,
+                    'google_drive_file_id' => $googleDriveFileId,
+                    'google_document_title' => $googleDocumentTitle,
                 ]);
 
                 // 2. Process keywords
@@ -79,9 +90,15 @@ class ProductionController extends Controller
                 }
                 $production->keywords()->sync($keywordIds);
 
-                // 3. Move the temporary document to Spatie MediaLibrary
-                $production->addMedia($tempFullPath)
-                    ->toMediaCollection('documento');
+                // 3. Move document or dispatch async export job
+                if ($googleDriveFileId) {
+                    // Dispatch job to export Google Doc to PDF immediately
+                    ExportGoogleDocToPdfJob::dispatch($production, $googleDriveFileId, $googleAccessToken);
+                } else {
+                    // Move the temporary document to Spatie MediaLibrary
+                    $production->addMedia($tempFullPath)
+                        ->toMediaCollection('documento');
+                }
 
                 // 4. Associate current user as author (pivot)
                 $production->users()->attach($request->user()->id, [

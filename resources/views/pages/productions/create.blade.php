@@ -5,7 +5,81 @@
         </h2>
     </x-slot>
 
-    <div class="py-12" x-data="documentUpload({{ $researchLines->toJson() }})">
+    <!-- Load Google Picker and Google Identity Services scripts -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="https://apis.google.com/js/api.js" async defer></script>
+
+    <div class="py-12" x-data="Object.assign(documentUpload({{ $researchLines->toJson() }}), {
+        sourceType: 'local',
+        googleDriveFileId: '',
+        googleDocumentTitle: '',
+        googleAccessToken: '',
+        developerKey: '{{ config('services.google.api_key') }}',
+        clientId: '{{ config('services.google.client_id') }}',
+        scope: ['https://www.googleapis.com/auth/drive.readonly'],
+
+        initGoogleDocs() {
+            gapi.load('auth', () => {});
+            gapi.load('picker', () => {});
+        },
+
+        handleGoogleAuth() {
+            const tokenClient = google.accounts.oauth2.initTokenClient({
+                client_id: this.clientId,
+                scope: this.scope.join(' '),
+                callback: (tokenResponse) => {
+                    if (tokenResponse.error !== undefined) {
+                        alert('Error de autenticación con Google.');
+                        return;
+                    }
+                    this.googleAccessToken = tokenResponse.access_token;
+                    this.openGooglePicker();
+                },
+            });
+            tokenClient.requestAccessToken({ prompt: 'consent' });
+        },
+
+        openGooglePicker() {
+            if (!this.googleAccessToken) return;
+
+            const view = new google.picker.View(google.picker.ViewId.DOCUMENTS);
+            view.setMimeTypes('application/vnd.google-apps.document');
+
+            const picker = new google.picker.PickerBuilder()
+                .addView(view)
+                .setOAuthToken(this.googleAccessToken)
+                .setDeveloperKey(this.developerKey)
+                .setCallback((data) => {
+                    if (data.action === google.picker.Action.PICKED) {
+                        const doc = data.docs[0];
+                        this.googleDriveFileId = doc.id;
+                        this.googleDocumentTitle = doc.name;
+
+                        // Auto-fill title if empty
+                        if (!this.metadata.title) {
+                            this.metadata.title = doc.name;
+                        }
+                    }
+                })
+                .build();
+            picker.setVisible(true);
+        },
+
+        // Override original submitForm validation
+        submitForm(event) {
+            if (this.sourceType === 'local' && !this.fileId) {
+                event.preventDefault();
+                alert('Por favor, sube un documento PDF o Word primero.');
+                return false;
+            }
+            if (this.sourceType === 'google' && !this.googleDriveFileId) {
+                event.preventDefault();
+                alert('Por favor, vincula tu documento de Google Docs primero.');
+                return false;
+            }
+            return true;
+        }
+    })">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
 
             <!-- Alerts -->
@@ -45,16 +119,26 @@
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg border border-gray-100 dark:border-gray-700">
                 <div class="p-6 text-gray-900 dark:text-gray-100">
                     
-                    <!-- Form Header -->
+                    <!-- Form Header & Source Selector -->
                     <div class="mb-8 border-b border-gray-200 dark:border-gray-700 pb-4">
-                        <h3 class="text-lg font-medium text-indigo-600 dark:text-indigo-400">1. Carga del Documento (PDF o Word)</h3>
+                        <h3 class="text-lg font-medium text-indigo-600 dark:text-indigo-400">1. Origen del Documento</h3>
                         <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                            Sube tu trabajo de grado en formato PDF o Word (DOCX). Nuestro sistema de inteligencia artificial extraerá automáticamente los metadatos para facilitarte el trabajo.
+                            Elige si deseas subir un archivo local o vincular un documento de Google Docs.
                         </p>
                     </div>
 
-                    <!-- File Upload Section -->
-                    <div class="mb-10">
+                    <!-- Document Source Selector Tabs -->
+                    <div class="mb-6 flex space-x-4 border-b border-gray-200 dark:border-gray-700 pb-3">
+                        <button type="button" @click="sourceType = 'local'" :class="sourceType === 'local' ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400 font-bold' : 'border-transparent text-gray-500 hover:text-gray-750'" class="py-2 px-4 border-b-2 text-sm transition duration-150">
+                            Archivo Local (PDF / DOCX)
+                        </button>
+                        <button type="button" @click="sourceType = 'google'; initGoogleDocs()" :class="sourceType === 'google' ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400 font-bold' : 'border-transparent text-gray-500 hover:text-gray-750'" class="py-2 px-4 border-b-2 text-sm transition duration-150">
+                            Google Docs (Drive)
+                        </button>
+                    </div>
+
+                    <!-- Option A: File Upload Section -->
+                    <div x-show="sourceType === 'local'" x-transition class="mb-10">
                         <label class="flex justify-center w-full h-32 px-4 transition bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 border-dashed rounded-md appearance-none cursor-pointer hover:border-indigo-400 focus:outline-none"
                                :class="{'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20': isUploading}">
                             <span class="flex items-center space-x-2">
@@ -78,11 +162,42 @@
                         </div>
                     </div>
 
+                    <!-- Option B: Google Docs Selector Section -->
+                    <div x-show="sourceType === 'google'" x-transition class="mb-10 p-6 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-xl text-center" style="display: none;">
+                        <div x-show="!googleDriveFileId" class="space-y-4">
+                            <svg class="w-12 h-12 text-gray-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h7a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"></path>
+                            </svg>
+                            <button type="button" @click="handleGoogleAuth" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-lg font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 focus:outline-none transition duration-150 shadow-sm">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                                </svg>
+                                Buscar en mi Google Drive
+                            </button>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">
+                                Conéctate de forma segura a tu cuenta de Google para elegir tu tesis directamente desde tus carpetas compartidas.
+                            </p>
+                        </div>
+                        <div x-show="googleDriveFileId" class="space-y-4" style="display: none;">
+                            <div class="inline-flex items-center p-3 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-800 dark:text-emerald-300 rounded-lg border border-emerald-200 dark:border-emerald-900/50">
+                                <svg class="w-5 h-5 mr-2 shrink-0 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                <span class="text-sm font-semibold">Documento Vinculado: <span x-text="googleDocumentTitle"></span></span>
+                            </div>
+                            <div>
+                                <button type="button" @click="handleGoogleAuth" class="text-xs text-indigo-600 hover:text-indigo-800 hover:underline">
+                                    Cambiar documento de Google Docs
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Metadata Section (Populated Automatically) -->
                     <div class="mb-4 border-b border-gray-200 dark:border-gray-700 pb-4">
-                        <h3 class="text-lg font-medium text-indigo-600 dark:text-indigo-400">2. Metadatos Extraídos (Dublin Core)</h3>
+                        <h3 class="text-lg font-medium text-indigo-600 dark:text-indigo-400">2. Metadatos de la Tesis (Dublin Core)</h3>
                         <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                            Verifica y corrige la información extraída automáticamente.
+                            Completa o verifica la información del trabajo científico.
                         </p>
                     </div>
 
@@ -91,6 +206,9 @@
                         
                         <!-- Hidden inputs for file reference and button action -->
                         <input type="hidden" name="file_id" :value="fileId">
+                        <input type="hidden" name="google_drive_file_id" :value="googleDriveFileId">
+                        <input type="hidden" name="google_document_title" :value="googleDocumentTitle">
+                        <input type="hidden" name="google_access_token" :value="googleAccessToken">
                         <input type="hidden" name="action" :value="action">
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -130,7 +248,7 @@
                                 </select>
                             </div>
 
-                            <!-- Research Line (Filtered dynamically based on selected program) -->
+                            <!-- Research Line -->
                             <div>
                                 <label for="research_line_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Línea de Investigación</label>
                                 <select name="research_line_id" id="research_line_id" x-model="researchLineId" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-900 dark:border-gray-700 dark:text-gray-300 sm:text-sm transition duration-150 ease-in-out">
@@ -163,7 +281,7 @@
                                 </select>
                             </div>
 
-                            <!-- Keywords Tags/Chips Component (Commit 5) -->
+                            <!-- Keywords Tags/Chips Component -->
                             <div class="md:col-span-2">
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Palabras Clave</label>
                                 <div class="flex flex-wrap gap-2 p-2.5 border border-gray-300 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900 min-h-[46px] focus-within:ring-1 focus-within:ring-indigo-500 focus-within:border-indigo-500">

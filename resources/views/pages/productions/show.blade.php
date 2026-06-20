@@ -41,6 +41,7 @@
     <div class="py-12" x-data="{ 
         activePdfUrl: '{{ route('productions.document', $production) }}',
         activeVersionNumber: 'Actual',
+        googleDriveFileId: '{{ $production->google_drive_file_id }}',
         showCorrectionModal: false,
         showRejectModal: false,
         actionComment: '',
@@ -153,9 +154,14 @@
                             @endif
                         </div>
 
-                        <!-- Embedded PDF Frame -->
+                        <!-- Embedded PDF / Google Docs Frame -->
                         <div class="flex-1 bg-gray-100 dark:bg-gray-900 rounded-b-2xl relative overflow-hidden">
-                            <iframe :src="activePdfUrl" class="w-full h-full border-none" allow="fullscreen"></iframe>
+                            <template x-if="googleDriveFileId && activeVersionNumber === 'Actual'">
+                                <iframe :src="'https://docs.google.com/document/d/' + googleDriveFileId + '/edit?embedded=true'" class="w-full h-full border-none" allow="fullscreen"></iframe>
+                            </template>
+                            <template x-if="!googleDriveFileId || activeVersionNumber !== 'Actual'">
+                                <iframe :src="activePdfUrl" class="w-full h-full border-none" allow="fullscreen"></iframe>
+                            </template>
                         </div>
                     </div>
                 </div>
