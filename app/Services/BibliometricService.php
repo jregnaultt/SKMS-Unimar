@@ -129,8 +129,13 @@ class BibliometricService
      */
     public function yearlyEvolution(): array
     {
+        $driver = DB::connection()->getDriverName();
+        $yearExpression = $driver === 'sqlite'
+            ? "CAST(strftime('%Y', published_at) AS INTEGER) as year"
+            : 'YEAR(published_at) as year';
+
         return Production::published()
-            ->select(DB::raw('CAST(strftime(\'%Y\', published_at) AS INTEGER) as year'), DB::raw('count(*) as total'))
+            ->select(DB::raw($yearExpression), DB::raw('count(*) as total'))
             ->groupBy('year')
             ->orderBy('year')
             ->get()

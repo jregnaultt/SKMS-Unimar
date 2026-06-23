@@ -105,8 +105,13 @@ class OaiPmhService
             $sets[] = ['setSpec' => 'type:'.$type->id, 'setName' => $type->name];
         });
 
+        $driver = DB::connection()->getDriverName();
+        $yearExpression = $driver === 'sqlite'
+            ? "DISTINCT CAST(strftime('%Y', published_at) AS INTEGER) as year"
+            : 'DISTINCT YEAR(published_at) as year';
+
         $years = Production::published()
-            ->selectRaw('DISTINCT CAST(strftime(\'%Y\', published_at) AS INTEGER) as year')
+            ->selectRaw($yearExpression)
             ->pluck('year')
             ->sortDesc();
 
