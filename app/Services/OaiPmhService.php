@@ -9,6 +9,7 @@ use App\Models\ProductionType;
 use App\Models\ResearchLine;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 
