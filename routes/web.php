@@ -49,6 +49,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/productions/{production}/documento', [ProductionController::class, 'downloadDocument'])->name('productions.document');
     Route::get('/versions/{version}/documento', [ProductionController::class, 'downloadVersionDocument'])->name('versions.document');
     Route::post('/productions/{production}/submit', [ProductionController::class, 'submitDraft'])->name('productions.submit-draft');
+    Route::post('/productions/{production}/sync', [ProductionController::class, 'syncGoogleDoc'])->name('productions.sync');
     Route::delete('/productions/{production}', [ProductionController::class, 'destroy'])->name('productions.destroy');
     Route::post('/productions/{production}/transition', [WorkflowController::class, 'transition'])->name('productions.transition');
 

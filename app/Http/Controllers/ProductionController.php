@@ -14,6 +14,7 @@ use App\Models\Production;
 use App\Models\ProductionType;
 use App\Models\ResearchLine;
 use App\Models\Revision;
+use App\Services\GoogleDriveService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -248,5 +249,44 @@ class ProductionController extends Controller
         $production->delete();
 
         return back()->with('success', 'El borrador ha sido eliminado con éxito.');
+    }
+
+    public function syncGoogleDoc(Request $request, Production $production)
+    {
+        $request->validate([
+            'google_access_token' => 'required|string',
+        ]);
+
+        $isAuthor = $production->users()
+            ->where('user_id', $request->user()->id)
+            ->wherePivot('role', 'author')
+            ->exists();
+        $isCoordinator = $request->user()->hasRole(['Coordinador', 'Super Admin']);
+
+        if (! $isAuthor && ! $isCoordinator) {
+            return response()->json(['error' => 'No tienes autorización para sincronizar este documento.'], 403);
+        }
+
+        if (! $production->google_drive_file_id) {
+            return response()->json(['error' => 'Esta producción no está vinculada a Google Docs.'], 400);
+        }
+
+        try {
+            // Delete existing media first if we are replacing it
+            $production->clearMediaCollection('documento');
+
+            $driveService = new GoogleDriveService;
+            $driveService->exportToPdf($production, $production->google_drive_file_id, $request->input('google_access_token'));
+
+            return response()->json([
+                'status' => 'success',
+                'message' => '¡Documento sincronizado con éxito!',
+                'document_url' => route('productions.document', $production).'?t='.time(),
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error syncGoogleDoc: '.$e->getMessage());
+
+            return response()->json(['error' => 'Falla al exportar el documento: '.$e->getMessage()], 500);
+        }
     }
 }

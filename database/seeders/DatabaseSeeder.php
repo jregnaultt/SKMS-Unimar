@@ -3,6 +3,10 @@
 namespace Database\Seeders;
 
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\AcademicPeriod;
+use App\Models\AcademicProgram;
+use App\Models\ProductionType;
+use App\Models\ResearchLine;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -16,5 +20,61 @@ class DatabaseSeeder extends Seeder
             RoleSeeder::class,
             SuperAdminSeeder::class,
         ]);
+
+        // Seed Academic Programs
+        $sistemas = AcademicProgram::firstOrCreate(
+            ['code' => 'ING-SIS'],
+            ['name' => 'Ingeniería de Sistemas', 'description' => 'Programa de Ingeniería de Sistemas', 'is_active' => true]
+        );
+
+        $industrial = AcademicProgram::firstOrCreate(
+            ['code' => 'ING-IND'],
+            ['name' => 'Ingeniería Industrial', 'description' => 'Programa de Ingeniería Industrial', 'is_active' => true]
+        );
+
+        $derecho = AcademicProgram::firstOrCreate(
+            ['code' => 'DER'],
+            ['name' => 'Derecho', 'description' => 'Programa de Derecho', 'is_active' => true]
+        );
+
+        // Seed Research Lines
+        ResearchLine::firstOrCreate(
+            ['academic_program_id' => $sistemas->id, 'name' => 'Inteligencia Artificial'],
+            ['is_active' => true, 'description' => 'Línea de investigación en Inteligencia Artificial']
+        );
+        ResearchLine::firstOrCreate(
+            ['academic_program_id' => $sistemas->id, 'name' => 'Desarrollo de Software'],
+            ['is_active' => true, 'description' => 'Línea de investigación en Desarrollo de Software']
+        );
+
+        ResearchLine::firstOrCreate(
+            ['academic_program_id' => $industrial->id, 'name' => 'Optimización de Procesos'],
+            ['is_active' => true, 'description' => 'Línea de investigación en Optimización de Procesos']
+        );
+
+        ResearchLine::firstOrCreate(
+            ['academic_program_id' => $derecho->id, 'name' => 'Derechos Humanos'],
+            ['is_active' => true, 'description' => 'Línea de investigación en Derechos Humanos']
+        );
+
+        // Seed Production Types
+        ProductionType::firstOrCreate(
+            ['name' => 'Tesis de Grado'],
+            ['description' => 'Trabajo especial para optar al título de grado']
+        );
+        ProductionType::firstOrCreate(
+            ['name' => 'Trabajo de Investigación'],
+            ['description' => 'Artículo o publicación científica libre']
+        );
+
+        // Seed Academic Periods
+        AcademicPeriod::firstOrCreate(
+            ['name' => '2026-I'],
+            ['start_date' => '2026-01-01', 'end_date' => '2026-06-30', 'is_active' => true]
+        );
+        AcademicPeriod::firstOrCreate(
+            ['name' => '2026-II'],
+            ['start_date' => '2026-07-01', 'end_date' => '2026-12-31', 'is_active' => true]
+        );
     }
 }

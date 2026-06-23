@@ -1,4 +1,7 @@
 <x-app-layout>
+    <!-- Load Google Identity Services script -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+
     <x-slot name="header">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
@@ -30,6 +33,12 @@
                 ];
                 $colorClass = $statusColors[$production->workflow_state] ?? 'bg-gray-100 text-gray-800';
                 $label = $statusLabels[$production->workflow_state] ?? $production->workflow_state;
+
+                $user = auth()->user();
+                $isAuthor = $production->users()->where('user_id', $user->id)->wherePivot('role', 'author')->exists();
+                $isTutor = $production->users()->where('user_id', $user->id)->wherePivot('role', 'tutor')->exists();
+                $isJury = $production->users()->where('user_id', $user->id)->wherePivot('role', 'jury')->exists();
+                $isCoordinator = $user->hasRole(['Coordinador', 'Super Admin']);
             @endphp
             
             <span class="px-4 py-1.5 inline-flex text-sm leading-5 font-bold rounded-full {{ $colorClass }}">
@@ -42,6 +51,7 @@
         activePdfUrl: '{{ route('productions.document', $production) }}',
         activeVersionNumber: 'Actual',
         googleDriveFileId: '{{ $production->google_drive_file_id }}',
+        googleDocumentTitle: '{{ $production->google_document_title }}',
         showCorrectionModal: false,
         showRejectModal: false,
         actionComment: '',
@@ -50,6 +60,57 @@
         statusMessage: '',
         fileId: '',
         changelog: '',
+        isSyncing: false,
+        showCookieModal: false,
+        clientId: '{{ config('services.google.client_id') }}',
+        scope: ['https://www.googleapis.com/auth/drive.readonly'],
+
+        openGoogleDocsEditor() {
+            if (!this.googleDriveFileId) return;
+            const url = 'https://docs.google.com/document/d/' + this.googleDriveFileId + '/edit';
+            window.open(url, 'GoogleDocsEditor', 'width=1200,height=800,scrollbars=yes,status=yes');
+        },
+
+        syncGoogleDocs() {
+            this.isSyncing = true;
+            this.statusMessage = 'Autenticando con Google...';
+
+            const tokenClient = google.accounts.oauth2.initTokenClient({
+                client_id: this.clientId,
+                scope: this.scope.join(' '),
+                callback: (tokenResponse) => {
+                    if (tokenResponse.error !== undefined) {
+                        this.isSyncing = false;
+                        this.statusMessage = '';
+                        alert('Error de autenticación con Google.');
+                        return;
+                    }
+
+                    this.statusMessage = 'Sincronizando cambios de Google Docs...';
+
+                    axios.post('{{ route('productions.sync', $production) }}', {
+                        google_access_token: tokenResponse.access_token
+                    })
+                    .then(response => {
+                        this.isSyncing = false;
+                        this.statusMessage = '';
+                        if (response.data && response.data.document_url) {
+                            this.activePdfUrl = response.data.document_url;
+                            alert('Sincronización exitosa. El visor de PDF se ha actualizado con tus últimos cambios.');
+                        }
+                    })
+                    .catch(error => {
+                        this.isSyncing = false;
+                        this.statusMessage = '';
+                        const errorMsg = error.response && error.response.data && error.response.data.error 
+                            ? error.response.data.error 
+                            : 'Ocurrió un error al sincronizar el documento.';
+                        alert(errorMsg);
+                    });
+                },
+            });
+            tokenClient.requestAccessToken({ prompt: '' });
+        },
 
         handleFileSelect(event) {
             const file = event.target.files[0];
@@ -120,48 +181,119 @@
             @endif
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-                <!-- Left Column: Visor PDF (takes 2/3 space) -->
+                <!-- Left Column: Visor PDF / Google Docs (takes 2/3 space) -->
                 <div class="lg:col-span-2 flex flex-col space-y-4">
-                    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col h-[75vh]">
-                        <!-- PDF Header (Version Selector) -->
-                        <div class="p-4 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between bg-gray-50/50 dark:bg-gray-800/50 rounded-t-2xl">
+                    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col" style="height: 70vh; min-height: 550px;">
+                        <!-- Visor Header -->
+                        <div class="p-4 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between bg-gray-50/50 dark:bg-gray-800/50 rounded-t-2xl flex-wrap gap-2">
                             <h3 class="text-sm font-bold text-gray-900 dark:text-gray-100 flex items-center">
-                                <svg class="w-4 h-4 mr-2 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
-                                Documento PDF: <span class="ml-1 text-blue-600 dark:text-blue-400 font-semibold" x-text="activeVersionNumber"></span>
+                                <template x-if="googleDriveFileId && activeVersionNumber === 'Actual'">
+                                    <span class="flex items-center">
+                                        <svg class="w-5 h-5 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6M9 16h6M9 8h6m-7 8h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2H9z" />
+                                        </svg>
+                                        Google Docs: <span class="ml-1 text-blue-600 dark:text-blue-400 font-semibold" x-text="googleDocumentTitle || 'Documento Vinculado'"></span>
+                                        <button type="button" @click="showCookieModal = true" class="ml-2 text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition" title="¿Problemas para editar? Activar cookies">
+                                            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                        </button>
+                                    </span>
+                                </template>
+                                <template x-if="!googleDriveFileId || activeVersionNumber !== 'Actual'">
+                                    <span class="flex items-center">
+                                        <svg class="w-5 h-5 mr-2 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                        </svg>
+                                        Documento PDF: <span class="ml-1 text-blue-600 dark:text-blue-400 font-semibold" x-text="activeVersionNumber"></span>
+                                    </span>
+                                </template>
                             </h3>
 
-                            @if ($versions->isNotEmpty())
-                                <div class="flex items-center space-x-2">
-                                    <span class="text-xs text-gray-500 dark:text-gray-400">Ver versión:</span>
-                                    <div class="inline-flex rounded-lg shadow-sm">
-                                        <button type="button" 
-                                                class="px-2.5 py-1 text-xs font-semibold rounded-l-lg border transition duration-150"
-                                                :class="activeVersionNumber === 'Actual' ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600'"
-                                                @click="activePdfUrl = '{{ route('productions.document', $production) }}'; activeVersionNumber = 'Actual'">
-                                            Actual
-                                        </button>
-                                        @foreach ($versions as $ver)
-                                            <button type="button" 
-                                                    class="px-2.5 py-1 text-xs font-semibold border-t border-b border-r transition duration-150 last:rounded-r-lg"
-                                                    :class="activeVersionNumber == 'v{{ $ver->version_number }}' ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600'"
-                                                    @click="activePdfUrl = '{{ route('versions.document', $ver) }}'; activeVersionNumber = 'v{{ $ver->version_number }}'">
-                                                v{{ $ver->version_number }}
+                            <div class="flex items-center space-x-3">
+                                <!-- Botón Abrir en Google Docs -->
+                                <template x-if="googleDriveFileId && activeVersionNumber === 'Actual'">
+                                    <div class="flex items-center space-x-2">
+                                        @if ($isAuthor || $isCoordinator)
+                                            <button type="button"
+                                                    @click="openGoogleDocsEditor()"
+                                                    class="inline-flex items-center px-3 py-1.5 bg-blue-600 dark:bg-blue-700 text-white rounded-lg font-bold text-xs uppercase hover:bg-blue-700 dark:hover:bg-blue-800 transition duration-150 shadow-sm">
+                                                <svg class="w-4 h-4 mr-1.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                </svg>
+                                                Editar Documento ↗
                                             </button>
-                                        @endforeach
+                                            <button type="button"
+                                                    @click="syncGoogleDocs()"
+                                                    :disabled="isSyncing"
+                                                    class="inline-flex items-center px-3 py-1.5 bg-indigo-600 dark:bg-indigo-700 text-white rounded-lg font-bold text-xs uppercase hover:bg-indigo-700 dark:hover:bg-indigo-800 transition duration-150 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                                                <svg class="w-4 h-4 mr-1.5 shrink-0" :class="isSyncing ? 'animate-spin' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 7.89H18" />
+                                                </svg>
+                                                <span x-text="isSyncing ? 'Sincronizando...' : 'Sincronizar Cambios'"></span>
+                                            </button>
+                                        @else
+                                            <a :href="'https://docs.google.com/document/d/' + googleDriveFileId + '/edit'" 
+                                               target="_blank" 
+                                               class="inline-flex items-center px-3 py-1.5 bg-gray-600 dark:bg-gray-700 text-white rounded-lg font-bold text-xs uppercase hover:bg-gray-750 dark:hover:bg-gray-850 transition duration-150 shadow-sm">
+                                                <svg class="w-4 h-4 mr-1.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                                </svg>
+                                                Ver en Google Docs ↗
+                                            </a>
+                                        @endif
                                     </div>
-                                </div>
-                            @endif
+                                </template>
+
+                                @if ($versions->isNotEmpty())
+                                    <div class="flex items-center space-x-1.5">
+                                        <span class="text-xs text-gray-500 dark:text-gray-400">Versión:</span>
+                                        <div class="inline-flex rounded-lg shadow-sm">
+                                            <button type="button" 
+                                                    class="px-2.5 py-1 text-xs font-semibold rounded-l-lg border transition duration-150"
+                                                    :class="activeVersionNumber === 'Actual' ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600'"
+                                                    @click="activePdfUrl = '{{ route('productions.document', $production) }}'; activeVersionNumber = 'Actual'">
+                                                Actual
+                                            </button>
+                                            @foreach ($versions as $ver)
+                                                <button type="button" 
+                                                        class="px-2.5 py-1 text-xs font-semibold border-t border-b border-r transition duration-150 last:rounded-r-lg"
+                                                        :class="activeVersionNumber == 'v{{ $ver->version_number }}' ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600'"
+                                                        @click="activePdfUrl = '{{ route('versions.document', $ver) }}'; activeVersionNumber = 'v{{ $ver->version_number }}'">
+                                                    v{{ $ver->version_number }}
+                                                </button>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                @endif
+                            </div>
                         </div>
 
                         <!-- Embedded PDF / Google Docs Frame -->
-                        <div class="flex-1 bg-gray-100 dark:bg-gray-900 rounded-b-2xl relative overflow-hidden">
-                            <template x-if="googleDriveFileId && activeVersionNumber === 'Actual'">
-                                <iframe :src="'https://docs.google.com/document/d/' + googleDriveFileId + '/edit?embedded=true'" class="w-full h-full border-none" allow="fullscreen"></iframe>
-                            </template>
-                            <template x-if="!googleDriveFileId || activeVersionNumber !== 'Actual'">
-                                <iframe :src="activePdfUrl" class="w-full h-full border-none" allow="fullscreen"></iframe>
-                            </template>
+                        <div class="flex-1 bg-gray-100 dark:bg-gray-900 rounded-b-2xl relative flex flex-col overflow-hidden">
+                            <div class="flex-1 w-full h-full relative">
+                                <template x-if="googleDriveFileId && activeVersionNumber === 'Actual'">
+                                    <iframe :src="'https://docs.google.com/document/d/' + googleDriveFileId + '/edit?embedded=true'" class="absolute inset-0 w-full h-full border-none" allow="fullscreen"></iframe>
+                                </template>
+                                <template x-if="!googleDriveFileId || activeVersionNumber !== 'Actual'">
+                                    <div class="absolute inset-0 w-full h-full">
+                                        @if (!$production->hasMedia('documento') && $production->google_drive_file_id)
+                                            <div class="absolute inset-0 flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-900 p-6 text-center z-10">
+                                                <svg class="animate-spin h-10 w-10 text-indigo-600 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                </svg>
+                                                <p class="text-sm font-semibold text-gray-700 dark:text-gray-300">Vinculando documento de Google Docs...</p>
+                                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Estamos exportando tu documento a PDF en segundo plano. Esta página se recargará automáticamente en unos segundos.</p>
+                                                <script>
+                                                    setTimeout(() => {
+                                                        window.location.reload();
+                                                    }, 4000);
+                                                </script>
+                                            </div>
+                                        @endif
+                                        <iframe :src="activePdfUrl" class="absolute inset-0 w-full h-full border-none" allow="fullscreen"></iframe>
+                                    </div>
+                                </template>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -233,13 +365,7 @@
                     </div>
 
                     <!-- Action Panel Card (Decisiones) -->
-                    @php
-                        $user = auth()->user();
-                        $isAuthor = $production->users()->where('user_id', $user->id)->wherePivot('role', 'author')->exists();
-                        $isTutor = $production->users()->where('user_id', $user->id)->wherePivot('role', 'tutor')->exists();
-                        $isJury = $production->users()->where('user_id', $user->id)->wherePivot('role', 'jury')->exists();
-                        $isCoordinator = $user->hasRole(['Coordinador', 'Super Admin']);
-                    @endphp
+
 
                     <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
                         <h3 class="text-md font-bold text-gray-900 dark:text-gray-100 border-b border-gray-100 dark:border-gray-700 pb-3 mb-4 flex items-center">
@@ -543,7 +669,8 @@
                                 </div>
                             @endif
                         </div>
-                    </div>
+                    
+
 
                     {{-- Modal: Nueva Observación --}}
                     <div x-show="showNewObservation"
@@ -612,6 +739,7 @@
                             </template>
                         </div>
                     </div>
+                    </div>
 
                 </div>
 
@@ -664,6 +792,45 @@
                         </button>
                     </div>
                 </form>
+            </div>
+        </div>
+
+        <!-- Cookie Info Modal -->
+        <div x-show="showCookieModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" style="display: none;" x-transition>
+            <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-lg w-full p-6 shadow-xl border border-gray-100 dark:border-gray-700" @click.outside="showCookieModal = false">
+                <div class="flex items-center justify-between mb-4 border-b border-gray-100 dark:border-gray-700 pb-2">
+                    <h3 class="text-sm font-bold text-gray-900 dark:text-gray-100 flex items-center">
+                        <svg class="w-5 h-5 mr-2 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 3m0-3a2 2 0 110 3m-9 8h10M5 21h14a2 2 0 002-2v-5a2 2 0 00-2-2H5a2 2 0 00-2 2v5a2 2 0 002 2z"></path></svg>
+                        Activar Edición Directa de Google Docs
+                    </h3>
+                    <button type="button" @click="showCookieModal = false" class="text-gray-400 hover:text-gray-650 dark:hover:text-gray-300">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+                <div class="space-y-4 text-xs text-gray-650 dark:text-gray-300 leading-relaxed">
+                    <p class="font-medium text-gray-800 dark:text-gray-200 text-sm">Si el visor te muestra como "invitado" o "anónimo" y te solicita iniciar sesión constantemente, tu navegador está bloqueando las cookies necesarias para verificar tu sesión en Google Docs.</p>
+                    
+                    <div class="border-l-4 border-indigo-500 pl-3 py-1 space-y-3">
+                        <div>
+                            <span class="font-bold text-indigo-600 dark:text-indigo-400">Opción 1: En Google Chrome / Microsoft Edge</span>
+                            <p class="mt-0.5">Haz clic en el icono del <strong>ojo</strong> (o del candado) al lado izquierdo de la barra de direcciones (donde dice <code>localhost</code>). Selecciona <strong>"Cookies de terceros"</strong> y actívalas/permítelas para este sitio. Luego recarga la página.</p>
+                        </div>
+                        <div>
+                            <span class="font-bold text-indigo-600 dark:text-indigo-400">Opción 2: En Brave Browser</span>
+                            <p class="mt-0.5">Haz clic en el icono del <strong>León de Brave</strong> a la derecha de la barra de direcciones y <strong>desactiva los Escudos (Shields)</strong> para esta web. Luego recarga.</p>
+                        </div>
+                        <div>
+                            <span class="font-bold text-indigo-600 dark:text-indigo-400">Opción 3: En Safari (Mac/iOS)</span>
+                            <p class="mt-0.5">Ve a <em>Ajustes > Safari > Privacidad</em> y asegúrate de tener desactivada la opción <strong>"Prevenir seguimiento entre sitios"</strong>.</p>
+                        </div>
+                    </div>
+                    <p class="text-[10px] text-gray-500 dark:text-gray-400 mt-2 bg-gray-50 dark:bg-gray-900/50 p-2 rounded-lg border border-gray-150 dark:border-gray-700/50">Nota: Esta es una medida de seguridad exclusiva de tu navegador para evitar rastreo entre sitios distintos. Al habilitar las cookies de terceros para este dominio, Google Docs podrá leer tu inicio de sesión activo de forma 100% segura.</p>
+                </div>
+                <div class="flex justify-end mt-6">
+                    <button type="button" @click="showCookieModal = false" class="px-4 py-1.5 bg-blue-900 hover:bg-blue-800 text-white rounded-lg text-xs font-semibold shadow transition duration-150">
+                        Entendido
+                    </button>
+                </div>
             </div>
         </div>
 

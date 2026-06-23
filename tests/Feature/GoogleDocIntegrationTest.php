@@ -178,7 +178,45 @@ class GoogleDocIntegrationTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertSee('google-file-999999');
-        $response->assertSee('https://docs.google.com/document/d/');
-        $response->assertSee('edit?embedded=true');
+        $response->assertSee('Editar Documento');
+        $response->assertSee('Sincronizar Cambios');
+    }
+
+    public function test_sync_google_doc_endpoint_refreshes_pdf_successfully(): void
+    {
+        Http::fake([
+            'https://www.googleapis.com/*' => Http::response('FAKE_PDF_BINARY_CONTENT_UPDATED', 200),
+        ]);
+
+        $user = User::factory()->create();
+        $user->assignRole('Estudiante');
+
+        $production = Production::create([
+            'uuid' => (string) Str::uuid(),
+            'title' => 'Tesis de prueba',
+            'abstract' => 'Resumen',
+            'authors' => 'Autor',
+            'tutor' => 'Tutor',
+            'academic_program_id' => $this->program->id,
+            'research_line_id' => $this->line->id,
+            'production_type_id' => $this->type->id,
+            'academic_period_id' => $this->period->id,
+            'workflow_state' => 'draft',
+            'google_drive_file_id' => 'google-file-999999',
+        ]);
+
+        $production->users()->attach($user->id, ['role' => 'author']);
+
+        $response = $this->actingAs($user)->postJson(route('productions.sync', $production), [
+            'google_access_token' => 'new-access-token-999',
+        ]);
+
+        $response->assertStatus(200);
+        $response->assertJsonStructure(['status', 'message', 'document_url']);
+        $this->assertEquals('¡Documento sincronizado con éxito!', $response->json('message'));
+
+        $this->assertTrue($production->fresh()->hasMedia('documento'));
+        $mediaPath = $production->fresh()->getFirstMedia('documento')->getPath();
+        $this->assertEquals('FAKE_PDF_BINARY_CONTENT_UPDATED', file_get_contents($mediaPath));
     }
 }
