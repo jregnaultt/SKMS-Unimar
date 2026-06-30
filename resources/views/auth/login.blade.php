@@ -1,47 +1,76 @@
 <x-guest-layout>
-    <!-- Session Status -->
-    <x-auth-session-status class="mb-4" :status="session('status')" />
+    <!-- Encabezado de la Tarjeta -->
+    <div class="text-center mb-8">
+        <h2 class="text-2xl font-bold text-slate-800 tracking-tight font-sans">Iniciar Sesión</h2>
+        <p class="text-xs text-slate-500 mt-1.5 font-medium">Ingresa tus credenciales académicas para acceder</p>
+    </div>
 
-    <form method="POST" action="{{ route('login') }}">
+    <!-- Estado de la Sesión -->
+    <x-auth-session-status class="mb-6 p-3 bg-blue-50 border-l-4 border-unimar-blue rounded-r-lg text-xs font-semibold text-unimar-blue" :status="session('status')" />
+
+    <form method="POST" action="{{ route('login') }}" class="space-y-5">
         @csrf
 
-        <!-- Email Address -->
+        <!-- Correo Electrónico -->
         <div>
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autofocus autocomplete="username" />
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
+            <label for="email" class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Correo Institucional</label>
+            <input id="email" 
+                   type="email" 
+                   name="email" 
+                   value="{{ old('email') }}" 
+                   required 
+                   autofocus 
+                   autocomplete="username" 
+                   class="block w-full rounded-xl border-slate-200/80 bg-slate-50/50 text-slate-700 placeholder-slate-400 text-sm py-2.5 px-4 focus:border-unimar-blue focus:ring focus:ring-unimar-blue/10 transition-all duration-150" 
+                   placeholder="ejemplo@unimar.edu.ve" />
+            <x-input-error :messages="$errors->get('email')" class="mt-1.5 text-xs text-rose-600" />
         </div>
 
-        <!-- Password -->
-        <div class="mt-4">
-            <x-input-label for="password" :value="__('Password')" />
-
-            <x-text-input id="password" class="block mt-1 w-full"
-                            type="password"
-                            name="password"
-                            required autocomplete="current-password" />
-
-            <x-input-error :messages="$errors->get('password')" class="mt-2" />
+        <!-- Contraseña -->
+        <div>
+            <label for="password" class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Contraseña</label>
+            <input id="password" 
+                   type="password" 
+                   name="password" 
+                   required 
+                   autocomplete="current-password" 
+                   class="block w-full rounded-xl border-slate-200/80 bg-slate-50/50 text-slate-700 placeholder-slate-400 text-sm py-2.5 px-4 focus:border-unimar-blue focus:ring focus:ring-unimar-blue/10 transition-all duration-150" 
+                   placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;" />
+            <x-input-error :messages="$errors->get('password')" class="mt-1.5 text-xs text-rose-600" />
         </div>
 
-        <!-- Remember Me -->
-        <div class="block mt-4">
-            <label for="remember_me" class="inline-flex items-center">
-                <input id="remember_me" type="checkbox" class="rounded dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-indigo-600 shadow-sm focus:ring-indigo-500 dark:focus:ring-indigo-600 dark:focus:ring-offset-gray-800" name="remember">
-                <span class="ms-2 text-sm text-gray-600 dark:text-gray-400">{{ __('Remember me') }}</span>
+        <!-- Recordarme y Olvido de Contraseña -->
+        <div class="flex items-center justify-between pt-1">
+            <label for="remember_me" class="inline-flex items-center cursor-pointer">
+                <input id="remember_me" 
+                       type="checkbox" 
+                       name="remember" 
+                       class="rounded border-slate-300 text-unimar-blue focus:ring-unimar-blue/30 h-4 w-4 transition-all cursor-pointer">
+                <span class="ms-2 text-xs text-slate-600 font-medium select-none">Recordarme</span>
             </label>
-        </div>
 
-        <div class="flex items-center justify-end mt-4">
             @if (Route::has('password.request'))
-                <a class="underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800" href="{{ route('password.request') }}">
-                    {{ __('Forgot your password?') }}
+                <a class="text-xs text-unimar-blue hover:text-unimar-blue/80 hover:underline font-semibold transition" href="{{ route('password.request') }}">
+                    ¿Olvidaste tu contraseña?
                 </a>
             @endif
+        </div>
 
-            <x-primary-button class="ms-3">
-                {{ __('Log in') }}
-            </x-primary-button>
+        <!-- Botón de Acción Principal -->
+        <div class="pt-2">
+            <button type="submit" class="w-full flex justify-center items-center py-3 px-6 bg-unimar-blue hover:bg-unimar-blue/95 text-white font-bold rounded-xl transition-all duration-150 shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-unimar-blue text-sm">
+                Ingresar al Panel
+            </button>
         </div>
     </form>
+
+    <!-- Enlace de Registro -->
+    <div class="mt-8 pt-6 border-t border-slate-100 text-center">
+        <p class="text-xs text-slate-500 font-medium">
+            ¿No tienes una cuenta de investigador? 
+            <a href="{{ route('register') }}" class="text-unimar-blue hover:text-unimar-blue/80 font-bold hover:underline ml-1 transition">
+                Regístrate aquí
+            </a>
+        </p>
+    </div>
 </x-guest-layout>
