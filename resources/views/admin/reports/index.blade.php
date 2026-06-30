@@ -1,156 +1,229 @@
-<x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            {{ __('Reportes Institucionales') }}
-        </h2>
-    </x-slot>
+@php
+    $user = auth()->user();
+    $userRoles = $user->roles->pluck('name')->toArray();
+    $activeRole = session('active_dashboard_role') ?? ($userRoles[0] ?? 'Estudiante');
+@endphp
 
-    <div class="py-12" x-data="{
-        generating: false,
-        reportUrl: null,
-        successMessage: null,
-        errorMessage: null,
-        programId: '',
-        periodId: '',
-        state: '',
-        type: 'pdf',
-        async requestReport() {
-            this.generating = true;
-            this.reportUrl = null;
-            this.successMessage = null;
-            this.errorMessage = null;
+<x-dashboard-layout :roles="$userRoles" :activeRole="$activeRole">
+    <div class="space-y-8 max-w-5xl mx-auto pb-12" 
+         x-data="{
+             generating: false,
+             reportUrl: null,
+             successMessage: null,
+             errorMessage: null,
+             programId: '',
+             periodId: '',
+             state: '',
+             type: 'pdf',
+             async requestReport() {
+                 this.generating = true;
+                 this.reportUrl = null;
+                 this.successMessage = null;
+                 this.errorMessage = null;
+ 
+                 try {
+                     let response = await axios.post('{{ route('admin.reports.generate') }}', {
+                         type: this.type,
+                         program_id: this.programId || null,
+                         period_id: this.periodId || null,
+                         state: this.state || null
+                     });
+ 
+                     if (response.data.status === 'queued') {
+                         this.successMessage = 'El reporte ha sido encolado para procesamiento en segundo plano. El servidor lo está compilando de forma asíncrona. Te notificaremos aquí mismo apenas esté listo para descarga.';
+                     }
+                 } catch (error) {
+                     this.generating = false;
+                     this.errorMessage = error.response?.data?.message || 'Ocurrió un error al solicitar la generación del reporte.';
+                 }
+             }
+         }"
+         x-init="
+             if (window.Echo) {
+                 window.Echo.private('users.' + {{ auth()->user()->id }})
+                     .listen('ReportGenerated', (e) => {
+                         generating = false;
+                         reportUrl = `/admin/reports/download/${e.filename}`;
+                         successMessage = '¡Reporte generado con éxito! El archivo está listo para su descarga.';
+                     });
+             }
+         ">
+        
+        <!-- Encabezado de la Página -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-5">
+            <div>
+                <h1 class="text-3xl font-bold text-slate-800 tracking-tight font-sans">Reportes Institucionales</h1>
+                <p class="text-sm text-slate-500 mt-1 font-medium">Filtra la productividad científica del decanato y genera documentos oficiales (PDF y Excel) en tiempo real</p>
+            </div>
+        </div>
 
-            try {
-                let response = await axios.post('{{ route('admin.reports.generate') }}', {
-                    type: this.type,
-                    program_id: this.programId || null,
-                    period_id: this.periodId || null,
-                    state: this.state || null
-                });
+        <!-- Estado de Generación / Mensajes de Feedback -->
+        <div class="space-y-4">
+            <!-- Animación de Carga Activa -->
+            <div x-show="generating && !reportUrl" 
+                 x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="opacity-0 transform -translate-y-2"
+                 x-transition:enter-end="opacity-100 transform translate-y-0"
+                 class="p-6 bg-blue-50/50 border border-blue-100 rounded-2xl flex flex-col sm:flex-row items-center gap-4 shadow-sm"
+                 style="display: none;">
+                <div class="p-3 bg-unimar-blue/10 rounded-xl text-unimar-blue shrink-0">
+                    <svg class="animate-spin h-6 w-6 text-unimar-blue" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                </div>
+                <div class="text-center sm:text-left space-y-1">
+                    <h4 class="text-sm font-bold text-slate-850">Compilando datos en segundo plano...</h4>
+                    <p class="text-xs text-slate-500 font-medium">Procesando y aplicando la maquetación institucional del reporte. No cierres esta pestaña.</p>
+                </div>
+            </div>
 
-                if (response.data.status === 'queued') {
-                    // Show processing message
-                    this.successMessage = 'El reporte ha sido encolado para procesamiento en segundo plano. Te avisaremos por este medio cuando esté listo.';
-                }
-            } catch (error) {
-                this.generating = false;
-                this.errorMessage = error.response?.data?.message || 'Ocurrió un error al solicitar el reporte.';
-            }
-        }
-    }"
-    x-init="
-        if (window.Echo) {
-            window.Echo.private('users.' + {{ auth()->user()->id }})
-                .listen('ReportGenerated', (e) => {
-                    generating = false;
-                    reportUrl = `/admin/reports/download/${e.filename}`;
-                    successMessage = '¡Reporte generado con éxito! Ya puedes descargarlo haciendo clic en el botón de abajo.';
-                });
-        }
-    ">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="flex flex-col md:flex-row gap-6">
-                <!-- Sidebar -->
-                @include('admin.shared.sidebar')
-
-                <!-- Main Content -->
-                <div class="flex-1 bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-xl border border-gray-100 dark:border-gray-700">
-                    <div class="p-6">
-                        <div class="mb-6">
-                            <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100">
-                                Generador de Reportes Académicos
-                            </h3>
-                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                Filtra la productividad científica del decanato y genera exportables formales en segundo plano.
-                            </p>
-                        </div>
-
-                        <!-- Feedback messages -->
-                        <div x-show="successMessage" class="mb-4 p-4 bg-green-50 border border-green-200 text-green-800 rounded-lg text-sm" style="display: none;">
-                            <span x-text="successMessage"></span>
-                            <div x-show="reportUrl" class="mt-3">
-                                <a :href="reportUrl" class="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-xs font-bold rounded-lg transition duration-150">
-                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
-                                    </svg>
-                                    Descargar Reporte Generado
-                                </a>
-                            </div>
-                        </div>
-
-                        <div x-show="errorMessage" class="mb-4 p-4 bg-red-50 border border-red-200 text-red-800 rounded-lg text-sm" style="display: none;">
-                            <span x-text="errorMessage"></span>
-                        </div>
-
-                        <!-- Form -->
-                        <form @submit.prevent="requestReport()" class="space-y-6">
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <!-- Program -->
-                                <div>
-                                    <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase mb-2">Programa Académico</label>
-                                    <select x-model="programId" class="w-full text-xs rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600">
-                                        <option value="">Todos los programas</option>
-                                        @foreach($programs as $p)
-                                            <option value="{{ $p->id }}">{{ $p->name }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-
-                                <!-- Academic Period -->
-                                <div>
-                                    <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase mb-2">Período Académico</label>
-                                    <select x-model="periodId" class="w-full text-xs rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600">
-                                        <option value="">Todos los períodos</option>
-                                        @foreach($periods as $pe)
-                                            <option value="{{ $pe->id }}">{{ $pe->name }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-
-                                <!-- Workflow State -->
-                                <div>
-                                    <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase mb-2">Estado del Flujo</label>
-                                    <select x-model="state" class="w-full text-xs rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600">
-                                        <option value="">Todos los estados</option>
-                                        <option value="draft">Borrador</option>
-                                        <option value="under_review">En Revisión</option>
-                                        <option value="requires_corrections">Requiere Correcciones</option>
-                                        <option value="approved">Aprobado</option>
-                                        <option value="published">Publicado</option>
-                                        <option value="rejected">Rechazado</option>
-                                    </select>
-                                </div>
-
-                                <!-- Format -->
-                                <div>
-                                    <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase mb-2">Formato de Exportación</label>
-                                    <div class="flex items-center space-x-6 mt-2">
-                                        <label class="inline-flex items-center text-xs text-gray-700 dark:text-gray-300">
-                                            <input type="radio" x-model="type" value="pdf" class="text-indigo-600 focus:ring-indigo-500 border-gray-300 dark:border-gray-700 dark:bg-gray-900" />
-                                            <span class="ml-2">PDF Oficial (UNIMAR)</span>
-                                        </label>
-                                        <label class="inline-flex items-center text-xs text-gray-700 dark:text-gray-300">
-                                            <input type="radio" x-model="type" value="excel" class="text-indigo-600 focus:ring-indigo-500 border-gray-300 dark:border-gray-700 dark:bg-gray-900" />
-                                            <span class="ml-2">Microsoft Excel (.xlsx)</span>
-                                        </label>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Actions -->
-                            <div class="flex justify-end pt-4 border-t border-gray-100 dark:border-gray-700">
-                                <button type="submit" :disabled="generating" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-lg font-bold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 focus:bg-indigo-700 active:bg-indigo-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150 disabled:opacity-50">
-                                    <svg x-show="generating" class="animate-spin -ml-1 mr-3 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" style="display: none;">
-                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                    </svg>
-                                    <span x-text="generating ? 'Generando...' : 'Solicitar Reporte'"></span>
-                                </button>
-                            </div>
-                        </form>
+            <!-- Alerta de Éxito / Descarga -->
+            <div x-show="successMessage" 
+                 x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="opacity-0 transform -translate-y-2"
+                 x-transition:enter-end="opacity-100 transform translate-y-0"
+                 class="p-6 bg-emerald-50 border border-emerald-200/50 rounded-2xl shadow-sm space-y-4"
+                 style="display: none;">
+                <div class="flex items-start">
+                    <div class="p-2 bg-emerald-500/10 rounded-lg text-emerald-600 shrink-0 mr-3">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
                     </div>
+                    <div>
+                        <h4 class="text-sm font-bold text-emerald-900">Operación en curso</h4>
+                        <p class="text-xs text-emerald-800/90 font-medium mt-0.5" x-text="successMessage"></p>
+                    </div>
+                </div>
+
+                <!-- Botón de Descarga Real -->
+                <div x-show="reportUrl" class="pt-2 border-t border-emerald-200/40">
+                    <a :href="reportUrl" 
+                       class="inline-flex items-center px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs uppercase tracking-wider transition shadow-sm hover:shadow-md">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                        </svg>
+                        Descargar Archivo Generado
+                    </a>
+                </div>
+            </div>
+
+            <!-- Alerta de Error -->
+            <div x-show="errorMessage" 
+                 x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="opacity-0 transform -translate-y-2"
+                 x-transition:enter-end="opacity-100 transform translate-y-0"
+                 class="p-4 bg-rose-50 border-l-4 border-rose-500 rounded-r-xl shadow-sm text-rose-800"
+                 style="display: none;">
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 mr-3 text-rose-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span class="font-bold text-xs" x-text="errorMessage"></span>
                 </div>
             </div>
         </div>
+
+        <!-- Tarjeta del Generador -->
+        <div class="bg-white border border-slate-200/80 shadow-sm rounded-2xl overflow-hidden">
+            <div class="p-6 border-b border-slate-100 bg-slate-50/50">
+                <h3 class="text-lg font-bold text-slate-800 font-sans">Parámetros de Filtrado</h3>
+                <p class="text-xs text-slate-500 mt-0.5 font-medium">Especifica los filtros para segmentar la producción académica y generar el consolidado de datos</p>
+            </div>
+
+            <form @submit.prevent="requestReport()" class="p-8 space-y-8">
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Programa Académico -->
+                    <div>
+                        <label for="program_id" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Programa Académico</label>
+                        <select id="program_id" 
+                                x-model="programId" 
+                                class="block w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:border-unimar-blue focus:ring focus:ring-unimar-blue/10 transition duration-150 text-slate-700 font-medium">
+                            <option value="">Todos los programas académicos</option>
+                            @foreach($programs as $p)
+                                <option value="{{ $p->id }}">{{ $p->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <!-- Período Académico -->
+                    <div>
+                        <label for="period_id" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Período Académico</label>
+                        <select id="period_id" 
+                                x-model="periodId" 
+                                class="block w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:border-unimar-blue focus:ring focus:ring-unimar-blue/10 transition duration-150 text-slate-700 font-medium">
+                            <option value="">Todos los períodos activos</option>
+                            @foreach($periods as $pe)
+                                <option value="{{ $pe->id }}">{{ $pe->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <!-- Estado del Flujo -->
+                    <div>
+                        <label for="workflow_state" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Estado del Flujo</label>
+                        <select id="workflow_state" 
+                                x-model="state" 
+                                class="block w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:border-unimar-blue focus:ring focus:ring-unimar-blue/10 transition duration-150 text-slate-700 font-medium">
+                            <option value="">Todos los estados</option>
+                            <option value="draft">Borrador</option>
+                            <option value="under_review">En Revisión</option>
+                            <option value="requires_corrections">Requiere Correcciones</option>
+                            <option value="approved">Aprobado</option>
+                            <option value="published">Publicado</option>
+                            <option value="rejected">Rechazado</option>
+                        </select>
+                    </div>
+
+                    <!-- Formato de Exportación -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Formato de Exportación</label>
+                        <div class="grid grid-cols-2 gap-4">
+                            
+                            <!-- PDF -->
+                            <label class="flex items-center p-3 bg-white border border-slate-200 rounded-xl hover:bg-slate-50/50 cursor-pointer transition">
+                                <input type="radio" 
+                                       x-model="type" 
+                                       value="pdf" 
+                                       class="rounded-full border-slate-300 text-unimar-blue focus:ring-unimar-blue/10 w-4 h-4" />
+                                <div class="ml-3 text-xs">
+                                    <span class="block font-bold text-slate-700">PDF Oficial</span>
+                                    <span class="block text-slate-400 font-medium mt-0.5">Diseño institucional de UNIMAR</span>
+                                </div>
+                            </label>
+
+                            <!-- Excel -->
+                            <label class="flex items-center p-3 bg-white border border-slate-200 rounded-xl hover:bg-slate-50/50 cursor-pointer transition">
+                                <input type="radio" 
+                                       x-model="type" 
+                                       value="excel" 
+                                       class="rounded-full border-slate-300 text-unimar-blue focus:ring-unimar-blue/10 w-4 h-4" />
+                                <div class="ml-3 text-xs">
+                                    <span class="block font-bold text-slate-700">Microsoft Excel</span>
+                                    <span class="block text-slate-400 font-medium mt-0.5">Formato tabular de datos (.xlsx)</span>
+                                </div>
+                            </label>
+                            
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botones de Acción -->
+                <div class="flex items-center justify-end space-x-3 pt-6 border-t border-slate-100">
+                    <button type="submit" 
+                            :disabled="generating" 
+                            class="py-3 px-6 bg-unimar-blue hover:bg-unimar-blue/95 disabled:bg-slate-350 disabled:text-slate-500 disabled:cursor-not-allowed text-white font-bold rounded-xl text-xs uppercase tracking-wider transition shadow-sm hover:shadow-md flex items-center justify-center min-w-48">
+                        <svg x-show="generating" class="animate-spin -ml-1 mr-3 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" style="display: none;">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span x-text="generating ? 'Procesando Reporte...' : 'Solicitar Generación'"></span>
+                    </button>
+                </div>
+            </form>
+        </div>
+
     </div>
-</x-app-layout>
+</x-dashboard-layout>

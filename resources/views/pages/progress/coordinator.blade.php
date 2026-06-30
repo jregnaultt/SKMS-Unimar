@@ -1,11 +1,11 @@
-<x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            {{ __('Seguimiento de Progreso Científico') }}
-        </h2>
-    </x-slot>
+@php
+    $user = auth()->user();
+    $userRoles = $user->roles->pluck('name')->toArray();
+    $activeRole = session('active_dashboard_role') ?? ($userRoles[0] ?? 'Estudiante');
+@endphp
 
-    <div class="py-12" x-data="{
+<x-dashboard-layout :roles="$userRoles" :activeRole="$activeRole">
+    <div class="space-y-8 max-w-7xl mx-auto pb-12" x-data="{
         openModal: false,
         productionId: null,
         productionTitle: '',
@@ -25,13 +25,16 @@
                     status: m.status
                 }));
             } else {
-                this.milestones = [
-                    { type: 'delivery', title: 'Entrega del Primer Borrador', scheduled_date: '', status: 'pending' },
-                    { type: 'pre_defense', title: 'Pre-Defensa Académica', scheduled_date: '', status: 'pending' },
-                    { type: 'defense', title: 'Defensa Final de Tesis', scheduled_date: '', status: 'pending' }
-                ];
+                this.loadStandardMilestones();
             }
             this.openModal = true;
+        },
+        loadStandardMilestones() {
+            this.milestones = [
+                { type: 'delivery', title: 'Entrega del Primer Borrador', scheduled_date: '', status: 'pending' },
+                { type: 'pre_defense', title: 'Pre-Defensa Académica', scheduled_date: '', status: 'pending' },
+                { type: 'defense', title: 'Defensa Final de Tesis', scheduled_date: '', status: 'pending' }
+            ];
         },
         addMilestone() {
             this.milestones.push({ type: 'delivery', title: 'Nuevo Hito', scheduled_date: '', status: 'pending' });
@@ -40,297 +43,341 @@
             this.milestones.splice(index, 1);
         }
     }">
-        <div class="max-w-7xl mx-auto sm:px-4 lg:px-8 space-y-6">
-
-            <!-- Alerts -->
-            @if (session('success'))
-                <div class="p-4 bg-emerald-50 dark:bg-emerald-950/20 border-l-4 border-emerald-500 rounded-r-lg shadow-sm text-emerald-800 dark:text-emerald-300">
-                    <div class="flex items-center">
-                        <svg class="w-5 h-5 mr-3 text-emerald-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                        <span class="font-medium text-sm">{{ session('success') }}</span>
-                    </div>
-                </div>
-            @endif
-
-            @if (session('error'))
-                <div class="p-4 bg-rose-50 dark:bg-rose-950/20 border-l-4 border-rose-500 rounded-r-lg shadow-sm text-rose-800 dark:text-rose-300">
-                    <div class="flex items-center">
-                        <svg class="w-5 h-5 mr-3 text-rose-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                        <span class="font-medium text-sm">{{ session('error') }}</span>
-                    </div>
-                </div>
-            @endif
-
-            <!-- Filtros de Busqueda -->
-            <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
-                <form method="GET" action="{{ route('progress.coordinator.index') }}" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-                    
-                    <!-- Search input -->
-                    <div class="md:col-span-2 space-y-1">
-                        <label for="search" class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                            Buscar Proyecto o Estudiante
-                        </label>
-                        <div class="relative">
-                            <input type="text" id="search" name="search" value="{{ $filters['search'] ?? '' }}" placeholder="Ingrese título de tesis o nombre del alumno..." class="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 dark:bg-gray-900 dark:border-gray-700 rounded-xl text-sm focus:ring-blue-500 focus:border-blue-500 dark:text-white" />
-                            <svg class="absolute left-3.5 top-3 w-4.5 h-4.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                        </div>
-                    </div>
-
-                    <!-- Program filter -->
-                    <div class="space-y-1">
-                        <label for="academic_program_id" class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                            Programa Académico
-                        </label>
-                        <select id="academic_program_id" name="academic_program_id" class="w-full py-2 bg-gray-50 border border-gray-200 dark:bg-gray-900 dark:border-gray-700 rounded-xl text-sm focus:ring-blue-500 focus:border-blue-500 dark:text-white">
-                            <option value="">Todos los programas</option>
-                            @foreach ($programs as $prog)
-                                <option value="{{ $prog->id }}" {{ ($filters['academic_program_id'] ?? '') == $prog->id ? 'selected' : '' }}>
-                                    {{ $prog->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <!-- State filter -->
-                    <div class="space-y-1">
-                        <label for="workflow_state" class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                            Estado del Workflow
-                        </label>
-                        <select id="workflow_state" name="workflow_state" class="w-full py-2 bg-gray-50 border border-gray-200 dark:bg-gray-900 dark:border-gray-700 rounded-xl text-sm focus:ring-blue-500 focus:border-blue-500 dark:text-white">
-                            <option value="">Todos los estados</option>
-                            <option value="draft" {{ ($filters['workflow_state'] ?? '') === 'draft' ? 'selected' : '' }}>Borrador</option>
-                            <option value="under_review" {{ ($filters['workflow_state'] ?? '') === 'under_review' ? 'selected' : '' }}>En Revisión</option>
-                            <option value="needs_corrections" {{ ($filters['workflow_state'] ?? '') === 'needs_corrections' ? 'selected' : '' }}>Requiere Correcciones</option>
-                            <option value="approved" {{ ($filters['workflow_state'] ?? '') === 'approved' ? 'selected' : '' }}>Aprobado</option>
-                            <option value="published" {{ ($filters['workflow_state'] ?? '') === 'published' ? 'selected' : '' }}>Publicado</option>
-                            <option value="rejected" {{ ($filters['workflow_state'] ?? '') === 'rejected' ? 'selected' : '' }}>Rechazado</option>
-                        </select>
-                    </div>
-
-                    <!-- Line filter -->
-                    <div class="space-y-1">
-                        <label for="research_line_id" class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                            Línea de Investigación
-                        </label>
-                        <select id="research_line_id" name="research_line_id" class="w-full py-2 bg-gray-50 border border-gray-200 dark:bg-gray-900 dark:border-gray-700 rounded-xl text-sm focus:ring-blue-500 focus:border-blue-500 dark:text-white">
-                            <option value="">Todas las líneas</option>
-                            @foreach ($lines as $line)
-                                <option value="{{ $line->id }}" {{ ($filters['research_line_id'] ?? '') == $line->id ? 'selected' : '' }}>
-                                    {{ $line->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <!-- Tutor filter -->
-                    <div class="space-y-1">
-                        <label for="tutor_id" class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                            Tutor Asignado
-                        </label>
-                        <select id="tutor_id" name="tutor_id" class="w-full py-2 bg-gray-50 border border-gray-200 dark:bg-gray-900 dark:border-gray-700 rounded-xl text-sm focus:ring-blue-500 focus:border-blue-500 dark:text-white">
-                            <option value="">Todos los tutores</option>
-                            @foreach ($tutors as $tutor)
-                                <option value="{{ $tutor->id }}" {{ ($filters['tutor_id'] ?? '') == $tutor->id ? 'selected' : '' }}>
-                                    {{ $tutor->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <!-- Submit & Clear Buttons -->
-                    <div class="md:col-span-2 flex space-x-2">
-                        <button type="submit" class="flex-1 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-semibold transition shadow-sm">
-                            Aplicar Filtros
-                        </button>
-                        <a href="{{ route('progress.coordinator.index') }}" class="py-2 px-4 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-xl text-sm font-semibold transition text-center">
-                            Limpiar
-                        </a>
-                    </div>
-                </form>
+        
+        <!-- Encabezado de la Página -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-5">
+            <div>
+                <h1 class="text-3xl font-bold text-slate-800 tracking-tight font-sans">Seguimiento de Progreso Científico</h1>
+                <p class="text-sm text-slate-500 mt-1 font-medium">Monitoreo y asignación de hitos académicos de la cohorte activa, Decanato de Ingeniería y Afines</p>
             </div>
-
-            <!-- Listado de Estudiantes y Tesis -->
-            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="bg-gray-50/75 dark:bg-gray-900/50 border-b border-gray-100 dark:border-gray-700 text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                                <th class="p-4 pl-6">Estudiante y Título</th>
-                                <th class="p-4">Programa / Línea</th>
-                                <th class="p-4">Progreso General</th>
-                                <th class="p-4 text-center">Estado Workflow</th>
-                                <th class="p-4 pr-6 text-right">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-100 dark:divide-gray-700 text-sm text-gray-700 dark:text-gray-300">
-                            @if ($productions->isEmpty())
-                                <tr>
-                                    <td colspan="5" class="p-8 text-center text-gray-400 dark:text-gray-500">
-                                        No se encontraron producciones científicas registradas con los filtros provistos.
-                                    </td>
-                                </tr>
-                            @else
-                                @foreach ($productions as $prod)
-                                    @php
-                                        $studentUser = $prod->users->where('pivot.role', 'author')->first();
-                                        
-                                        $stateColors = [
-                                            'draft' => 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300',
-                                            'under_review' => 'bg-blue-50 text-blue-700 dark:bg-blue-950/20 dark:text-blue-400',
-                                            'needs_corrections' => 'bg-amber-50 text-amber-700 dark:bg-amber-950/20 dark:text-amber-400',
-                                            'approved' => 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/20 dark:text-emerald-400',
-                                            'published' => 'bg-indigo-50 text-indigo-700 dark:bg-indigo-950/20 dark:text-indigo-400',
-                                            'rejected' => 'bg-rose-50 text-rose-700 dark:bg-rose-950/20 dark:text-rose-400',
-                                        ];
-
-                                        $stateLabels = [
-                                            'draft' => 'Borrador',
-                                            'under_review' => 'En Revisión',
-                                            'needs_corrections' => 'Requiere Correcciones',
-                                            'approved' => 'Aprobado',
-                                            'published' => 'Publicado',
-                                            'rejected' => 'Rechazado',
-                                        ];
-
-                                        $stateClass = $stateColors[$prod->workflow_state] ?? $stateColors['draft'];
-                                        $stateLabel = $stateLabels[$prod->workflow_state] ?? 'Borrador';
-                                    @endphp
-                                    <tr class="hover:bg-gray-50/50 dark:hover:bg-gray-900/10 transition">
-                                        
-                                        <!-- Estudiante y Titulo -->
-                                        <td class="p-4 pl-6 space-y-1 max-w-sm">
-                                            <span class="block font-bold text-gray-900 dark:text-white leading-tight">
-                                                {{ $studentUser ? $studentUser->name : 'Autor no especificado' }}
-                                            </span>
-                                            <p class="text-xs text-gray-400 dark:text-gray-500 truncate" title="{{ $prod->title }}">
-                                                {{ $prod->title }}
-                                            </p>
-                                        </td>
-
-                                        <!-- Programa / Linea -->
-                                        <td class="p-4 space-y-0.5">
-                                            <span class="block font-semibold text-gray-800 dark:text-gray-200 text-xs">
-                                                {{ $prod->academicProgram ? $prod->academicProgram->name : 'N/A' }}
-                                            </span>
-                                            <span class="block text-[11px] text-gray-400">
-                                                {{ $prod->researchLine ? $prod->researchLine->name : 'N/A' }}
-                                            </span>
-                                        </td>
-
-                                        <!-- Progreso General -->
-                                        <td class="p-4 max-w-xs">
-                                            <div class="flex items-center space-x-3">
-                                                <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                                                    @php
-                                                        $progressBarColor = 'bg-blue-600 dark:bg-blue-500';
-                                                        if ($prod->progress_percentage < 40) {
-                                                            $progressBarColor = 'bg-rose-500';
-                                                        } elseif ($prod->progress_percentage < 80) {
-                                                            $progressBarColor = 'bg-amber-500';
-                                                        } else {
-                                                            $progressBarColor = 'bg-emerald-500 dark:bg-emerald-400';
-                                                        }
-                                                    @endphp
-                                                    <div class="{{ $progressBarColor }} h-2 rounded-full transition-all duration-300" style="width: {{ $prod->progress_percentage }}%"></div>
-                                                </div>
-                                                <span class="text-xs font-bold text-gray-900 dark:text-white shrink-0">
-                                                    {{ $prod->progress_percentage }}%
-                                                </span>
-                                            </div>
-                                            <span class="text-[10px] text-gray-400">
-                                                {{ $prod->milestones->where('status', 'completed')->count() }} de {{ $prod->milestones->count() }} hitos cumplidos
-                                            </span>
-                                        </td>
-
-                                        <!-- Estado Workflow -->
-                                        <td class="p-4 text-center">
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border {{ $stateClass }}">
-                                                {{ $stateLabel }}
-                                            </span>
-                                        </td>
-
-                                        <!-- Acciones -->
-                                        <td class="p-4 pr-6 text-right space-x-2 shrink-0 whitespace-nowrap">
-                                            <!-- Configurar Hitos -->
-                                            <button type="button" @click="initModal({{ json_encode($prod) }})" class="inline-flex items-center px-3 py-1.5 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-900 text-gray-600 dark:text-gray-300 rounded-lg text-xs font-semibold transition shadow-sm">
-                                                Configurar Hitos
-                                            </button>
-                                            <!-- Ver Progreso -->
-                                            <a href="{{ route('progress.student.show', $prod) }}" class="inline-flex items-center px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold transition shadow-sm">
-                                                Ver Detalle
-                                            </a>
-                                        </td>
-
-                                    </tr>
-                                @endforeach
-                            @endif
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- Paginated links -->
-                @if ($productions->hasPages())
-                    <div class="bg-gray-50 dark:bg-gray-900/30 px-6 py-4 border-t border-gray-100 dark:border-gray-700">
-                        {{ $productions->links() }}
-                    </div>
-                @endif
+            
+            <!-- Periodo Académico Activo Badge -->
+            <div class="flex items-center shrink-0">
+                <span class="inline-flex items-center px-4 py-2 rounded-xl text-xs font-bold border border-unimar-gold/30 bg-unimar-gold/10 text-slate-700 shadow-sm">
+                    <svg class="w-4 h-4 text-unimar-gold mr-2 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    </svg>
+                    Período Activo: 2026-I
+                </span>
             </div>
-
         </div>
 
-        <!-- Alpine.js modal for milestones configuration -->
-        <div x-show="openModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/55 backdrop-blur-sm" x-transition.opacity style="display: none;">
-            <div class="bg-white dark:bg-gray-800 w-full max-w-2xl rounded-2xl shadow-xl overflow-hidden border border-gray-100 dark:border-gray-700" @click.outside="openModal = false" x-transition.scale>
+        <!-- Alertas Flash del Sistema -->
+        @if (session('success'))
+            <div class="p-4 bg-emerald-50 border-l-4 border-emerald-500 rounded-r-xl shadow-sm text-emerald-800 transition duration-300">
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 mr-3 text-emerald-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span class="font-semibold text-xs">{{ session('success') }}</span>
+                </div>
+            </div>
+        @endif
+
+        @if (session('error'))
+            <div class="p-4 bg-rose-50 border-l-4 border-rose-500 rounded-r-xl shadow-sm text-rose-800 transition duration-300">
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 mr-3 text-rose-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span class="font-semibold text-xs">{{ session('error') }}</span>
+                </div>
+            </div>
+        @endif
+
+        <!-- Tarjeta de Filtros de Búsqueda -->
+        <div class="bg-white border border-slate-200/80 shadow-sm rounded-2xl p-6">
+            <form method="GET" action="{{ route('progress.coordinator.index') }}" class="grid grid-cols-1 md:grid-cols-4 gap-5 items-end">
                 
-                <!-- Header -->
-                <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
+                <!-- Búsqueda por texto -->
+                <div class="md:col-span-2 space-y-1.5">
+                    <label for="search" class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Buscar Proyecto o Estudiante</label>
+                    <div class="relative">
+                        <input type="text" 
+                               id="search" 
+                               name="search" 
+                               value="{{ $filters['search'] ?? '' }}" 
+                               placeholder="Ingresa título de tesis o nombre del alumno..." 
+                               class="block w-full pl-10 pr-4 py-2 bg-slate-50/50 border border-slate-200/80 rounded-xl text-sm focus:border-unimar-blue focus:ring focus:ring-unimar-blue/10 transition duration-150 text-slate-700 placeholder-slate-400 font-medium" />
+                        <svg class="absolute left-3.5 top-3.5 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- Programa Académico -->
+                <div class="space-y-1.5">
+                    <label for="academic_program_id" class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Programa Académico</label>
+                    <select id="academic_program_id" 
+                            name="academic_program_id" 
+                            class="block w-full py-2 bg-slate-50/50 border border-slate-200/80 rounded-xl text-sm focus:border-unimar-blue focus:ring focus:ring-unimar-blue/10 transition duration-150 text-slate-700 cursor-pointer font-medium">
+                        <option value="">Todos los programas</option>
+                        @foreach ($programs as $prog)
+                            <option value="{{ $prog->id }}" {{ ($filters['academic_program_id'] ?? '') == $prog->id ? 'selected' : '' }}>
+                                {{ $prog->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <!-- Estado del Workflow -->
+                <div class="space-y-1.5">
+                    <label for="workflow_state" class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Estado del Workflow</label>
+                    <select id="workflow_state" 
+                            name="workflow_state" 
+                            class="block w-full py-2 bg-slate-50/50 border border-slate-200/80 rounded-xl text-sm focus:border-unimar-blue focus:ring focus:ring-unimar-blue/10 transition duration-150 text-slate-700 cursor-pointer font-medium">
+                        <option value="">Todos los estados</option>
+                        <option value="draft" {{ ($filters['workflow_state'] ?? '') === 'draft' ? 'selected' : '' }}>Borrador</option>
+                        <option value="under_review" {{ ($filters['workflow_state'] ?? '') === 'under_review' ? 'selected' : '' }}>En Revisión</option>
+                        <option value="needs_corrections" {{ ($filters['workflow_state'] ?? '') === 'needs_corrections' ? 'selected' : '' }}>Requiere Correcciones</option>
+                        <option value="approved" {{ ($filters['workflow_state'] ?? '') === 'approved' ? 'selected' : '' }}>Aprobado</option>
+                        <option value="published" {{ ($filters['workflow_state'] ?? '') === 'published' ? 'selected' : '' }}>Publicado</option>
+                        <option value="rejected" {{ ($filters['workflow_state'] ?? '') === 'rejected' ? 'selected' : '' }}>Rechazado</option>
+                    </select>
+                </div>
+
+                <!-- Línea de Investigación -->
+                <div class="space-y-1.5">
+                    <label for="research_line_id" class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Línea de Investigación</label>
+                    <select id="research_line_id" 
+                            name="research_line_id" 
+                            class="block w-full py-2 bg-slate-50/50 border border-slate-200/80 rounded-xl text-sm focus:border-unimar-blue focus:ring focus:ring-unimar-blue/10 transition duration-150 text-slate-700 cursor-pointer font-medium">
+                        <option value="">Todas las líneas</option>
+                        @foreach ($lines as $line)
+                            <option value="{{ $line->id }}" {{ ($filters['research_line_id'] ?? '') == $line->id ? 'selected' : '' }}>
+                                {{ $line->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <!-- Tutor Asignado -->
+                <div class="space-y-1.5">
+                    <label for="tutor_id" class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Tutor Asignado</label>
+                    <select id="tutor_id" 
+                            name="tutor_id" 
+                            class="block w-full py-2 bg-slate-50/50 border border-slate-200/80 rounded-xl text-sm focus:border-unimar-blue focus:ring focus:ring-unimar-blue/10 transition duration-150 text-slate-700 cursor-pointer font-medium">
+                        <option value="">Todos los tutores</option>
+                        @foreach ($tutors as $tutor)
+                            <option value="{{ $tutor->id }}" {{ ($filters['tutor_id'] ?? '') == $tutor->id ? 'selected' : '' }}>
+                                {{ $tutor->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <!-- Botones de Acción -->
+                <div class="md:col-span-2 flex space-x-3 pt-2 sm:pt-0">
+                    <button type="submit" class="flex-1 py-2 px-6 bg-unimar-blue hover:bg-unimar-blue/95 text-white font-bold rounded-xl text-sm transition shadow-sm hover:shadow-md focus:outline-none uppercase tracking-wider">
+                        Aplicar Filtros
+                    </button>
+                    <a href="{{ route('progress.coordinator.index') }}" class="py-2 px-6 bg-white hover:bg-slate-50 text-slate-700 font-bold rounded-xl text-sm border border-slate-200 transition text-center uppercase tracking-wider">
+                        Limpiar
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        <!-- Listado de Estudiantes y Tesis -->
+        <div class="bg-white border border-slate-200/80 shadow-sm rounded-2xl overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-50 border-b border-slate-200 text-xs font-bold uppercase tracking-wider text-slate-500">
+                            <th class="p-4 pl-6">Estudiante y Título</th>
+                            <th class="p-4">Programa / Línea</th>
+                            <th class="p-4">Progreso General</th>
+                            <th class="p-4 text-center">Estado Workflow</th>
+                            <th class="p-4 pr-6 text-right">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 text-sm text-slate-700">
+                        @if ($productions->isEmpty())
+                            <tr>
+                                <td colspan="5" class="p-12 text-center text-slate-400 font-medium">
+                                    No se encontraron producciones científicas registradas con los filtros provistos.
+                                </td>
+                            </tr>
+                        @else
+                            @foreach ($productions as $prod)
+                                @php
+                                    $studentUser = $prod->users->where('pivot.role', 'author')->first();
+                                    
+                                    $stateColors = [
+                                        'draft' => 'bg-slate-100 text-slate-700 border-slate-200',
+                                        'under_review' => 'bg-blue-50 text-unimar-blue border-blue-100',
+                                        'needs_corrections' => 'bg-amber-50 text-amber-700 border-amber-200',
+                                        'approved' => 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                                        'published' => 'bg-indigo-50 text-indigo-700 border-indigo-200',
+                                        'rejected' => 'bg-rose-50 text-rose-700 border-rose-200',
+                                    ];
+
+                                    $stateLabels = [
+                                        'draft' => 'Borrador',
+                                        'under_review' => 'En Revisión',
+                                        'needs_corrections' => 'Requiere Correcciones',
+                                        'approved' => 'Aprobado',
+                                        'published' => 'Publicado',
+                                        'rejected' => 'Rechazado',
+                                    ];
+
+                                    $stateClass = $stateColors[$prod->workflow_state] ?? $stateColors['draft'];
+                                    $stateLabel = $stateLabels[$prod->workflow_state] ?? 'Borrador';
+                                @endphp
+                                <tr class="hover:bg-slate-50/50 transition duration-150">
+                                    
+                                    <!-- Estudiante y Titulo -->
+                                    <td class="p-4 pl-6 space-y-1 max-w-sm">
+                                        <span class="block font-bold text-slate-800 leading-tight">
+                                            {{ $studentUser ? $studentUser->name : 'Autor no especificado' }}
+                                        </span>
+                                        <p class="text-xs text-slate-400 truncate font-medium" title="{{ $prod->title }}">
+                                            {{ $prod->title }}
+                                        </p>
+                                    </td>
+
+                                    <!-- Programa / Linea -->
+                                    <td class="p-4 space-y-0.5">
+                                        <span class="block font-semibold text-slate-700 text-xs">
+                                            {{ $prod->academicProgram ? $prod->academicProgram->name : 'N/A' }}
+                                        </span>
+                                        <span class="block text-[11px] text-slate-400 font-medium">
+                                            {{ $prod->researchLine ? $prod->researchLine->name : 'N/A' }}
+                                        </span>
+                                    </td>
+
+                                    <!-- Progreso General -->
+                                    <td class="p-4 max-w-xs">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden border border-slate-200/50">
+                                                @php
+                                                    $progressBarColor = 'bg-unimar-blue';
+                                                    if ($prod->progress_percentage < 40) {
+                                                        $progressBarColor = 'bg-rose-500';
+                                                    } elseif ($prod->progress_percentage < 80) {
+                                                        $progressBarColor = 'bg-unimar-gold';
+                                                    } else {
+                                                        $progressBarColor = 'bg-emerald-500';
+                                                    }
+                                                @endphp
+                                                <div class="{{ $progressBarColor }} h-2 rounded-full transition-all duration-300" style="width: {{ $prod->progress_percentage }}%"></div>
+                                            </div>
+                                            <span class="text-xs font-bold text-slate-800 shrink-0 font-sans">
+                                                {{ $prod->progress_percentage }}%
+                                            </span>
+                                        </div>
+                                        <span class="text-[10px] text-slate-400 font-medium">
+                                            {{ $prod->milestones->where('status', 'completed')->count() }} de {{ $prod->milestones->count() }} hitos cumplidos
+                                        </span>
+                                    </td>
+
+                                    <!-- Estado Workflow -->
+                                    <td class="p-4 text-center">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold border {{ $stateClass }}">
+                                            {{ $stateLabel }}
+                                        </span>
+                                    </td>
+
+                                    <!-- Acciones -->
+                                    <td class="p-4 pr-6 text-right space-x-2 shrink-0 whitespace-nowrap">
+                                        <!-- Configurar Hitos -->
+                                        <button type="button" 
+                                                @click="initModal({{ json_encode($prod) }})" 
+                                                class="inline-flex items-center px-3 py-1.5 border border-slate-200 hover:bg-slate-50 hover:border-slate-300 text-slate-600 rounded-lg text-xs font-bold transition shadow-sm focus:outline-none">
+                                            Configurar Hitos
+                                        </button>
+                                        <!-- Ver Progreso -->
+                                        <a href="{{ route('progress.student.show', $prod) }}" class="inline-flex items-center px-3 py-1.5 bg-unimar-blue hover:bg-unimar-blue/95 text-white rounded-lg text-xs font-bold transition shadow-sm hover:shadow-md">
+                                            Ver Detalle
+                                        </a>
+                                    </td>
+
+                                </tr>
+                            @endforeach
+                        @endif
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Enlaces de paginación -->
+            @if ($productions->hasPages())
+                <div class="bg-slate-50 px-6 py-4 border-t border-slate-200">
+                    {{ $productions->links() }}
+                </div>
+            @endif
+        </div>
+
+        <!-- Modal de Configuración de Hitos de Alpine.js -->
+        <div x-show="openModal" 
+             class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm" 
+             x-transition.opacity 
+             style="display: none;">
+            
+            <div class="bg-white w-full max-w-2xl rounded-2xl shadow-xl overflow-hidden border border-slate-200" 
+                 @click.outside="openModal = false" 
+                 x-transition.scale>
+                
+                <!-- Encabezado del Modal -->
+                <div class="px-6 py-5 border-b border-slate-200 flex items-center justify-between">
                     <div>
-                        <h3 class="text-base font-bold text-gray-900 dark:text-white">
+                        <h3 class="text-lg font-bold text-slate-800 font-sans">
                             Configurar Hitos Académicos
                         </h3>
-                        <p class="text-xs text-gray-400 dark:text-gray-500 mt-0.5 truncate max-w-md" x-text="productionTitle"></p>
+                        <p class="text-xs text-slate-400 mt-0.5 truncate max-w-md font-medium" x-text="productionTitle"></p>
                     </div>
-                    <button type="button" @click="openModal = false" class="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    <button type="button" @click="openModal = false" class="text-slate-400 hover:text-slate-600 transition">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
                     </button>
                 </div>
 
-                <!-- Form -->
+                <!-- Formulario de Hitos -->
                 <form :action="actionUrl" method="POST">
                     @csrf
                     
-                    <div class="p-6 space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+                    <div class="p-6 space-y-4 max-h-[55vh] overflow-y-auto pr-2">
                         
-                        <!-- List of milestones dynamically -->
+                        <!-- Botón Cargar Fechas Estándar -->
+                        <button type="button" 
+                                @click="loadStandardMilestones()" 
+                                class="w-full mb-2 py-2.5 px-4 bg-unimar-blue/10 hover:bg-unimar-blue/15 text-unimar-blue font-bold rounded-xl text-xs uppercase tracking-wider transition border border-unimar-blue/20 inline-flex items-center justify-center space-x-2">
+                            <svg class="w-4 h-4 text-unimar-blue shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path>
+                            </svg>
+                            <span>Cargar Fechas Estándar (UNIMAR)</span>
+                        </button>
+
+                        <!-- Listado dinámico de hitos -->
                         <template x-for="(milestone, index) in milestones" :key="index">
-                            <div class="p-4 bg-gray-50 dark:bg-gray-900/50 rounded-xl border border-gray-200/50 dark:border-gray-700/50 relative space-y-3">
+                            <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl relative space-y-3 shadow-sm">
                                 
-                                <!-- Remove Button -->
-                                <button type="button" @click="removeMilestone(index)" class="absolute top-2 right-2 text-rose-500 hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-300">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                <!-- Botón Eliminar Hito -->
+                                <button type="button" 
+                                        @click="removeMilestone(index)" 
+                                        class="absolute top-2.5 right-2.5 text-rose-500 hover:text-rose-700 transition">
+                                    <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                    </svg>
                                 </button>
 
-                                <!-- Hidden Inputs -->
                                 <input type="hidden" :name="'milestones['+index+'][id]'" :value="milestone.id || ''">
 
-                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                    <!-- Milestone Title -->
+                                <!-- Fila 1: Título y Tipo -->
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                     <div class="sm:col-span-2 space-y-1">
-                                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-                                            Título del Hito
-                                        </label>
-                                        <input type="text" :name="'milestones['+index+'][title]'" x-model="milestone.title" required class="w-full px-3 py-1.5 bg-white border border-gray-200 dark:bg-gray-800 dark:border-gray-700 rounded-lg text-xs dark:text-white" />
+                                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Título del Hito</label>
+                                        <input type="text" 
+                                               :name="'milestones['+index+'][title]'" 
+                                               x-model="milestone.title" 
+                                               required 
+                                               class="block w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-700 focus:border-unimar-blue focus:ring focus:ring-unimar-blue/10 transition duration-150" />
                                     </div>
-                                    <!-- Type -->
                                     <div class="space-y-1">
-                                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-                                            Tipo
-                                        </label>
-                                        <select :name="'milestones['+index+'][type]'" x-model="milestone.type" class="w-full py-1.5 bg-white border border-gray-200 dark:bg-gray-800 dark:border-gray-700 rounded-lg text-xs dark:text-white">
+                                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Tipo</label>
+                                        <select :name="'milestones['+index+'][type]'" 
+                                                x-model="milestone.type" 
+                                                class="block w-full py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-700 focus:border-unimar-blue focus:ring focus:ring-unimar-blue/10 transition duration-150 cursor-pointer">
                                             <option value="delivery">Entrega</option>
                                             <option value="pre_defense">Pre-Defensa</option>
                                             <option value="defense">Defensa</option>
@@ -339,20 +386,21 @@
                                     </div>
                                 </div>
 
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    <!-- Date -->
+                                <!-- Fila 2: Fecha y Estado -->
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div class="space-y-1">
-                                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-                                            Fecha Límite
-                                        </label>
-                                        <input type="date" :name="'milestones['+index+'][scheduled_date]'" x-model="milestone.scheduled_date" required class="w-full px-3 py-1.5 bg-white border border-gray-200 dark:bg-gray-800 dark:border-gray-700 rounded-lg text-xs dark:text-white" />
+                                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Fecha Límite</label>
+                                        <input type="date" 
+                                               :name="'milestones['+index+'][scheduled_date]'" 
+                                               x-model="milestone.scheduled_date" 
+                                               required 
+                                               class="block w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-700 focus:border-unimar-blue focus:ring focus:ring-unimar-blue/10 transition duration-150" />
                                     </div>
-                                    <!-- Status -->
                                     <div class="space-y-1">
-                                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-                                            Estado
-                                        </label>
-                                        <select :name="'milestones['+index+'][status]'" x-model="milestone.status" class="w-full py-1.5 bg-white border border-gray-200 dark:bg-gray-800 dark:border-gray-700 rounded-lg text-xs dark:text-white">
+                                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Estado</label>
+                                        <select :name="'milestones['+index+'][status]'" 
+                                                x-model="milestone.status" 
+                                                class="block w-full py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-700 focus:border-unimar-blue focus:ring focus:ring-unimar-blue/10 transition duration-150 cursor-pointer">
                                             <option value="pending">Pendiente</option>
                                             <option value="completed">Completado</option>
                                             <option value="missed">Atrasado</option>
@@ -363,19 +411,26 @@
                             </div>
                         </template>
 
-                        <!-- Add Button -->
-                        <button type="button" @click="addMilestone()" class="w-full py-2 border-2 border-dashed border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 rounded-xl text-xs font-semibold inline-flex items-center justify-center transition">
-                            <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
-                            Añadir Hito Académico
+                        <!-- Botón Añadir Hito Libre -->
+                        <button type="button" 
+                                @click="addMilestone()" 
+                                class="w-full py-2 border-2 border-dashed border-slate-300 hover:border-unimar-blue text-slate-500 hover:text-unimar-blue rounded-xl text-xs font-bold inline-flex items-center justify-center transition focus:outline-none">
+                            <svg class="w-4.5 h-4.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path>
+                            </svg>
+                            <span>Añadir Hito Académico Personalizado</span>
                         </button>
                     </div>
 
-                    <!-- Footer -->
-                    <div class="px-6 py-4 bg-gray-50 dark:bg-gray-900/30 border-t border-gray-100 dark:border-gray-700 flex justify-end space-x-2">
-                        <button type="button" @click="openModal = false" class="py-2 px-4 bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 rounded-xl text-xs font-bold transition">
+                    <!-- Pie del Modal -->
+                    <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex justify-end space-x-3">
+                        <button type="button" 
+                                @click="openModal = false" 
+                                class="py-2 px-4 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-bold rounded-xl text-xs uppercase tracking-wider transition focus:outline-none">
                             Cancelar
                         </button>
-                        <button type="submit" class="py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition shadow-sm">
+                        <button type="submit" 
+                                class="py-2 px-5 bg-unimar-blue hover:bg-unimar-blue/95 text-white font-bold rounded-xl text-xs uppercase tracking-wider transition shadow-sm hover:shadow-md focus:outline-none">
                             Guardar Cambios
                         </button>
                     </div>
@@ -385,4 +440,4 @@
         </div>
 
     </div>
-</x-app-layout>
+</x-dashboard-layout>
