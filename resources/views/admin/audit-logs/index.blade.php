@@ -1,22 +1,22 @@
-<x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            {{ __('Logs de Auditoría') }}
-        </h2>
-    </x-slot>
+@php
+    $user = auth()->user();
+    $userRoles = $user->roles->pluck('name')->toArray();
+    $activeRole = session('active_dashboard_role') ?? ($userRoles[0] ?? 'Estudiante');
+@endphp
 
-    <div class="py-12" x-data="{ 
-        open: false, 
-        logId: null, 
-        loading: false, 
+<x-dashboard-layout :roles="$userRoles" :activeRole="$activeRole">
+    <div class="space-y-8 max-w-7xl mx-auto pb-12" x-data="{
+        openDrawer: false,
+        logId: null,
+        loading: false,
         logData: null,
         fetchLogDetails(id) {
-            this.open = true;
+            this.openDrawer = true;
             this.loading = true;
             this.logId = id;
             this.logData = null;
             
-            fetch(`/admin/audit-logs/${id}`)
+            fetch('/admin/audit-logs/' + id)
                 .then(res => res.json())
                 .then(data => {
                     this.logData = data;
@@ -26,219 +26,292 @@
                     console.error(err);
                     this.loading = false;
                 });
+        },
+        getDiff(log) {
+            if (!log) return [];
+            let diffs = [];
+            let oldVals = log.old_values || {};
+            let newVals = log.new_values || {};
+            
+            // Get unique set of all keys
+            let keys = Array.from(new Set([...Object.keys(oldVals), ...Object.keys(newVals)]));
+            
+            let formatVal = (val) => {
+                if (val === null || val === undefined) return 'null';
+                if (typeof val === 'boolean') return val ? 'true' : 'false';
+                if (typeof val === 'object') return JSON.stringify(val);
+                return String(val);
+            };
+            
+            keys.forEach(key => {
+                let oldVal = oldVals[key];
+                let newVal = newVals[key];
+                
+                if (oldVals.hasOwnProperty(key) && newVals.hasOwnProperty(key)) {
+                    if (oldVal !== newVal) {
+                        diffs.push({ key: key, type: 'removed', val: formatVal(oldVal) });
+                        diffs.push({ key: key, type: 'added', val: formatVal(newVal) });
+                    } else {
+                        // Unchanged fields - optional to show, let's include them for completeness but styled neutrally
+                        diffs.push({ key: key, type: 'unchanged', val: formatVal(oldVal) });
+                    }
+                } else if (oldVals.hasOwnProperty(key)) {
+                    diffs.push({ key: key, type: 'removed', val: formatVal(oldVal) });
+                } else if (newVals.hasOwnProperty(key)) {
+                    diffs.push({ key: key, type: 'added', val: formatVal(newVal) });
+                }
+            });
+            return diffs;
         }
     }">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="flex flex-col md:flex-row gap-6">
-                <!-- Sidebar -->
-                @include('admin.shared.sidebar')
-
-                <!-- Main Content -->
-                <div class="flex-1 bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-xl border border-gray-100 dark:border-gray-700">
-                    <div class="p-6">
-                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
-                            <div>
-                                <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100">
-                                    Bitácora de Auditoría de Seguridad
-                                </h3>
-                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                    Supervisa las acciones del sistema, cambios de estado y modificaciones de datos.
-                                </p>
-                            </div>
-
-                            <!-- Search form -->
-                            <form action="{{ route('admin.audit-logs.index') }}" method="GET" class="w-full sm:w-72">
-                                <div class="relative">
-                                    <x-text-input type="text" name="search" placeholder="Buscar por usuario, acción o IP..." class="w-full text-xs" :value="request('search')" />
-                                    <button type="submit" class="absolute right-2.5 top-2.5 text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                                        </svg>
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-
-                        @if ($logs->isEmpty())
-                            <div class="text-center py-12 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-xl">
-                                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                                </svg>
-                                <h3 class="mt-2 text-sm font-semibold text-gray-900 dark:text-gray-100">No se encontraron registros de auditoría</h3>
-                                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Intenta buscar con otros términos.</p>
-                            </div>
-                        @else
-                            <div class="overflow-x-auto rounded-lg border border-gray-100 dark:border-gray-700">
-                                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                                    <thead class="bg-gray-50 dark:bg-gray-700/50">
-                                        <tr>
-                                            <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Fecha / Hora</th>
-                                            <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Usuario</th>
-                                            <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Acción</th>
-                                            <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">IP Address</th>
-                                            <th class="px-6 py-3 text-right text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Acciones</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                                        @foreach ($logs as $log)
-                                            <tr class="hover:bg-gray-50/50 dark:hover:bg-gray-700/30 transition-colors duration-150">
-                                                <td class="px-6 py-4 whitespace-nowrap text-xs text-gray-600 dark:text-gray-300">
-                                                    {{ $log->created_at->format('d/m/Y H:i:s') }}
-                                                </td>
-                                                <td class="px-6 py-4 whitespace-nowrap">
-                                                    <div class="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                                                        {{ $log->user->name ?? 'Sistema / Visitante' }}
-                                                    </div>
-                                                    @if($log->user)
-                                                        <div class="text-xs text-gray-500 dark:text-gray-400">
-                                                            {{ $log->user->email }}
-                                                        </div>
-                                                    @endif
-                                                </td>
-                                                <td class="px-6 py-4 whitespace-nowrap">
-                                                    <span class="px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
-                                                        {{ $log->action }}
-                                                    </span>
-                                                </td>
-                                                <td class="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-500 dark:text-gray-400">
-                                                    {{ $log->ip_address ?? 'N/A' }}
-                                                </td>
-                                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                    <button @click="fetchLogDetails({{ $log->id }})" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300 font-semibold">
-                                                        Inspeccionar
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
-
-                            <div class="mt-4">
-                                {{ $logs->appends(request()->query())->links() }}
-                            </div>
-                        @endif
+        
+        <!-- Encabezado de la Página -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-5">
+            <div>
+                <h1 class="text-3xl font-bold text-slate-800 tracking-tight font-sans">Bitácora de Auditoría</h1>
+                <p class="text-sm text-slate-500 mt-1 font-medium">Historial cronológico de acciones de seguridad, modificaciones de datos y transacciones del sistema</p>
+            </div>
+            
+            <!-- Buscador Rápido -->
+            <div class="w-full md:w-80 shrink-0">
+                <form action="{{ route('admin.audit-logs.index') }}" method="GET">
+                    <div class="relative">
+                        <input type="text" 
+                               name="search" 
+                               value="{{ request('search') }}" 
+                               placeholder="Buscar por usuario, acción o IP..." 
+                               class="block w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:border-unimar-blue focus:ring focus:ring-unimar-blue/10 transition duration-150 text-slate-700 placeholder-slate-400 font-medium" />
+                        <button type="submit" class="absolute left-3 top-3 text-slate-400 hover:text-unimar-blue transition">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                        </button>
                     </div>
-                </div>
+                </form>
             </div>
         </div>
 
-        <!-- Alpine Slide-over Modal -->
-        <div x-show="open" 
-             class="fixed inset-0 overflow-hidden z-50" 
-             aria-labelledby="slide-over-title" 
-             role="dialog" 
-             aria-modal="true"
-             style="display: none;">
-            <div class="absolute inset-0 overflow-hidden">
-                <!-- Backdrop -->
-                <div x-show="open" 
-                     x-transition:enter="ease-in-out duration-300"
-                     x-transition:enter-start="opacity-0"
-                     x-transition:enter-end="opacity-100"
-                     x-transition:leave="ease-in-out duration-300"
-                     x-transition:leave-start="opacity-100"
-                     x-transition:leave-end="opacity-0"
-                     @click="open = false"
-                     class="absolute inset-0 bg-gray-500 bg-opacity-75 dark:bg-opacity-80 backdrop-blur-sm transition-opacity" 
-                     aria-hidden="true"></div>
+        <!-- Alertas Flash del Sistema -->
+        @if (session('success'))
+            <div class="p-4 bg-emerald-50 border-l-4 border-emerald-500 rounded-r-xl shadow-sm text-emerald-800 transition duration-300">
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 mr-3 text-emerald-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span class="font-semibold text-xs">{{ session('success') }}</span>
+                </div>
+            </div>
+        @endif
 
-                <div class="fixed inset-y-0 right-0 pl-10 max-w-full flex">
-                    <!-- Panel Content -->
-                    <div x-show="open" 
-                         x-transition:enter="transform transition ease-in-out duration-300 sm:duration-300"
-                         x-transition:enter-start="translate-x-full"
-                         x-transition:enter-end="translate-x-0"
-                         x-transition:leave="transform transition ease-in-out duration-300 sm:duration-300"
-                         x-transition:leave-start="translate-x-0"
-                         x-transition:leave-end="translate-x-full"
-                         class="w-screen max-w-2xl bg-white dark:bg-gray-800 shadow-2xl flex flex-col border-l border-gray-200 dark:border-gray-700">
-                        
-                        <!-- Header -->
-                        <div class="px-6 py-5 bg-gray-50 dark:bg-gray-900/50 border-b border-gray-100 dark:border-gray-700/80 flex items-center justify-between">
-                            <div>
-                                <h2 class="text-lg font-bold text-gray-900 dark:text-gray-100" id="slide-over-title">
-                                    Detalle del Log de Auditoría
-                                </h2>
-                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                                    ID de registro: <span class="font-mono text-indigo-600 dark:text-indigo-400" x-text="logId"></span>
-                                </p>
+        <!-- Grid para la tabla y el panel deslizable -->
+        <div class="relative flex flex-col lg:flex-row gap-8 items-start">
+            
+            <!-- Tabla de Logs de Auditoría -->
+            <div class="w-full transition-all duration-300 bg-white border border-slate-200/80 shadow-sm rounded-2xl overflow-hidden"
+                 :class="openDrawer ? 'lg:w-2/3' : 'w-full'">
+                
+                <div class="p-6 border-b border-slate-100">
+                    <h3 class="text-lg font-bold text-slate-800 font-sans">Historial de Transacciones</h3>
+                    <p class="text-xs text-slate-500 mt-0.5 font-medium">Detalle forense de las operaciones realizadas por los usuarios en la plataforma</p>
+                </div>
+
+                @if ($logs->isEmpty())
+                    <div class="py-16 text-center text-slate-400 border-t border-slate-100">
+                        <svg class="mx-auto h-12 w-12 text-slate-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        <h4 class="text-sm font-semibold text-slate-700">No se encontraron registros de auditoría</h4>
+                        <p class="text-xs text-slate-500 mt-1">Intenta modificar los términos de tu búsqueda rápida.</p>
+                    </div>
+                @else
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50 border-b border-slate-200 text-xs font-bold uppercase tracking-wider text-slate-500">
+                                    <th class="p-4 pl-6">Fecha / Hora</th>
+                                    <th class="p-4">Usuario</th>
+                                    <th class="p-4">Acción</th>
+                                    <th class="p-4">Dirección IP</th>
+                                    <th class="p-4 pr-6 text-right">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100 text-sm text-slate-700">
+                                @foreach ($logs as $log)
+                                    @php
+                                        $actionLower = strtolower($log->action);
+                                        if (str_contains($actionLower, 'crear') || str_contains($actionLower, 'create') || str_contains($actionLower, 'store') || str_contains($actionLower, 'guardar')) {
+                                            $actionClass = 'bg-emerald-50 text-emerald-800 border-emerald-200';
+                                            $actionIcon = '<svg class="w-3 h-3 mr-1 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>';
+                                        } elseif (str_contains($actionLower, 'edit') || str_contains($actionLower, 'actualizar') || str_contains($actionLower, 'update') || str_contains($actionLower, 'modificar')) {
+                                            $actionClass = 'bg-blue-50 text-unimar-blue border-blue-200';
+                                            $actionIcon = '<svg class="w-3 h-3 mr-1 text-unimar-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>';
+                                        } elseif (str_contains($actionLower, 'eliminar') || str_contains($actionLower, 'delete') || str_contains($actionLower, 'destroy') || str_contains($actionLower, 'borrar')) {
+                                            $actionClass = 'bg-rose-50 text-rose-800 border-rose-200';
+                                            $actionIcon = '<svg class="w-3 h-3 mr-1 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>';
+                                        } else {
+                                            $actionClass = 'bg-slate-50 text-slate-700 border-slate-200';
+                                            $actionIcon = '<svg class="w-3 h-3 mr-1 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>';
+                                        }
+                                    @endphp
+                                    <tr class="hover:bg-slate-50/50 transition duration-150"
+                                        :class="logId == {{ $log->id }} ? 'bg-slate-50 border-l-4 border-unimar-blue' : ''">
+                                        <td class="p-4 pl-6 whitespace-nowrap text-xs text-slate-500 font-medium">
+                                            <div class="flex items-center space-x-2">
+                                                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                </svg>
+                                                <span>{{ $log->created_at->format('d/m/Y H:i:s') }}</span>
+                                            </div>
+                                        </td>
+                                        <td class="p-4 whitespace-nowrap">
+                                            <div class="font-bold text-slate-800">
+                                                {{ $log->user->name ?? 'Sistema / Visitante' }}
+                                            </div>
+                                            @if($log->user)
+                                                <div class="text-xs text-slate-400 font-medium mt-0.5">
+                                                    {{ $log->user->email }}
+                                                </div>
+                                            @endif
+                                        </td>
+                                        <td class="p-4 whitespace-nowrap">
+                                            <span class="px-2.5 py-0.5 inline-flex items-center text-[10px] font-bold rounded-xl border {{ $actionClass }}">
+                                                {!! $actionIcon !!}
+                                                {{ $log->action }}
+                                            </span>
+                                        </td>
+                                        <td class="p-4 whitespace-nowrap font-mono text-xs text-slate-500 font-medium">
+                                            {{ $log->ip_address ?? 'N/A' }}
+                                        </td>
+                                        <td class="p-4 pr-6 whitespace-nowrap text-right text-sm font-medium">
+                                            <button type="button" 
+                                                    @click="fetchLogDetails({{ $log->id }})" 
+                                                    class="inline-flex items-center px-3 py-1.5 bg-white border border-slate-200 hover:bg-slate-50 hover:border-slate-300 text-slate-700 rounded-xl text-xs font-bold transition shadow-sm focus:outline-none">
+                                                Inspeccionar
+                                            </button>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+
+                    @if ($logs->hasPages())
+                        <div class="bg-slate-50 px-6 py-4 border-t border-slate-200">
+                            {{ $logs->appends(request()->query())->links() }}
+                        </div>
+                    @endif
+                @endif
+            </div>
+
+            <!-- Panel Lateral Deslizable (Side-Drawer) -->
+            <div x-show="openDrawer"
+                 x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="translate-x-full opacity-0"
+                 x-transition:enter-end="translate-x-0 opacity-100"
+                 x-transition:leave="transition ease-in duration-200"
+                 x-transition:leave-start="translate-x-0 opacity-100"
+                 x-transition:leave-end="translate-x-full opacity-0"
+                 class="w-full lg:w-1/3 bg-white border border-slate-200 shadow-xl rounded-2xl overflow-hidden sticky top-6 shrink-0"
+                 style="display: none;">
+                
+                <!-- Cabecera del Drawer -->
+                <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-800 font-sans">Detalles de Auditoría</h3>
+                        <p class="text-xs text-slate-400 font-medium mt-0.5">ID del Registro: <span class="font-mono text-unimar-blue font-bold" x-text="logId"></span></p>
+                    </div>
+                    <button type="button" @click="openDrawer = false" class="text-slate-400 hover:text-slate-600 transition">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Contenido del Drawer -->
+                <div class="p-6 space-y-6 overflow-y-auto max-h-[calc(100vh-220px)]">
+                    <!-- Loading State -->
+                    <div x-show="loading" class="flex flex-col items-center justify-center py-16 space-y-3">
+                        <svg class="animate-spin h-8 w-8 text-unimar-blue" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span class="text-xs font-bold text-slate-500">Cargando detalles...</span>
+                    </div>
+
+                    <!-- Detail Content -->
+                    <div x-show="!loading && logData" class="space-y-6">
+                        <!-- Meta Grid -->
+                        <div class="space-y-3 p-4 bg-slate-50 rounded-2xl border border-slate-200/60 text-xs text-slate-700">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <span class="block text-slate-400 font-bold uppercase tracking-wider text-[10px]">Acción Realizada</span>
+                                    <span class="block font-bold text-slate-800 mt-1" x-text="logData?.action"></span>
+                                </div>
+                                <div>
+                                    <span class="block text-slate-400 font-bold uppercase tracking-wider text-[10px]">Dirección IP</span>
+                                    <span class="block font-mono font-bold text-slate-800 mt-1" x-text="logData?.ip_address ?? 'N/A'"></span>
+                                </div>
                             </div>
-                            <button @click="open = false" class="rounded-md text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                                <span class="sr-only">Cerrar panel</span>
-                                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                                </svg>
-                            </button>
+                            <div class="pt-3 border-t border-slate-200/60">
+                                <span class="block text-slate-400 font-bold uppercase tracking-wider text-[10px]">Usuario Responsable</span>
+                                <span class="block font-semibold text-slate-800 mt-1" x-text="logData?.user?.name ? `${logData.user.name} (${logData.user.email})` : 'Sistema / Desconocido'"></span>
+                            </div>
+                            <div class="pt-3 border-t border-slate-200/60">
+                                <span class="block text-slate-400 font-bold uppercase tracking-wider text-[10px]">Entidad / Modelo Afectado</span>
+                                <span class="block font-mono text-slate-800 mt-1" x-text="logData?.auditable_type ? `${logData.auditable_type} # ${logData.auditable_id}` : 'N/A'"></span>
+                            </div>
+                            <div class="pt-3 border-t border-slate-200/60">
+                                <span class="block text-slate-400 font-bold uppercase tracking-wider text-[10px]">Fecha y Hora</span>
+                                <span class="block font-semibold text-slate-800 mt-1" x-text="logData?.created_at ? new Date(logData.created_at).toLocaleString('es-VE') : 'N/A'"></span>
+                            </div>
                         </div>
 
-                        <!-- Content Body -->
-                        <div class="flex-1 overflow-y-auto p-6 space-y-6">
-                            <!-- Loading State -->
-                            <div x-show="loading" class="flex flex-col items-center justify-center py-24 space-y-3">
-                                <svg class="animate-spin h-8 w-8 text-indigo-600 dark:text-indigo-400" fill="none" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
-                                <span class="text-sm font-semibold text-gray-500 dark:text-gray-400">Cargando detalles de auditoría...</span>
-                            </div>
-
-                            <!-- Detail Content -->
-                            <div x-show="!loading && logData" class="space-y-6">
-                                <!-- Meta Grid -->
-                                <div class="grid grid-cols-2 gap-4 bg-gray-50 dark:bg-gray-900/30 p-4 rounded-xl border border-gray-150 dark:border-gray-700/60 text-xs">
-                                    <div>
-                                        <span class="block text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider">Acción Realizada</span>
-                                        <span class="block font-bold text-gray-900 dark:text-gray-100 mt-1" x-text="logData?.action"></span>
-                                    </div>
-                                    <div>
-                                        <span class="block text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider">Dirección IP</span>
-                                        <span class="block font-mono font-bold text-gray-900 dark:text-gray-100 mt-1" x-text="logData?.ip_address ?? 'N/A'"></span>
-                                    </div>
-                                    <div class="col-span-2 pt-2 border-t border-gray-200 dark:border-gray-700">
-                                        <span class="block text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider">Usuario Responsable</span>
-                                        <span class="block font-semibold text-gray-900 dark:text-gray-100 mt-1" x-text="logData?.user?.name ? `${logData.user.name} (${logData.user.email})` : 'Sistema / Desconocido'"></span>
-                                    </div>
-                                    <div class="col-span-2 pt-2 border-t border-gray-200 dark:border-gray-700">
-                                        <span class="block text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider">Modelo Afectado</span>
-                                        <span class="block font-mono text-gray-900 dark:text-gray-100 mt-1" x-text="`${logData?.auditable_type} # ${logData?.auditable_id}`"></span>
-                                    </div>
+                        <!-- Visual Diff -->
+                        <div class="space-y-3">
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Comparativa de Cambios (Visual Diff)</label>
+                            
+                            <div class="border border-slate-200 rounded-2xl overflow-hidden bg-slate-50/50">
+                                <div class="bg-slate-100/80 px-4 py-2 border-b border-slate-200 text-[10px] font-bold text-slate-500 uppercase tracking-wider font-sans flex justify-between">
+                                    <span>Campo</span>
+                                    <span>Cambio Realizado</span>
                                 </div>
-
-                                <!-- Value comparison -->
-                                <div class="space-y-4">
-                                    <h4 class="text-sm font-bold text-gray-900 dark:text-gray-100">Comparativa de Valores</h4>
-                                    
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <!-- Old Values -->
-                                        <div class="space-y-1.5">
-                                            <span class="text-xs font-bold text-gray-500 dark:text-gray-400 block">Valores Anteriores:</span>
-                                            <div class="p-3 bg-rose-50 dark:bg-rose-950/10 border border-rose-100 dark:border-rose-900/30 rounded-xl overflow-x-auto text-[11px] font-mono text-rose-800 dark:text-rose-400 min-h-32">
-                                                <pre x-text="logData?.old_values ? JSON.stringify(logData.old_values, null, 2) : 'No registra valores anteriores'"></pre>
+                                <div class="p-3 font-mono text-[11px] divide-y divide-slate-100/60 max-h-80 overflow-y-auto bg-white">
+                                    <template x-for="item in getDiff(logData)" :key="item.key + '-' + item.type">
+                                        <div class="py-2 px-2.5 rounded-xl flex flex-col transition-colors"
+                                             :class="{
+                                                 'bg-rose-50 text-rose-700 font-medium': item.type === 'removed',
+                                                 'bg-emerald-50 text-emerald-700 font-medium': item.type === 'added',
+                                                 'text-slate-500 bg-slate-50/30': item.type === 'unchanged'
+                                             }">
+                                            <div class="font-bold truncate text-[9px] uppercase tracking-wider text-slate-400 mb-1" x-text="item.key"></div>
+                                            <div class="break-all whitespace-pre-wrap flex items-start leading-relaxed">
+                                                <span class="mr-1.5 font-bold shrink-0 text-xs" x-text="item.type === 'removed' ? '−' : (item.type === 'added' ? '+' : ' ')"></span>
+                                                <span x-text="item.val"></span>
                                             </div>
                                         </div>
-
-                                        <!-- New Values -->
-                                        <div class="space-y-1.5">
-                                            <span class="text-xs font-bold text-gray-500 dark:text-gray-400 block">Valores Nuevos:</span>
-                                            <div class="p-3 bg-emerald-50 dark:bg-emerald-950/10 border border-emerald-100 dark:border-emerald-900/30 rounded-xl overflow-x-auto text-[11px] font-mono text-emerald-800 dark:text-emerald-400 min-h-32">
-                                                <pre x-text="logData?.new_values ? JSON.stringify(logData.new_values, null, 2) : 'No registra nuevos valores'"></pre>
-                                            </div>
+                                    </template>
+                                    <template x-if="getDiff(logData).length === 0">
+                                        <div class="text-center py-6 text-slate-400 italic text-[11px]">
+                                            No se registraron modificaciones de valores en este log.
                                         </div>
-                                    </div>
+                                    </template>
                                 </div>
                             </div>
-                        </div>
-
-                        <!-- Footer -->
-                        <div class="px-6 py-4 bg-gray-50 dark:bg-gray-900/50 border-t border-gray-100 dark:border-gray-700/80 flex justify-end">
-                            <button @click="open = false" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold uppercase tracking-widest transition-all duration-200">
-                                Cerrar
-                            </button>
                         </div>
                     </div>
                 </div>
+
+                <!-- Pie del Drawer -->
+                <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex justify-end">
+                    <button type="button" 
+                            @click="openDrawer = false" 
+                            class="py-2 px-5 bg-unimar-blue hover:bg-unimar-blue/95 text-white font-bold rounded-xl text-xs uppercase tracking-wider transition shadow-sm hover:shadow-md focus:outline-none">
+                        Cerrar Detalles
+                    </button>
+                </div>
             </div>
+
         </div>
+
     </div>
-</x-app-layout>
+</x-dashboard-layout>

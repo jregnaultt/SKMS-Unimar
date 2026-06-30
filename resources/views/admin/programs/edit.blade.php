@@ -1,76 +1,106 @@
-<x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            {{ __('Editar Programa Académico') }}
-        </h2>
-    </x-slot>
+@php
+    $user = auth()->user();
+    $userRoles = $user->roles->pluck('name')->toArray();
+    $activeRole = session('active_dashboard_role') ?? ($userRoles[0] ?? 'Estudiante');
+@endphp
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="flex flex-col md:flex-row gap-6">
-                <!-- Sidebar -->
-                @include('admin.shared.sidebar')
+<x-dashboard-layout :roles="$userRoles" :activeRole="$activeRole">
+    <div class="space-y-6 max-w-4xl mx-auto pb-12">
+        
+        <!-- Breadcrumb / Volver -->
+        <div>
+            <a href="{{ route('admin.programs.index') }}" class="inline-flex items-center text-xs font-bold text-unimar-blue hover:text-unimar-blue/85 transition uppercase tracking-wider">
+                <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                Volver al Centro de Configuración
+            </a>
+        </div>
 
-                <!-- Main Content -->
-                <div class="flex-1 bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-xl border border-gray-100 dark:border-gray-700">
-                    <div class="p-6">
-                        <div class="mb-6">
-                            <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100">
-                                Modificar Programa Académico
-                            </h3>
-                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                Actualiza los detalles del programa seleccionado.
-                            </p>
-                        </div>
+        <!-- Tarjeta del Formulario -->
+        <div class="bg-white border border-slate-200/80 shadow-sm rounded-2xl overflow-hidden">
+            <div class="p-6 border-b border-slate-100 bg-slate-50/50">
+                <h3 class="text-lg font-bold text-slate-800 font-sans">Modificar Programa Académico</h3>
+                <p class="text-xs text-slate-500 mt-0.5 font-medium">Actualiza los detalles del programa académico seleccionado para mantener la coherencia en los registros de tesis</p>
+            </div>
 
-                        <form action="{{ route('admin.programs.update', $program) }}" method="POST" class="space-y-6">
-                            @csrf
-                            @method('PUT')
+            <form action="{{ route('admin.programs.update', $program) }}" method="POST" class="p-8 space-y-6">
+                @csrf
+                @method('PUT')
 
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                <!-- Code -->
-                                <div class="col-span-1">
-                                    <x-input-label for="code" :value="__('Código del Programa')" />
-                                    <x-text-input id="code" name="code" type="text" class="mt-1 block w-full uppercase" :value="old('code', $program->code)" required />
-                                    <x-input-error class="mt-2" :messages="$errors->get('code')" />
-                                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Código del Programa -->
+                    <div class="col-span-1">
+                        <label for="code" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Código del Programa</label>
+                        <input type="text" 
+                               id="code" 
+                               name="code" 
+                               value="{{ old('code', $program->code) }}" 
+                               required 
+                               placeholder="P.ej. ING-SYS" 
+                               class="block w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:border-unimar-blue focus:ring focus:ring-unimar-blue/10 transition duration-150 text-slate-700 font-medium placeholder-slate-400 uppercase" />
+                        @error('code')
+                            <p class="text-xs text-rose-600 font-bold mt-1.5">{{ $message }}</p>
+                        @enderror
+                    </div>
 
-                                <!-- Name -->
-                                <div class="col-span-2">
-                                    <x-input-label for="name" :value="__('Nombre Completo')" />
-                                    <x-text-input id="name" name="name" type="text" class="mt-1 block w-full" :value="old('name', $program->name)" required />
-                                    <x-input-error class="mt-2" :messages="$errors->get('name')" />
-                                </div>
-                            </div>
-
-                            <!-- Description -->
-                            <div>
-                                <x-input-label for="description" :value="__('Descripción')" />
-                                <textarea id="description" name="description" rows="4" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 text-gray-900 dark:text-gray-100 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">{{ old('description', $program->description) }}</textarea>
-                                <x-input-error class="mt-2" :messages="$errors->get('description')" />
-                            </div>
-
-                            <!-- Active State Switch -->
-                            <div class="flex items-center space-x-3">
-                                <input type="hidden" name="is_active" value="0">
-                                <input id="is_active" name="is_active" type="checkbox" value="1" class="rounded dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-indigo-600 shadow-sm focus:ring-indigo-500" {{ old('is_active', $program->is_active) ? 'checked' : '' }}>
-                                <label for="is_active" class="text-sm font-semibold text-gray-700 dark:text-gray-300 select-none">
-                                    ¿Programa activo para el registro de tesis?
-                                </label>
-                            </div>
-
-                            <div class="flex items-center justify-end space-x-3 pt-4 border-t border-gray-100 dark:border-gray-700">
-                                <a href="{{ route('admin.programs.index') }}" class="px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-lg text-xs font-semibold uppercase tracking-widest transition-all duration-200">
-                                    Cancelar
-                                </a>
-                                <x-primary-button>
-                                    {{ __('Actualizar Programa') }}
-                                </x-primary-button>
-                            </div>
-                        </form>
+                    <!-- Nombre Completo -->
+                    <div class="col-span-2">
+                        <label for="name" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Nombre Completo</label>
+                        <input type="text" 
+                               id="name" 
+                               name="name" 
+                               value="{{ old('name', $program->name) }}" 
+                               required 
+                               placeholder="P.ej. Ingeniería de Sistemas" 
+                               class="block w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:border-unimar-blue focus:ring focus:ring-unimar-blue/10 transition duration-150 text-slate-700 font-medium placeholder-slate-400" />
+                        @error('name')
+                            <p class="text-xs text-rose-600 font-bold mt-1.5">{{ $message }}</p>
+                        @enderror
                     </div>
                 </div>
-            </div>
+
+                <!-- Descripción -->
+                <div>
+                    <label for="description" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Descripción o Alcance (Opcional)</label>
+                    <textarea id="description" 
+                              name="description" 
+                              rows="4" 
+                              placeholder="Describe brevemente el alcance académico del programa..." 
+                              class="block w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:border-unimar-blue focus:ring focus:ring-unimar-blue/10 transition duration-150 text-slate-700 font-medium placeholder-slate-400">{{ old('description', $program->description) }}</textarea>
+                    @error('description')
+                        <p class="text-xs text-rose-600 font-bold mt-1.5">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <!-- Estado Activo -->
+                <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200/60">
+                    <label class="flex items-start cursor-pointer select-none">
+                        <input type="hidden" name="is_active" value="0">
+                        <input type="checkbox" 
+                               id="is_active" 
+                               name="is_active" 
+                               value="1" 
+                               {{ old('is_active', $program->is_active) ? 'checked' : '' }} 
+                               class="mt-0.5 rounded border-slate-300 text-unimar-blue focus:ring-unimar-blue/10 w-4 h-4" />
+                        <div class="ml-3 text-xs">
+                            <span class="block font-bold text-slate-700">Habilitar programa académico</span>
+                            <span class="block text-slate-400 font-medium mt-0.5">Si está inactivo, los estudiantes no podrán asociar sus trabajos de grado ni proyectos a este programa.</span>
+                        </div>
+                    </label>
+                </div>
+
+                <!-- Botones de Acción -->
+                <div class="flex items-center justify-end space-x-3 pt-6 border-t border-slate-100">
+                    <a href="{{ route('admin.programs.index') }}" 
+                       class="py-2.5 px-5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-bold rounded-xl text-xs uppercase tracking-wider transition focus:outline-none">
+                        Cancelar
+                    </a>
+                    <button type="submit" 
+                            class="py-2.5 px-6 bg-unimar-blue hover:bg-unimar-blue/95 text-white font-bold rounded-xl text-xs uppercase tracking-wider transition shadow-sm hover:shadow-md focus:outline-none">
+                        Actualizar Programa
+                    </button>
+                </div>
+            </form>
         </div>
+
     </div>
-</x-app-layout>
+</x-dashboard-layout>
