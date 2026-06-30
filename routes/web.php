@@ -22,6 +22,10 @@ Route::get('/catalog', [CatalogController::class, 'index'])
     ->middleware(['auth', 'verified'])
     ->name('catalog.index');
 
+Route::match(['QUERY', 'POST'], '/catalog/query', [CatalogController::class, 'search'])
+    ->middleware(['auth', 'verified'])
+    ->name('catalog.query');
+
 use App\Http\Controllers\DashboardController;
 
 Route::get('/', function () {

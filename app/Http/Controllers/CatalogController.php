@@ -6,6 +6,7 @@ use App\Models\AcademicProgram;
 use App\Models\Production;
 use App\Models\ProductionType;
 use App\Models\ResearchLine;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -65,5 +66,52 @@ class CatalogController extends Controller
             ->pluck('tutor');
 
         return view('catalog.index', compact('productions', 'programs', 'lines', 'productionTypes', 'tutors'));
+    }
+
+    /**
+     * Search scientific productions via HTTP QUERY or POST as fallback.
+     */
+    public function search(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'titulo' => 'nullable|string|max:255',
+            'programa_id' => 'nullable|exists:academic_programs,id',
+            'linea_investigacion_id' => 'nullable|exists:research_lines,id',
+            'tipo_produccion_id' => 'nullable|exists:production_types,id',
+            'tutor' => 'nullable|string|max:255',
+            'anio' => 'nullable|integer',
+        ]);
+
+        $query = Production::query()
+            ->published()
+            ->with(['academicProgram', 'researchLine', 'productionType', 'keywords', 'media']);
+
+        if (! empty($validated['titulo'])) {
+            $query->where('title', 'like', "%{$validated['titulo']}%");
+        }
+
+        if (! empty($validated['programa_id'])) {
+            $query->where('academic_program_id', $validated['programa_id']);
+        }
+
+        if (! empty($validated['linea_investigacion_id'])) {
+            $query->where('research_line_id', $validated['linea_investigacion_id']);
+        }
+
+        if (! empty($validated['tipo_produccion_id'])) {
+            $query->where('production_type_id', $validated['tipo_produccion_id']);
+        }
+
+        if (! empty($validated['tutor'])) {
+            $query->where('tutor', $validated['tutor']);
+        }
+
+        if (! empty($validated['anio'])) {
+            $query->whereYear('published_at', $validated['anio']);
+        }
+
+        $productions = $query->orderBy('published_at', 'desc')->paginate(10);
+
+        return response()->json($productions);
     }
 }

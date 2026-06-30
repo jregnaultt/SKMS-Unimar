@@ -235,4 +235,34 @@ class CatalogSearchTest extends TestCase
             'published_at' => $state === 'published' ? ($overrides['published_at'] ?? now()) : null,
         ], $overrides));
     }
+
+    public function test_catalog_search_supports_query_method(): void
+    {
+        $user = User::factory()->create();
+        $user->assignRole('Estudiante');
+
+        $this->createProduction('published', ['title' => 'Software Educativo']);
+
+        $response = $this->actingAs($user)->json('QUERY', route('catalog.query'), [
+            'titulo' => 'Software',
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJsonPath('data.0.title', 'Software Educativo');
+    }
+
+    public function test_catalog_search_supports_post_fallback(): void
+    {
+        $user = User::factory()->create();
+        $user->assignRole('Estudiante');
+
+        $this->createProduction('published', ['title' => 'Software Educativo']);
+
+        $response = $this->actingAs($user)->postJson(route('catalog.query'), [
+            'titulo' => 'Software',
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJsonPath('data.0.title', 'Software Educativo');
+    }
 }

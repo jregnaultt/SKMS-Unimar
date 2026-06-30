@@ -136,19 +136,38 @@
                 <section class="w-full lg:w-3/4 space-y-6">
                     
                     <!-- Search Bar Card -->
-                    <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-[0_10px_30px_rgba(13,77,152,0.02)]">
+                    <div x-data="catalogSearch()" class="bg-white border border-slate-200 rounded-2xl p-4 shadow-[0_10px_30px_rgba(13,77,152,0.02)] relative">
                         <div class="relative flex items-center">
                             <div class="absolute inset-y-0 start-0 flex items-center ps-4 pointer-events-none text-slate-400">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                                 </svg>
                             </div>
-                            <input type="text" id="search-input" name="q" value="{{ request('q') }}" placeholder="Buscar por título, resumen, autores o palabras clave..." class="block w-full ps-11 pe-24 py-3.5 text-xs border-slate-250 rounded-xl bg-slate-50 text-slate-800 focus:ring-[#0d4d98] focus:border-[#0d4d98] placeholder-slate-400">
+                            <input type="text" id="search-input" name="q" x-model="query" @blur="closeDropdown()" @focus="if (query.trim().length >= 3) showDropdown = true" value="{{ request('q') }}" placeholder="Buscar por título, resumen, autores o palabras clave..." class="block w-full ps-11 pe-24 py-3.5 text-xs border-slate-250 rounded-xl bg-slate-50 text-slate-800 focus:ring-[#0d4d98] focus:border-[#0d4d98] placeholder-slate-400">
+                            
+                            <!-- Spinner de carga -->
+                            <div x-show="isLoading" class="absolute end-24 me-2 flex items-center text-slate-400" x-cloak>
+                                <svg class="animate-spin h-4 w-4 text-[#0d4d98]" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                            </div>
+
                             <div class="absolute inset-y-1.5 end-1.5 flex items-center">
                                 <button type="submit" id="btn-search" class="px-5 py-2.5 bg-[#0d4d98] hover:bg-[#0b3d78] text-white text-[10px] font-extrabold uppercase rounded-lg transition shadow-sm hover:shadow-md">
                                     Buscar
                                 </button>
                             </div>
+                        </div>
+
+                        <!-- Dropdown de Sugerencias -->
+                        <div x-show="showDropdown && results.length > 0" class="absolute left-4 right-4 top-full mt-2 bg-white border border-slate-200 rounded-xl shadow-lg z-50 overflow-hidden divide-y divide-slate-100 max-h-60 overflow-y-auto" x-cloak>
+                            <template x-for="item in results" :key="item.id">
+                                <a :href="'/productions/' + item.id" class="block p-3 hover:bg-slate-50 transition text-left">
+                                    <span class="block text-xs font-semibold text-slate-800" x-text="item.title"></span>
+                                    <span class="block text-[9px] text-[#0d4d98] font-bold uppercase tracking-wider mt-1" x-text="item.production_type ? item.production_type.name : 'Trabajo Científico'"></span>
+                                </a>
+                            </template>
                         </div>
                     </div>
 
