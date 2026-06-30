@@ -12,7 +12,16 @@ export default {
     theme: {
         extend: {
             fontFamily: {
-                sans: ['Figtree', ...defaultTheme.fontFamily.sans],
+                sans: ['Montserrat', ...defaultTheme.fontFamily.sans],
+            },
+            colors: {
+                unimar: {
+                    blue: '#0d4d98',
+                    gold: '#F5B800',
+                    dark: '#1E293B',
+                    light: '#F9FAFB',
+                    matte: '#F5F3EC',
+                },
             },
         },
     },
