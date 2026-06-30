@@ -184,6 +184,39 @@ class CatalogSearchTest extends TestCase
         $response->assertDontSee('Estudios sobre Blockchain');
     }
 
+    public function test_catalog_filters_by_type_and_tutor(): void
+    {
+        $user = User::factory()->create();
+        $user->assignRole('Estudiante');
+
+        $typeB = ProductionType::create([
+            'name' => 'Artículo Científico',
+            'description' => 'Artículo publicado en revista',
+        ]);
+
+        $this->createProduction('published', [
+            'title' => 'Sistemas Inteligentes',
+            'production_type_id' => $this->type->id,
+            'tutor' => 'Dr. Carlos Mendoza',
+        ]);
+
+        $this->createProduction('published', [
+            'title' => 'Leyes y Normas',
+            'production_type_id' => $typeB->id,
+            'tutor' => 'Dra. Ana Silva',
+        ]);
+
+        // Filter by type
+        $response = $this->actingAs($user)->get(route('catalog.index', ['type' => $typeB->id]));
+        $response->assertSee('Leyes y Normas');
+        $response->assertDontSee('Sistemas Inteligentes');
+
+        // Filter by tutor
+        $response = $this->actingAs($user)->get(route('catalog.index', ['tutor' => 'Dr. Carlos Mendoza']));
+        $response->assertSee('Sistemas Inteligentes');
+        $response->assertDontSee('Leyes y Normas');
+    }
+
     protected function createProduction(string $state, array $overrides = []): Production
     {
         return Production::create(array_merge([

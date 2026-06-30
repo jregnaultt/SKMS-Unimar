@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AcademicProgram;
 use App\Models\Production;
+use App\Models\ProductionType;
 use App\Models\ResearchLine;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -17,7 +18,7 @@ class CatalogController extends Controller
     {
         $query = Production::query()
             ->published()
-            ->with(['academicProgram', 'researchLine', 'productionType']);
+            ->with(['academicProgram', 'researchLine', 'productionType', 'keywords', 'media']);
 
         // Full-text search
         if ($request->filled('q')) {
@@ -42,11 +43,27 @@ class CatalogController extends Controller
         if ($request->filled('year')) {
             $query->whereYear('published_at', $request->input('year'));
         }
+        if ($request->filled('type')) {
+            $query->where('production_type_id', $request->input('type'));
+        }
+        if ($request->filled('tutor')) {
+            $query->where('tutor', $request->input('tutor'));
+        }
 
         $productions = $query->orderBy('published_at', 'desc')->paginate(10);
+
         $programs = AcademicProgram::where('is_active', true)->orderBy('name')->get();
         $lines = ResearchLine::where('is_active', true)->orderBy('name')->get();
+        $productionTypes = ProductionType::orderBy('name')->get();
 
-        return view('catalog.index', compact('productions', 'programs', 'lines'));
+        // Get distinct tutor names from published productions to populate filter
+        $tutors = Production::published()
+            ->whereNotNull('tutor')
+            ->where('tutor', '!=', '')
+            ->distinct()
+            ->orderBy('tutor')
+            ->pluck('tutor');
+
+        return view('catalog.index', compact('productions', 'programs', 'lines', 'productionTypes', 'tutors'));
     }
 }
