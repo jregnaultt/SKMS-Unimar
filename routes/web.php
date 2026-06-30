@@ -22,13 +22,16 @@ Route::get('/catalog', [CatalogController::class, 'index'])
     ->middleware(['auth', 'verified'])
     ->name('catalog.index');
 
+use App\Http\Controllers\DashboardController;
+
 Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::post('/dashboard/switch-role', [DashboardController::class, 'switchRole'])->name('dashboard.switch-role');
+});
 
 use App\Http\Controllers\Admin\AdminAcademicPeriodController;
 use App\Http\Controllers\Admin\AdminAcademicProgramController;
