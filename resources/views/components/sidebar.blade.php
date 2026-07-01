@@ -28,7 +28,7 @@
             </div>
         </div>
         <div class="mt-4">
-            <span class="text-[10px] bg-[#0d4d98]/5 text-[#0d4d98] border border-[#0d4d98]/10 px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider">
+            <span class="inline-block whitespace-nowrap text-[10px] bg-[#0d4d98]/5 text-[#0d4d98] border border-[#0d4d98]/10 px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider">
                 Decanato de Ingeniería
             </span>
         </div>

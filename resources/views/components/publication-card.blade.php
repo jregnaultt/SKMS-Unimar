@@ -40,15 +40,15 @@
         <!-- Metadata fields styled neatly -->
         <div class="text-base text-slate-500 space-y-2.5 border-t border-slate-100/80 pt-4 mb-4">
             <div class="flex items-center">
-                <span class="text-slate-400 font-semibold w-24 shrink-0">Autor:</span>
+                <span class="text-slate-400 font-semibold w-28 shrink-0">Autor:</span>
                 <span class="text-slate-700 font-medium truncate">{{ $author }}</span>
             </div>
             <div class="flex items-center">
-                <span class="text-slate-400 font-semibold w-24 shrink-0">Tutor:</span>
+                <span class="text-slate-400 font-semibold w-28 shrink-0">Tutor:</span>
                 <span class="text-slate-700 font-medium truncate">{{ $tutor }}</span>
             </div>
             <div class="flex items-center">
-                <span class="text-slate-400 font-semibold w-24 shrink-0">Programa:</span>
+                <span class="text-slate-400 font-semibold w-28 shrink-0">Programa:</span>
                 <span class="text-slate-700 font-medium truncate">{{ $program }}</span>
             </div>
         </div>
