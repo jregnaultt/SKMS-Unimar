@@ -4,7 +4,7 @@
     $roleLabel = $data['roleLabel'] ?? 'Evaluador';
 @endphp
 
-<div class="space-y-8">
+<div class="space-y-6">
     <!-- Header Summary Cards -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-[0_10px_30px_rgba(13,77,152,0.03)] flex items-center space-x-4">
@@ -47,7 +47,7 @@
     </div>
 
     <!-- Main Section Split -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         <!-- Left: Bandeja de Evaluaciones Activas (2/3 width) -->
         <div class="lg:col-span-2 space-y-6">

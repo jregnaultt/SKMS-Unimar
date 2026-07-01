@@ -18,7 +18,7 @@
     <!-- Scripts and Styles -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="font-sans antialiased bg-unimar-matte text-unimar-dark min-h-screen flex">
+<body x-data="{ sidebarOpen: false }" class="dashboard-system-layout font-sans antialiased bg-unimar-matte text-unimar-dark min-h-screen flex relative overflow-x-hidden">
 
     <!-- Sidebar Fijo Izquierdo -->
     <x-sidebar :roles="$roles" :activeRole="$activeRole" />
@@ -141,7 +141,7 @@
         </header>
 
         <!-- Área de Trabajo Principal -->
-        <main class="flex-1 w-full max-w-6xl mx-auto px-6 py-8">
+        <main class="flex-1 w-full max-w-7xl mx-auto px-6 py-8">
             <!-- Alertas Flash del Sistema -->
             @if (session('success'))
                 <div class="mb-6 p-4 bg-emerald-50 border-l-4 border-emerald-500 rounded-r-xl shadow-sm text-emerald-800 transition-all duration-300 animate-fade-in-down">

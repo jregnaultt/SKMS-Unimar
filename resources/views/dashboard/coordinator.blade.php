@@ -8,7 +8,7 @@
     $filters = $data['filters'] ?? [];
 @endphp
 
-<div class="space-y-8">
+<div class="space-y-6">
     <!-- Métricas de Resumen (KPI Cards) -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <!-- Total -->
@@ -65,7 +65,7 @@
     </div>
 
     <!-- Main Content Grid -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         <!-- Left: Cola de Validación Dublin Core (2/3 width) -->
         <div class="lg:col-span-2 space-y-6">

@@ -11,7 +11,7 @@
     $comments = $progressData['comments'] ?? collect();
 @endphp
 
-<div class="space-y-8">
+<div class="space-y-6">
     <!-- Suggested Productions (Sugerencias de vinculación) -->
     @if ($suggestedProductions->isNotEmpty())
         <div class="bg-gradient-to-r from-blue-500/10 via-indigo-500/5 to-transparent border border-blue-100 rounded-2xl p-6 shadow-sm">
@@ -178,7 +178,7 @@
         </div>
 
         <!-- Main Dashboard Split Content -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
             <!-- Left Column: Buzón de Observaciones (2/3 width) -->
             <div class="lg:col-span-2 space-y-6">
