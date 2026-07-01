@@ -45,10 +45,7 @@
                     </p>
                 </div>
                 
-                <div class="pt-8 flex items-center space-x-2.5">
-                    <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-                    <span class="text-xs text-white/60 font-semibold uppercase tracking-wider">UNIMAR Prestige &bull; Ingeniería</span>
-                </div>
+
             </div>
             
             <!-- Elemento decorativo técnico en el fondo -->
