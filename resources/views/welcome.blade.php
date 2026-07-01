@@ -59,8 +59,8 @@
         <div class="absolute inset-0 body-grid pointer-events-none z-0"></div>
 
         <!-- Header / Navigation Bar -->
-        <header class="w-full bg-unimar-matte/90 backdrop-blur-md border-b border-gray-200/40 sticky top-0 z-50 transition-all duration-200">
-            <div class="max-w-6xl mx-auto px-6 h-20 flex items-center justify-between">
+        <header x-data="{ mobileMenuOpen: false }" class="w-full bg-white/90 backdrop-blur-md border-b border-gray-200/40 sticky top-0 z-50 transition-all duration-200">
+            <div class="max-w-[1380px] mx-auto px-6 h-20 flex items-center justify-between">
                 <!-- Brand Logo -->
                 <a href="{{ url('/') }}" class="flex items-center space-x-3 group">
                     <div class="w-10 h-10 rounded-lg bg-unimar-blue flex items-center justify-center text-white font-bold text-lg shadow-md shadow-unimar-blue/20 transition-transform group-hover:scale-105">
@@ -72,16 +72,16 @@
                     </div>
                 </a>
 
-                <!-- Navigation Links -->
-                <nav class="hidden md:flex items-center space-x-8">
+                <!-- Navigation Links (Desktop) -->
+                <nav class="hidden lg:flex items-center space-x-8">
                     <a href="{{ url('/') }}" class="text-sm font-semibold text-unimar-blue border-b-2 border-unimar-blue pb-1">Inicio</a>
                     <a href="#especialidades" class="text-sm font-semibold text-gray-600 hover:text-unimar-blue transition-colors">Carreras</a>
                     <a href="#lineas-investigacion" class="text-sm font-semibold text-gray-600 hover:text-unimar-blue transition-colors">Líneas</a>
                     <a href="#publicaciones" class="text-sm font-semibold text-gray-600 hover:text-unimar-blue transition-colors">Investigaciones</a>
                 </nav>
 
-                <!-- Auth Buttons -->
-                <div class="flex items-center space-x-4">
+                <!-- Auth Buttons (Desktop) -->
+                <div class="hidden lg:flex items-center space-x-6">
                     @if (Route::has('login'))
                         @auth
                             <a href="{{ url('/dashboard') }}" class="inline-flex items-center justify-center px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-white bg-unimar-blue hover:bg-[#09356b] rounded-lg transition-all duration-200 shadow-md shadow-unimar-blue/10 hover:shadow-lg hover:shadow-unimar-blue/20">
@@ -94,6 +94,54 @@
 
                             @if (Route::has('register'))
                                 <a href="{{ route('register') }}" class="inline-flex items-center justify-center px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-white bg-unimar-blue hover:bg-[#09356b] rounded-lg transition-all duration-200 shadow-md shadow-unimar-blue/10 hover:shadow-lg hover:shadow-unimar-blue/20">
+                                    Registrarse
+                                </a>
+                            @endif
+                        @endauth
+                    @endif
+                </div>
+
+                <!-- Hamburger Menu Button (Mobile/Tablet) -->
+                <div class="flex items-center lg:hidden">
+                    <button @click="mobileMenuOpen = !mobileMenuOpen" class="inline-flex items-center justify-center p-2 rounded-lg text-unimar-blue hover:bg-unimar-blue/5 focus:outline-none transition duration-150 ease-in-out">
+                        <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
+                            <path :class="{'hidden': mobileMenuOpen, 'inline-flex': !mobileMenuOpen }" class="inline-flex" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                            <path :class="{'hidden': !mobileMenuOpen, 'inline-flex': mobileMenuOpen }" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mobile Menu Dropdown -->
+            <div x-show="mobileMenuOpen" 
+                 x-transition:enter="transition ease-out duration-150"
+                 x-transition:enter-start="opacity-0 -translate-y-2"
+                 x-transition:enter-end="opacity-100 translate-y-0"
+                 x-transition:leave="transition ease-in duration-100"
+                 x-transition:leave-start="opacity-100 translate-y-0"
+                 x-transition:leave-end="opacity-0 -translate-y-2"
+                 class="lg:hidden border-t border-gray-200/40 bg-white/95 backdrop-blur-md px-6 py-5 space-y-4 shadow-inner" 
+                 style="display: none;">
+                <nav class="flex flex-col space-y-3">
+                    <a href="{{ url('/') }}" @click="mobileMenuOpen = false" class="text-sm font-semibold text-unimar-blue py-1">Inicio</a>
+                    <a href="#especialidades" @click="mobileMenuOpen = false" class="text-sm font-semibold text-gray-600 hover:text-unimar-blue transition-colors py-1">Carreras</a>
+                    <a href="#lineas-investigacion" @click="mobileMenuOpen = false" class="text-sm font-semibold text-gray-600 hover:text-unimar-blue transition-colors py-1">Líneas</a>
+                    <a href="#publicaciones" @click="mobileMenuOpen = false" class="text-sm font-semibold text-gray-600 hover:text-unimar-blue transition-colors py-1">Investigaciones</a>
+                </nav>
+
+                <div class="pt-4 border-t border-slate-200/50 flex flex-col space-y-2.5">
+                    @if (Route::has('login'))
+                        @auth
+                            <a href="{{ url('/dashboard') }}" class="w-full inline-flex items-center justify-center px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-white bg-unimar-blue hover:bg-[#09356b] rounded-lg transition shadow-md">
+                                Dashboard
+                            </a>
+                        @else
+                            <a href="{{ route('login') }}" class="w-full text-center py-2.5 text-xs font-bold uppercase tracking-wider text-unimar-blue hover:text-[#09356b] transition-colors border border-unimar-blue/20 rounded-lg bg-white">
+                                Acceder
+                            </a>
+
+                            @if (Route::has('register'))
+                                <a href="{{ route('register') }}" class="w-full inline-flex items-center justify-center px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-white bg-unimar-blue hover:bg-[#09356b] rounded-lg transition shadow-md">
                                     Registrarse
                                 </a>
                             @endif
@@ -122,18 +170,18 @@
                     // Calculate live counts per program
                     $programs = \App\Models\AcademicProgram::all();
                     foreach ($programs as $prog) {
-                        $code = strtolower($prog->codigo);
+                        $code = strtolower($prog->code);
                         $count = \App\Models\Production::where('workflow_state', 'published')
                             ->where('academic_program_id', $prog->id)
                             ->count();
 
-                        if (str_contains($code, 'sistemas') || str_contains(strtolower($prog->nombre), 'sistemas')) {
+                        if (str_contains($code, 'sis') || str_contains(strtolower($prog->name), 'sistemas')) {
                             $counts['sistemas'] = $count;
-                        } elseif (str_contains($code, 'civil') || str_contains(strtolower($prog->nombre), 'civil')) {
+                        } elseif (str_contains($code, 'civ') || str_contains(strtolower($prog->name), 'civil')) {
                             $counts['civil'] = $count;
-                        } elseif (str_contains($code, 'industrial') || str_contains(strtolower($prog->nombre), 'industrial')) {
+                        } elseif (str_contains($code, 'ind') || str_contains(strtolower($prog->name), 'industrial')) {
                             $counts['industrial'] = $count;
-                        } elseif (str_contains($code, 'quimica') || str_contains(strtolower($prog->nombre), 'química') || str_contains(strtolower($prog->nombre), 'quimica')) {
+                        } elseif (str_contains($code, 'qui') || str_contains(strtolower($prog->name), 'química') || str_contains(strtolower($prog->name), 'quimica')) {
                             $counts['quimica'] = $count;
                         }
                     }
@@ -171,11 +219,6 @@
 
             <div class="max-w-4xl mx-auto w-full text-center z-10 relative flex flex-col items-center">
                 
-                <!-- Tag Unimar -->
-                <div class="inline-flex items-center space-x-2 bg-white/10 border border-white/20 px-4 py-1.5 rounded-full mb-6 backdrop-blur-sm">
-                    <span class="w-2 h-2 rounded-full bg-unimar-gold animate-pulse"></span>
-                    <span class="text-[10px] font-extrabold tracking-widest text-white uppercase">Universidad de Margarita</span>
-                </div>
 
                 <!-- Cohesive Title & Subtitle Block -->
                 <div class="flex flex-col items-center space-y-2 mb-8 max-w-3xl">
@@ -225,11 +268,11 @@
 
         <!-- Specialties Section -->
         <section id="especialidades" class="py-20 px-6 bg-unimar-matte border-b border-gray-200/30 z-10 relative">
-            <div class="max-w-6xl mx-auto">
+            <div class="max-w-[1380px] mx-auto">
                 <div class="text-center max-w-xl mx-auto mb-16">
                     <h2 class="text-2xl sm:text-3xl font-bold text-unimar-blue tracking-tight">Navegar por Especialidad</h2>
                     <div class="w-12 h-1 bg-unimar-gold mx-auto mt-4 rounded-full"></div>
-                    <p class="text-xs text-gray-500 mt-4 leading-relaxed font-medium">
+                    <p class="text-base text-gray-500 mt-4 leading-relaxed font-medium">
                         Explora las investigaciones científicas y proyectos de grado agrupados por los programas de ingeniería del Decanato.
                     </p>
                 </div>
@@ -237,104 +280,72 @@
                 <!-- Career Cards Grid -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
                     <!-- Sistemas -->
-                    <div class="bg-white p-8 rounded-xl border border-gray-100 shadow-[0_10px_30px_rgba(13,77,152,0.03)] hover:shadow-[0_15px_35px_rgba(13,77,152,0.06)] hover:-translate-y-1 transition-all duration-300 group flex flex-col items-start">
-                        <div class="w-12 h-12 rounded-lg bg-unimar-blue/5 text-unimar-blue flex items-center justify-center mb-6 group-hover:bg-unimar-blue group-hover:text-white transition-colors duration-300">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <x-program-card 
+                        title="Ingeniería de Sistemas"
+                        description="Computación, inteligencia artificial, desarrollo de software y sistemas de información de alto rendimiento."
+                        :count="$displayCounts['sistemas']"
+                        :link="route('catalog.index') . '?program=sistemas'"
+                    >
+                        <x-slot name="icon">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
                             </svg>
-                        </div>
-                        <h3 class="text-lg font-extrabold text-unimar-blue mb-2">Ingeniería de Sistemas</h3>
-                        <p class="text-sm text-gray-500 leading-relaxed mb-6 font-medium">Computación, inteligencia artificial, desarrollo de software y sistemas de información de alto rendimiento.</p>
-                        <div class="flex items-center justify-between w-full mt-auto pt-4 border-t border-gray-50">
-                            <span class="text-[11px] font-extrabold text-unimar-gold bg-unimar-blue/5 px-2.5 py-1 rounded-full uppercase tracking-wider">
-                                {{ $displayCounts['sistemas'] }}
-                            </span>
-                            <a href="{{ route('catalog.index') }}?program=sistemas" class="text-sm font-bold text-unimar-blue hover:text-unimar-gold flex items-center">
-                                Explorar
-                                <svg class="w-3.5 h-3.5 ml-1 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path>
-                                </svg>
-                            </a>
-                        </div>
-                    </div>
+                        </x-slot>
+                    </x-program-card>
 
                     <!-- Civil -->
-                    <div class="bg-white p-8 rounded-xl border border-gray-100 shadow-[0_10px_30px_rgba(13,77,152,0.03)] hover:shadow-[0_15px_35px_rgba(13,77,152,0.06)] hover:-translate-y-1 transition-all duration-300 group flex flex-col items-start">
-                        <div class="w-12 h-12 rounded-lg bg-unimar-blue/5 text-unimar-blue flex items-center justify-center mb-6 group-hover:bg-unimar-blue group-hover:text-white transition-colors duration-300">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <x-program-card 
+                        title="Ingeniería Civil"
+                        description="Diseño estructural, vialidad, hidráulica, geotecnia y planificación urbana sostenible."
+                        :count="$displayCounts['civil']"
+                        :link="route('catalog.index') . '?program=civil'"
+                    >
+                        <x-slot name="icon">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
                             </svg>
-                        </div>
-                        <h3 class="text-lg font-extrabold text-unimar-blue mb-2">Ingeniería Civil</h3>
-                        <p class="text-sm text-gray-500 leading-relaxed mb-6 font-medium">Diseño estructural, vialidad, hidráulica, geotecnia y planificación urbana sostenible.</p>
-                        <div class="flex items-center justify-between w-full mt-auto pt-4 border-t border-gray-50">
-                            <span class="text-[11px] font-extrabold text-unimar-gold bg-unimar-blue/5 px-2.5 py-1 rounded-full uppercase tracking-wider">
-                                {{ $displayCounts['civil'] }}
-                            </span>
-                            <a href="{{ route('catalog.index') }}?program=civil" class="text-sm font-bold text-unimar-blue hover:text-unimar-gold flex items-center">
-                                Explorar
-                                <svg class="w-3.5 h-3.5 ml-1 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path>
-                                </svg>
-                            </a>
-                        </div>
-                    </div>
+                        </x-slot>
+                    </x-program-card>
 
                     <!-- Industrial -->
-                    <div class="bg-white p-8 rounded-xl border border-gray-100 shadow-[0_10px_30px_rgba(13,77,152,0.03)] hover:shadow-[0_15px_35px_rgba(13,77,152,0.06)] hover:-translate-y-1 transition-all duration-300 group flex flex-col items-start">
-                        <div class="w-12 h-12 rounded-lg bg-unimar-blue/5 text-unimar-blue flex items-center justify-center mb-6 group-hover:bg-unimar-blue group-hover:text-white transition-colors duration-300">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <x-program-card 
+                        title="Ingeniería Industrial"
+                        description="Optimización de recursos corporativos, gestión de procesos de producción, logística e higiene."
+                        :count="$displayCounts['industrial']"
+                        :link="route('catalog.index') . '?program=industrial'"
+                    >
+                        <x-slot name="icon">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                             </svg>
-                        </div>
-                        <h3 class="text-lg font-extrabold text-unimar-blue mb-2">Ingeniería Industrial</h3>
-                        <p class="text-sm text-gray-500 leading-relaxed mb-6 font-medium">Optimización de recursos corporativos, gestión de procesos de producción, logística e higiene.</p>
-                        <div class="flex items-center justify-between w-full mt-auto pt-4 border-t border-gray-50">
-                            <span class="text-[11px] font-extrabold text-unimar-gold bg-unimar-blue/5 px-2.5 py-1 rounded-full uppercase tracking-wider">
-                                {{ $displayCounts['industrial'] }}
-                            </span>
-                            <a href="{{ route('catalog.index') }}?program=industrial" class="text-sm font-bold text-unimar-blue hover:text-unimar-gold flex items-center">
-                                Explorar
-                                <svg class="w-3.5 h-3.5 ml-1 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path>
-                                </svg>
-                            </a>
-                        </div>
-                    </div>
+                        </x-slot>
+                    </x-program-card>
 
                     <!-- Química -->
-                    <div class="bg-white p-8 rounded-xl border border-gray-100 shadow-[0_10px_30px_rgba(13,77,152,0.03)] hover:shadow-[0_15px_35px_rgba(13,77,152,0.06)] hover:-translate-y-1 transition-all duration-300 group flex flex-col items-start">
-                        <div class="w-12 h-12 rounded-lg bg-unimar-blue/5 text-unimar-blue flex items-center justify-center mb-6 group-hover:bg-unimar-blue group-hover:text-white transition-colors duration-300">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <x-program-card 
+                        title="Ingeniería Química"
+                        description="Diseño de procesos químicos industriales, termodinámica y desarrollo de nuevos materiales."
+                        :count="$displayCounts['quimica']"
+                        :link="route('catalog.index') . '?program=quimica'"
+                    >
+                        <x-slot name="icon">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path>
                             </svg>
-                        </div>
-                        <h3 class="text-lg font-extrabold text-unimar-blue mb-2">Ingeniería Química</h3>
-                        <p class="text-sm text-gray-500 leading-relaxed mb-6 font-medium">Diseño de procesos químicos industriales, termodinámica y desarrollo de nuevos materiales.</p>
-                        <div class="flex items-center justify-between w-full mt-auto pt-4 border-t border-gray-50">
-                            <span class="text-[11px] font-extrabold text-unimar-gold bg-unimar-blue/5 px-2.5 py-1 rounded-full uppercase tracking-wider">
-                                {{ $displayCounts['quimica'] }}
-                            </span>
-                            <a href="{{ route('catalog.index') }}?program=quimica" class="text-sm font-bold text-unimar-blue hover:text-unimar-gold flex items-center">
-                                Explorar
-                                <svg class="w-3.5 h-3.5 ml-1 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path>
-                                </svg>
-                            </a>
-                        </div>
-                    </div>
+                        </x-slot>
+                    </x-program-card>
                 </div>
             </div>
         </section>
 
         <!-- Research Lines Section (Líneas de Investigación Activas) -->
         <section id="lineas-investigacion" class="py-20 px-6 bg-unimar-matte border-b border-gray-200/30 z-10 relative">
-            <div class="max-w-6xl mx-auto">
+            <div class="max-w-[1380px] mx-auto">
                 <div class="text-center max-w-xl mx-auto mb-16">
                     <h2 class="text-2xl sm:text-3xl font-bold text-unimar-blue tracking-tight">Líneas de Investigación Activas</h2>
                     <div class="w-12 h-1 bg-unimar-gold mx-auto mt-4 rounded-full"></div>
-                    <p class="text-xs text-gray-500 mt-4 leading-relaxed font-medium">
+                    <p class="text-base text-gray-500 mt-4 leading-relaxed font-medium">
                         Áreas metodológicas y temáticas oficiales que guían el desarrollo de proyectos y trabajos científicos en el Decanato.
                     </p>
                 </div>
@@ -342,102 +353,42 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                     @if(count($lineasInvestigacion) > 0)
                         @foreach($lineasInvestigacion as $linea)
-                            <!-- Dynamic Research Line Card -->
-                            <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-[0_8px_25px_rgba(13,77,152,0.02)] hover:shadow-[0_12px_30px_rgba(13,77,152,0.05)] hover:-translate-y-1 transition-all duration-300 flex flex-col border-t-4 border-unimar-blue">
-                                <span class="text-[11px] font-extrabold uppercase tracking-wider text-unimar-gold mb-3 block">
-                                    {{ $linea->academicProgram ? $linea->academicProgram->nombre : 'Programa Académico' }}
-                                </span>
-                                <h3 class="text-base font-extrabold text-unimar-blue mb-3 leading-snug">
-                                    {{ $linea->name }}
-                                </h3>
-                                <p class="text-sm text-gray-500 leading-relaxed mb-4 font-medium line-clamp-4">
-                                    {{ $linea->description ?? 'Sin descripción registrada actualmente.' }}
-                                </p>
-                                <a href="{{ route('catalog.index') }}?line={{ $linea->id }}" class="text-sm font-bold text-unimar-blue hover:text-unimar-gold flex items-center mt-auto">
-                                    Ver Proyectos
-                                    <svg class="w-3.5 h-3.5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path>
-                                    </svg>
-                                </a>
-                            </div>
+                            <x-research-line-card 
+                                :program="$linea->academicProgram ? $linea->academicProgram->name : 'Programa Académico'"
+                                :title="$linea->name"
+                                :description="$linea->description ?? 'Sin descripción registrada actualmente.'"
+                                :link="route('catalog.index') . '?line=' . $linea->id"
+                            />
                         @endforeach
                     @else
                         <!-- Mockup Fallback Research Lines (Shown only if database table has 0 active lines) -->
-                        <!-- Line 1: Sistemas -->
-                        <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-[0_8px_25px_rgba(13,77,152,0.02)] hover:shadow-[0_12px_30px_rgba(13,77,152,0.05)] hover:-translate-y-1 transition-all duration-300 flex flex-col border-t-4 border-unimar-blue">
-                            <span class="text-[11px] font-extrabold uppercase tracking-wider text-unimar-gold mb-3 block">
-                                Ingeniería de Sistemas
-                            </span>
-                            <h3 class="text-base font-extrabold text-unimar-blue mb-3 leading-snug">
-                                Software Inteligente y Sistemas Distribuidos
-                            </h3>
-                            <p class="text-sm text-gray-500 leading-relaxed mb-4 font-medium line-clamp-4">
-                                Investigación centrada en aprendizaje automático, procesamiento de lenguaje natural (NLP), arquitecturas en la nube y optimización de software bajo conectividad variable.
-                            </p>
-                            <a href="#" class="text-sm font-bold text-unimar-blue hover:text-unimar-gold flex items-center mt-auto">
-                                Ver Proyectos
-                                <svg class="w-3.5 h-3.5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path>
-                                </svg>
-                            </a>
-                        </div>
+                        <x-research-line-card 
+                            program="Ingeniería de Sistemas"
+                            title="Software Inteligente y Sistemas Distribuidos"
+                            description="Investigación centrada en aprendizaje automático, procesamiento de lenguaje natural (NLP), arquitecturas en la nube y optimización de software bajo conectividad variable."
+                            link="#"
+                        />
 
-                        <!-- Line 2: Civil -->
-                        <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-[0_8px_25px_rgba(13,77,152,0.02)] hover:shadow-[0_12px_30px_rgba(13,77,152,0.05)] hover:-translate-y-1 transition-all duration-300 flex flex-col border-t-4 border-unimar-blue">
-                            <span class="text-[11px] font-extrabold uppercase tracking-wider text-unimar-gold mb-3 block">
-                                Ingeniería Civil
-                            </span>
-                            <h3 class="text-base font-extrabold text-unimar-blue mb-3 leading-snug">
-                                Infraestructura Vial y Estructuras Sismorresistentes
-                            </h3>
-                            <p class="text-sm text-gray-500 leading-relaxed mb-4 font-medium line-clamp-4">
-                                Modelado y optimización sismo-resistente de edificaciones costeras, diseño geométrico de vías terrestres, y mezclas asfálticas modificadas para climas tropicales.
-                            </p>
-                            <a href="#" class="text-sm font-bold text-unimar-blue hover:text-unimar-gold flex items-center mt-auto">
-                                Ver Proyectos
-                                <svg class="w-3.5 h-3.5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path>
-                                </svg>
-                            </a>
-                        </div>
+                        <x-research-line-card 
+                            program="Ingeniería Civil"
+                            title="Infraestructura Vial y Estructuras Sismorresistentes"
+                            description="Modelado y optimización sismo-resistente de edificaciones costeras, diseño geométrico de vías terrestres, y mezclas asfálticas modificadas para climas tropicales."
+                            link="#"
+                        />
 
-                        <!-- Line 3: Industrial -->
-                        <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-[0_8px_25px_rgba(13,77,152,0.02)] hover:shadow-[0_12px_30px_rgba(13,77,152,0.05)] hover:-translate-y-1 transition-all duration-300 flex flex-col border-t-4 border-unimar-blue">
-                            <span class="text-[11px] font-extrabold uppercase tracking-wider text-unimar-gold mb-3 block">
-                                Ingeniería Industrial
-                            </span>
-                            <h3 class="text-base font-extrabold text-unimar-blue mb-3 leading-snug">
-                                Gestión de Operaciones y Eco-Eficiencia Industrial
-                            </h3>
-                            <p class="text-sm text-gray-500 leading-relaxed mb-4 font-medium line-clamp-4">
-                                Desarrollo de cadenas de suministro verdes, optimización de flujos de producción en la manufactura regional y simulación de sistemas logísticos humanitarios.
-                            </p>
-                            <a href="#" class="text-sm font-bold text-unimar-blue hover:text-unimar-gold flex items-center mt-auto">
-                                Ver Proyectos
-                                <svg class="w-3.5 h-3.5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path>
-                                </svg>
-                            </a>
-                        </div>
+                        <x-research-line-card 
+                            program="Ingeniería Industrial"
+                            title="Gestión de Operaciones y Eco-Eficiencia Industrial"
+                            description="Desarrollo de cadenas de suministro verdes, optimización de flujos de producción en la manufactura regional y simulación de sistemas logísticos humanitarios."
+                            link="#"
+                        />
 
-                        <!-- Line 4: Química -->
-                        <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-[0_8px_25px_rgba(13,77,152,0.02)] hover:shadow-[0_12px_30px_rgba(13,77,152,0.05)] hover:-translate-y-1 transition-all duration-300 flex flex-col border-t-4 border-unimar-blue">
-                            <span class="text-[11px] font-extrabold uppercase tracking-wider text-unimar-gold mb-3 block">
-                                Ingeniería Química
-                            </span>
-                            <h3 class="text-base font-extrabold text-unimar-blue mb-3 leading-snug">
-                                Bioprocesos y Tecnología de Materiales Sustentables
-                            </h3>
-                            <p class="text-sm text-gray-500 leading-relaxed mb-4 font-medium line-clamp-4">
-                                Extracción supercrítica de aceites esenciales de plantas nativas, síntesis de biopolímeros degradables a partir de residuos marinos y tratamiento de aguas.
-                            </p>
-                            <a href="#" class="text-sm font-bold text-unimar-blue hover:text-unimar-gold flex items-center mt-auto">
-                                Ver Proyectos
-                                <svg class="w-3.5 h-3.5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path>
-                                </svg>
-                            </a>
-                        </div>
+                        <x-research-line-card 
+                            program="Ingeniería Química"
+                            title="Bioprocesos y Tecnología de Materiales Sustentables"
+                            description="Extracción supercrítica de aceites esenciales de plantas nativas, síntesis de biopolímeros degradables a partir de residuos marinos y tratamiento de aguas."
+                            link="#"
+                        />
                     @endif
                 </div>
             </div>
@@ -445,11 +396,11 @@
 
         <!-- Latest Publications Section -->
         <section id="publicaciones" class="py-20 px-6 z-10 relative bg-unimar-matte">
-            <div class="max-w-6xl mx-auto">
+            <div class="max-w-[1380px] mx-auto">
                 <div class="text-center max-w-xl mx-auto mb-16">
                     <h2 class="text-2xl sm:text-3xl font-bold text-unimar-blue tracking-tight">Últimas Publicaciones Aprobadas</h2>
                     <div class="w-12 h-1 bg-unimar-gold mx-auto mt-4 rounded-full"></div>
-                    <p class="text-xs text-gray-500 mt-4 leading-relaxed font-medium">
+                    <p class="text-base text-gray-500 mt-4 leading-relaxed font-medium">
                         Investigaciones de excelencia que han completado exitosamente todo el flujo de revisión y aprobación académica del Decanato.
                     </p>
                 </div>
@@ -457,147 +408,53 @@
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     @if(count($publicaciones) > 0)
                         @foreach($publicaciones as $pub)
-                            <!-- Dynamic Publication Card (Completely dynamic, real values) -->
-                            <div class="bg-white p-8 rounded-xl border border-gray-100 shadow-[0_10px_30px_rgba(13,77,152,0.03)] flex flex-col items-start hover:shadow-[0_15px_35px_rgba(13,77,152,0.06)] hover:-translate-y-1 transition-all duration-300">
-                                <div class="flex items-center justify-between w-full mb-6">
-                                    <span class="px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider bg-green-50 text-green-700 rounded-full border border-green-100">
-                                        Publicado
-                                    </span>
-                                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-                                        {{ $pub->academicPeriod ? $pub->academicPeriod->nombre : 'Periodo Activo' }}
-                                    </span>
-                                </div>
-                                <div class="flex items-start space-x-4 mb-4">
-                                    <div class="w-10 h-10 rounded bg-unimar-blue/5 text-unimar-blue flex items-center justify-center shrink-0">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                                        </svg>
-                                    </div>
-                                    <h3 class="text-base font-extrabold text-unimar-blue line-clamp-2 hover:text-[#09356b] transition-colors leading-snug">
-                                        {{ $pub->title }}
-                                    </h3>
-                                </div>
-                                <div class="text-sm text-gray-500 space-y-1.5 mb-6 font-medium">
-                                    <p><strong class="font-semibold text-gray-700">Autor:</strong> {{ $pub->authors ?? 'Investigador' }}</p>
-                                    <p><strong class="font-semibold text-gray-700">Tutor:</strong> {{ $pub->tutor ?? 'No asignado' }}</p>
-                                    <p><strong class="font-semibold text-gray-700">Programa:</strong> {{ $pub->academicProgram ? $pub->academicProgram->nombre : 'Ingeniería' }}</p>
-                                </div>
-                                <a href="{{ route('productions.show', $pub->id) }}" class="text-sm font-bold text-unimar-blue hover:text-unimar-gold flex items-center mt-auto">
-                                    Ver Detalles
-                                    <svg class="w-3.5 h-3.5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path>
-                                    </svg>
-                                </a>
-                            </div>
+                            <x-publication-card 
+                                :title="$pub->title"
+                                :author="$pub->authors ?? 'Investigador'"
+                                :tutor="$pub->tutor ?? 'No asignado'"
+                                :program="$pub->academicProgram ? $pub->academicProgram->name : 'Ingeniería'"
+                                :period="$pub->academicPeriod ? $pub->academicPeriod->name : 'Periodo Activo'"
+                                :link="route('productions.show', $pub->id)"
+                                :showPdf="$pub->hasMedia('documento')"
+                                :pdfLink="route('productions.document', $pub)"
+                            />
                         @endforeach
                     @else
                         <!-- Mockup fallback cards (Montserrat, UNIMAR blue, only shown if database has 0 published works) -->
-                        <!-- Card 1: Sistemas -->
-                        <div class="bg-white p-8 rounded-xl border border-gray-100 shadow-[0_10px_30px_rgba(13,77,152,0.03)] flex flex-col items-start hover:shadow-[0_15px_35px_rgba(13,77,152,0.06)] hover:-translate-y-1 transition-all duration-300">
-                            <div class="flex items-center justify-between w-full mb-6">
-                                <span class="px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider bg-green-50 text-green-700 rounded-full border border-green-100">
-                                    Publicado
-                                </span>
-                                <span class="text-[10px] font-bold text-gray-400">
-                                    Período 2025-I
-                                </span>
-                            </div>
-                            <div class="flex items-start space-x-4 mb-4">
-                                <div class="w-10 h-10 rounded bg-unimar-blue/5 text-unimar-blue flex items-center justify-center shrink-0">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                                    </svg>
-                                </div>
-                                <h3 class="text-base font-extrabold text-unimar-blue line-clamp-2 leading-snug">
-                                    Optimización de Algoritmos de Búsqueda sobre Conectividad Variable en el Valle del Espíritu Santo
-                                </h3>
-                            </div>
-                            <div class="text-sm text-gray-500 space-y-1.5 mb-6 font-medium">
-                                <p><strong class="font-semibold text-gray-700">Autor:</strong> Jesús Regnault</p>
-                                <p><strong class="font-semibold text-gray-700">Tutor:</strong> Prof. Alejandro Silva</p>
-                                <p><strong class="font-semibold text-gray-700">Programa:</strong> Ingeniería de Sistemas</p>
-                            </div>
-                            <a href="#" class="text-sm font-bold text-unimar-blue hover:text-unimar-gold flex items-center mt-auto">
-                                Ver Detalles
-                                <svg class="w-3.5 h-3.5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path>
-                                </svg>
-                            </a>
-                        </div>
+                        <x-publication-card 
+                            title="Optimización de Algoritmos de Búsqueda sobre Conectividad Variable en el Valle del Espíritu Santo"
+                            author="Jesús Regnault"
+                            tutor="Prof. Alejandro Silva"
+                            program="Ingeniería de Sistemas"
+                            period="Período 2025-I"
+                            link="#"
+                        />
 
-                        <!-- Card 2: Civil -->
-                        <div class="bg-white p-8 rounded-xl border border-gray-100 shadow-[0_10px_30px_rgba(13,77,152,0.03)] flex flex-col items-start hover:shadow-[0_15px_35px_rgba(13,77,152,0.06)] hover:-translate-y-1 transition-all duration-300">
-                            <div class="flex items-center justify-between w-full mb-6">
-                                <span class="px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider bg-green-50 text-green-700 rounded-full border border-green-100">
-                                    Publicado
-                                </span>
-                                <span class="text-[10px] font-bold text-gray-400">
-                                    Período 2024-II
-                                </span>
-                            </div>
-                            <div class="flex items-start space-x-4 mb-4">
-                                <div class="w-10 h-10 rounded bg-unimar-blue/5 text-unimar-blue flex items-center justify-center shrink-0">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                                    </svg>
-                                </div>
-                                <h3 class="text-base font-extrabold text-unimar-blue line-clamp-2 leading-snug">
-                                    Propuesta de Diseño Estructural del Puente El Toporo utilizando Modelado Numérico Avanzado
-                                </h3>
-                            </div>
-                            <div class="text-sm text-gray-500 space-y-1.5 mb-6 font-medium">
-                                <p><strong class="font-semibold text-gray-700">Autor:</strong> María Valentina Gómez</p>
-                                <p><strong class="font-semibold text-gray-700">Tutor:</strong> Ing. Carlos Rodríguez</p>
-                                <p><strong class="font-semibold text-gray-700">Programa:</strong> Ingeniería Civil</p>
-                            </div>
-                            <a href="#" class="text-sm font-bold text-unimar-blue hover:text-unimar-gold flex items-center mt-auto">
-                                Ver Detalles
-                                <svg class="w-3.5 h-3.5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path>
-                                </svg>
-                            </a>
-                        </div>
+                        <x-publication-card 
+                            title="Propuesta de Diseño Estructural del Puente El Toporo utilizando Modelado Numérico Avanzado"
+                            author="María Valentina Gómez"
+                            tutor="Ing. Carlos Rodríguez"
+                            program="Ingeniería Civil"
+                            period="Período 2024-II"
+                            link="#"
+                        />
 
-                        <!-- Card 3: Industrial -->
-                        <div class="bg-white p-8 rounded-xl border border-gray-100 shadow-[0_10px_30px_rgba(13,77,152,0.03)] flex flex-col items-start hover:shadow-[0_15px_35px_rgba(13,77,152,0.06)] hover:-translate-y-1 transition-all duration-300">
-                            <div class="flex items-center justify-between w-full mb-6">
-                                <span class="px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider bg-green-50 text-green-700 rounded-full border border-green-100">
-                                    Publicado
-                                </span>
-                                <span class="text-[10px] font-bold text-gray-400">
-                                    Período 2024-II
-                                </span>
-                            </div>
-                            <div class="flex items-start space-x-4 mb-4">
-                                <div class="w-10 h-10 rounded bg-unimar-blue/5 text-unimar-blue flex items-center justify-center shrink-0">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                                    </svg>
-                                </div>
-                                <h3 class="text-base font-extrabold text-unimar-blue line-clamp-2 leading-snug">
-                                    Diseño de un Sistema de Gestión del Conocimiento Científico para el Decanato de Ingeniería
-                                </h3>
-                            </div>
-                            <div class="text-sm text-gray-500 space-y-1.5 mb-6 font-medium">
-                                <p><strong class="font-semibold text-gray-700">Autor:</strong> Ricardo Bermúdez</p>
-                                <p><strong class="font-semibold text-gray-700">Tutor:</strong> Prof. Luis M. Marcano</p>
-                                <p><strong class="font-semibold text-gray-700">Programa:</strong> Ingeniería de Sistemas</p>
-                            </div>
-                            <a href="#" class="text-sm font-bold text-unimar-blue hover:text-unimar-gold flex items-center mt-auto">
-                                Ver Detalles
-                                <svg class="w-3.5 h-3.5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path>
-                                </svg>
-                            </a>
-                        </div>
+                        <x-publication-card 
+                            title="Diseño de un Sistema de Gestión del Conocimiento Científico para el Decanato de Ingeniería"
+                            author="Ricardo Bermúdez"
+                            tutor="Prof. Luis M. Marcano"
+                            program="Ingeniería de Sistemas"
+                            period="Período 2024-II"
+                            link="#"
+                        />
                     @endif
                 </div>
             </div>
         </section>
 
         <!-- Institutional Footer -->
-        <footer class="w-full bg-unimar-matte border-t border-gray-200/40 py-12 px-6 mt-auto z-10 relative">
-            <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
+        <footer class="w-full bg-white border-t border-gray-200/40 py-12 px-6 mt-auto z-10 relative">
+            <div class="max-w-[1380px] mx-auto grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
                 <!-- Left: Logo & Location -->
                 <div class="md:col-span-6 flex flex-col items-start space-y-3">
                     <div class="flex items-center space-x-3">
