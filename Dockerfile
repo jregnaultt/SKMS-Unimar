@@ -16,20 +16,19 @@ COPY . .
 RUN composer dump-autoload --no-dev --optimize
 
 # Stage 3: Final production image
-FROM dunglas/frankenphp:1-php8.4
+FROM php:8.4-apache
 
 # Install system dependencies (poppler-utils, unzip, supervisor)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     poppler-utils \
     unzip \
     supervisor \
-    libcap2-bin \
     && rm -rf /var/lib/apt/lists/*
 
-# Remove file capabilities from frankenphp binary to prevent Operation not permitted error on Render
-RUN setcap -r /usr/local/bin/frankenphp
+# Add install-php-extensions helper
+ADD --chmod=0755 https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions /usr/local/bin/
 
-# Install required PHP extensions using dunglas/frankenphp built-in extension helper
+# Install required PHP extensions
 RUN install-php-extensions \
     pdo_mysql \
     redis \
@@ -39,6 +38,17 @@ RUN install-php-extensions \
     pcntl \
     opcache \
     exif
+
+# Enable Apache mod_rewrite
+RUN a2enmod rewrite
+
+# Change Apache port to 8080 (non-privileged)
+RUN sed -i 's/80/8080/g' /etc/apache2/ports.conf /etc/apache2/sites-available/*.conf
+
+# Configure Apache Document Root to point to Laravel's public directory
+ENV APACHE_DOCUMENT_ROOT /app/public
+RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
+RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 
 # Use production PHP configuration
 RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"

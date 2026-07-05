@@ -56,5 +56,4 @@ services:
         value: redis
       - key: SESSION_DRIVER
         value: redis
-      - key: OCTANE_SERVER
-        value: frankenphp
+
