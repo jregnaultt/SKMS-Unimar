@@ -63,6 +63,10 @@ class MetadataExtractorServiceTest extends TestCase
 
     public function test_it_extracts_text_from_docx()
     {
+        if (! class_exists(\ZipArchive::class)) {
+            $this->markTestSkipped('ZipArchive class not found (php-zip extension missing).');
+        }
+
         $tempFile = tempnam(sys_get_temp_dir(), 'docx');
         unlink($tempFile);
         $tempFile .= '.docx';

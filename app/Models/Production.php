@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
@@ -30,6 +31,7 @@ class Production extends Model implements HasMedia
             'submission_date' => 'datetime',
             'approval_date' => 'datetime',
             'published_at' => 'datetime',
+            'jury_review_requested' => 'boolean',
         ];
     }
 
@@ -59,6 +61,11 @@ class Production extends Model implements HasMedia
     public function academicPeriod(): BelongsTo
     {
         return $this->belongsTo(AcademicPeriod::class);
+    }
+
+    public function subject(): BelongsTo
+    {
+        return $this->belongsTo(Subject::class);
     }
 
     public function users(): BelongsToMany
@@ -94,5 +101,25 @@ class Production extends Model implements HasMedia
     public function comments(): HasMany
     {
         return $this->hasMany(Comment::class);
+    }
+
+    /**
+     * Get the route key for the model.
+     */
+    public function getRouteKeyName(): string
+    {
+        return 'uuid';
+    }
+
+    /**
+     * Boot the model.
+     */
+    protected static function booted(): void
+    {
+        static::creating(function (Production $production) {
+            if (empty($production->uuid)) {
+                $production->uuid = (string) Str::uuid();
+            }
+        });
     }
 }

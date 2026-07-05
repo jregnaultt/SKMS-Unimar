@@ -14,7 +14,7 @@
         initModal(prod) {
             this.productionId = prod.id;
             this.productionTitle = prod.title;
-            this.actionUrl = '/productions/' + prod.id + '/hitos';
+            this.actionUrl = '/productions/' + prod.uuid + '/hitos';
             
             if (prod.milestones && prod.milestones.length > 0) {
                 this.milestones = prod.milestones.map(m => ({
@@ -48,12 +48,12 @@
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-5">
             <div>
                 <h1 class="text-3xl font-bold text-slate-800 tracking-tight font-sans">Seguimiento de Progreso Científico</h1>
-                <p class="text-sm text-slate-500 mt-1 font-medium">Monitoreo y asignación de hitos académicos de la cohorte activa, Decanato de Ingeniería y Afines</p>
+                <p class="text-base text-slate-500 mt-1 font-medium">Monitoreo y asignación de hitos académicos de la cohorte activa, Decanato de Ingeniería y Afines</p>
             </div>
             
             <!-- Periodo Académico Activo Badge -->
             <div class="flex items-center shrink-0">
-                <span class="inline-flex items-center px-4 py-2 rounded-xl text-xs font-bold border border-unimar-gold/30 bg-unimar-gold/10 text-slate-700 shadow-sm">
+                <span class="inline-flex items-center px-4 py-2 rounded-xl text-sm font-bold border border-unimar-gold/30 bg-unimar-gold/10 text-slate-700 shadow-sm">
                     <svg class="w-4 h-4 text-unimar-gold mr-2 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                     </svg>
@@ -69,7 +69,7 @@
                     <svg class="w-5 h-5 mr-3 text-emerald-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
-                    <span class="font-semibold text-xs">{{ session('success') }}</span>
+                    <span class="font-semibold text-sm">{{ session('success') }}</span>
                 </div>
             </div>
         @endif
@@ -80,7 +80,7 @@
                     <svg class="w-5 h-5 mr-3 text-rose-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
-                    <span class="font-semibold text-xs">{{ session('error') }}</span>
+                    <span class="font-semibold text-sm">{{ session('error') }}</span>
                 </div>
             </div>
         @endif
@@ -91,15 +91,15 @@
                 
                 <!-- Búsqueda por texto -->
                 <div class="md:col-span-2 space-y-1.5">
-                    <label for="search" class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Buscar Proyecto o Estudiante</label>
+                    <label for="search" class="block text-sm font-bold text-slate-600 uppercase tracking-wider">Buscar Proyecto o Estudiante</label>
                     <div class="relative">
                         <input type="text" 
                                id="search" 
                                name="search" 
                                value="{{ $filters['search'] ?? '' }}" 
                                placeholder="Ingresa título de tesis o nombre del alumno..." 
-                               class="block w-full pl-10 pr-4 py-2 bg-slate-50/50 border border-slate-200/80 rounded-xl text-sm focus:border-unimar-blue focus:ring focus:ring-unimar-blue/10 transition duration-150 text-slate-700 placeholder-slate-400 font-medium" />
-                        <svg class="absolute left-3.5 top-3.5 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                               class="block w-full pl-10 pr-4 py-3 bg-slate-50/50 border border-slate-200/80 rounded-xl text-base focus:border-unimar-blue focus:outline-none focus:ring-2 focus:ring-[#0d4d98]/50 transition duration-150 text-slate-700 placeholder-slate-400 font-medium h-11" />
+                        <svg aria-hidden="true" class="absolute left-3.5 top-3.5 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                         </svg>
                     </div>
@@ -107,10 +107,10 @@
 
                 <!-- Programa Académico -->
                 <div class="space-y-1.5">
-                    <label for="academic_program_id" class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Programa Académico</label>
+                    <label for="academic_program_id" class="block text-sm font-bold text-slate-600 uppercase tracking-wider">Programa Académico</label>
                     <select id="academic_program_id" 
                             name="academic_program_id" 
-                            class="block w-full py-2 bg-slate-50/50 border border-slate-200/80 rounded-xl text-sm focus:border-unimar-blue focus:ring focus:ring-unimar-blue/10 transition duration-150 text-slate-700 cursor-pointer font-medium">
+                            class="block w-full py-3 px-4 bg-slate-50/50 border border-slate-200/80 rounded-xl text-base focus:border-unimar-blue focus:outline-none focus:ring-2 focus:ring-[#0d4d98]/50 transition duration-150 text-slate-700 cursor-pointer font-medium h-11">
                         <option value="">Todos los programas</option>
                         @foreach ($programs as $prog)
                             <option value="{{ $prog->id }}" {{ ($filters['academic_program_id'] ?? '') == $prog->id ? 'selected' : '' }}>
@@ -122,10 +122,10 @@
 
                 <!-- Estado del Workflow -->
                 <div class="space-y-1.5">
-                    <label for="workflow_state" class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Estado del Workflow</label>
+                    <label for="workflow_state" class="block text-sm font-bold text-slate-600 uppercase tracking-wider">Estado del Workflow</label>
                     <select id="workflow_state" 
                             name="workflow_state" 
-                            class="block w-full py-2 bg-slate-50/50 border border-slate-200/80 rounded-xl text-sm focus:border-unimar-blue focus:ring focus:ring-unimar-blue/10 transition duration-150 text-slate-700 cursor-pointer font-medium">
+                            class="block w-full py-3 px-4 bg-slate-50/50 border border-slate-200/80 rounded-xl text-base focus:border-unimar-blue focus:outline-none focus:ring-2 focus:ring-[#0d4d98]/50 transition duration-150 text-slate-700 cursor-pointer font-medium h-11">
                         <option value="">Todos los estados</option>
                         <option value="draft" {{ ($filters['workflow_state'] ?? '') === 'draft' ? 'selected' : '' }}>Borrador</option>
                         <option value="under_review" {{ ($filters['workflow_state'] ?? '') === 'under_review' ? 'selected' : '' }}>En Revisión</option>
@@ -138,10 +138,10 @@
 
                 <!-- Línea de Investigación -->
                 <div class="space-y-1.5">
-                    <label for="research_line_id" class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Línea de Investigación</label>
+                    <label for="research_line_id" class="block text-sm font-bold text-slate-600 uppercase tracking-wider">Línea de Investigación</label>
                     <select id="research_line_id" 
                             name="research_line_id" 
-                            class="block w-full py-2 bg-slate-50/50 border border-slate-200/80 rounded-xl text-sm focus:border-unimar-blue focus:ring focus:ring-unimar-blue/10 transition duration-150 text-slate-700 cursor-pointer font-medium">
+                            class="block w-full py-3 px-4 bg-slate-50/50 border border-slate-200/80 rounded-xl text-base focus:border-unimar-blue focus:outline-none focus:ring-2 focus:ring-[#0d4d98]/50 transition duration-150 text-slate-700 cursor-pointer font-medium h-11">
                         <option value="">Todas las líneas</option>
                         @foreach ($lines as $line)
                             <option value="{{ $line->id }}" {{ ($filters['research_line_id'] ?? '') == $line->id ? 'selected' : '' }}>
@@ -153,10 +153,10 @@
 
                 <!-- Tutor Asignado -->
                 <div class="space-y-1.5">
-                    <label for="tutor_id" class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Tutor Asignado</label>
+                    <label for="tutor_id" class="block text-sm font-bold text-slate-600 uppercase tracking-wider">Tutor Asignado</label>
                     <select id="tutor_id" 
                             name="tutor_id" 
-                            class="block w-full py-2 bg-slate-50/50 border border-slate-200/80 rounded-xl text-sm focus:border-unimar-blue focus:ring focus:ring-unimar-blue/10 transition duration-150 text-slate-700 cursor-pointer font-medium">
+                            class="block w-full py-3 px-4 bg-slate-50/50 border border-slate-200/80 rounded-xl text-base focus:border-unimar-blue focus:outline-none focus:ring-2 focus:ring-[#0d4d98]/50 transition duration-150 text-slate-700 cursor-pointer font-medium h-11">
                         <option value="">Todos los tutores</option>
                         @foreach ($tutors as $tutor)
                             <option value="{{ $tutor->id }}" {{ ($filters['tutor_id'] ?? '') == $tutor->id ? 'selected' : '' }}>
@@ -168,10 +168,10 @@
 
                 <!-- Botones de Acción -->
                 <div class="md:col-span-2 flex space-x-3 pt-2 sm:pt-0">
-                    <button type="submit" class="flex-1 py-2 px-6 bg-unimar-blue hover:bg-unimar-blue/95 text-white font-bold rounded-xl text-sm transition shadow-sm hover:shadow-md focus:outline-none uppercase tracking-wider">
+                    <button type="submit" class="flex-1 py-3 px-6 bg-unimar-blue hover:bg-unimar-blue/95 text-white font-bold rounded-xl text-base transition shadow-sm hover:shadow-md focus:outline-none uppercase tracking-wider h-11 flex items-center justify-center cursor-pointer">
                         Aplicar Filtros
                     </button>
-                    <a href="{{ route('progress.coordinator.index') }}" class="py-2 px-6 bg-white hover:bg-slate-50 text-slate-700 font-bold rounded-xl text-sm border border-slate-200 transition text-center uppercase tracking-wider">
+                    <a href="{{ route('progress.coordinator.index') }}" class="py-3 px-6 bg-white hover:bg-slate-50 text-slate-700 font-bold rounded-xl text-base border border-slate-200 transition text-center uppercase tracking-wider h-11 flex items-center justify-center cursor-pointer">
                         Limpiar
                     </a>
                 </div>
@@ -181,9 +181,9 @@
         <!-- Listado de Estudiantes y Tesis -->
         <div class="bg-white border border-slate-200/80 shadow-sm rounded-2xl overflow-hidden">
             <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
+                <table class="w-full text-left border-collapse min-w-[800px]">
                     <thead>
-                        <tr class="bg-slate-50 border-b border-slate-200 text-xs font-bold uppercase tracking-wider text-slate-500">
+                        <tr class="bg-slate-50 border-b border-slate-200 text-sm font-bold uppercase tracking-wider text-slate-650">
                             <th class="p-4 pl-6">Estudiante y Título</th>
                             <th class="p-4">Programa / Línea</th>
                             <th class="p-4">Progreso General</th>
@@ -191,10 +191,10 @@
                             <th class="p-4 pr-6 text-right">Acciones</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-100 text-sm text-slate-700">
+                    <tbody class="divide-y divide-slate-100 text-base text-slate-700">
                         @if ($productions->isEmpty())
                             <tr>
-                                <td colspan="5" class="p-12 text-center text-slate-400 font-medium">
+                                <td colspan="5" class="p-12 text-center text-slate-550 font-semibold">
                                     No se encontraron producciones científicas registradas con los filtros provistos.
                                 </td>
                             </tr>
@@ -231,17 +231,17 @@
                                         <span class="block font-bold text-slate-800 leading-tight">
                                             {{ $studentUser ? $studentUser->name : 'Autor no especificado' }}
                                         </span>
-                                        <p class="text-xs text-slate-400 truncate font-medium" title="{{ $prod->title }}">
+                                        <p class="text-sm text-slate-550 truncate font-bold" title="{{ $prod->title }}">
                                             {{ $prod->title }}
                                         </p>
                                     </td>
 
                                     <!-- Programa / Linea -->
                                     <td class="p-4 space-y-0.5">
-                                        <span class="block font-semibold text-slate-700 text-xs">
+                                        <span class="block font-semibold text-slate-700 text-sm">
                                             {{ $prod->academicProgram ? $prod->academicProgram->name : 'N/A' }}
                                         </span>
-                                        <span class="block text-[11px] text-slate-400 font-medium">
+                                        <span class="block text-sm text-slate-550 font-bold">
                                             {{ $prod->researchLine ? $prod->researchLine->name : 'N/A' }}
                                         </span>
                                     </td>
@@ -262,18 +262,18 @@
                                                 @endphp
                                                 <div class="{{ $progressBarColor }} h-2 rounded-full transition-all duration-300" style="width: {{ $prod->progress_percentage }}%"></div>
                                             </div>
-                                            <span class="text-xs font-bold text-slate-800 shrink-0 font-sans">
+                                            <span class="text-sm font-bold text-slate-800 shrink-0 font-sans">
                                                 {{ $prod->progress_percentage }}%
                                             </span>
                                         </div>
-                                        <span class="text-[10px] text-slate-400 font-medium">
+                                        <span class="text-sm text-slate-555 font-bold">
                                             {{ $prod->milestones->where('status', 'completed')->count() }} de {{ $prod->milestones->count() }} hitos cumplidos
                                         </span>
                                     </td>
 
                                     <!-- Estado Workflow -->
                                     <td class="p-4 text-center">
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold border {{ $stateClass }}">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-bold border {{ $stateClass }}">
                                             {{ $stateLabel }}
                                         </span>
                                     </td>
@@ -283,11 +283,11 @@
                                         <!-- Configurar Hitos -->
                                         <button type="button" 
                                                 @click="initModal({{ json_encode($prod) }})" 
-                                                class="inline-flex items-center px-3 py-1.5 border border-slate-200 hover:bg-slate-50 hover:border-slate-300 text-slate-600 rounded-lg text-xs font-bold transition shadow-sm focus:outline-none">
+                                                class="inline-flex items-center px-3.5 py-2.5 border border-slate-200 hover:bg-slate-50 hover:border-slate-300 text-slate-700 rounded-lg text-sm font-bold transition shadow-sm focus:outline-none h-11 cursor-pointer">
                                             Configurar Hitos
                                         </button>
                                         <!-- Ver Progreso -->
-                                        <a href="{{ route('progress.student.show', $prod) }}" class="inline-flex items-center px-3 py-1.5 bg-unimar-blue hover:bg-unimar-blue/95 text-white rounded-lg text-xs font-bold transition shadow-sm hover:shadow-md">
+                                        <a href="{{ route('progress.student.show', $prod) }}" class="inline-flex items-center px-3.5 py-2.5 bg-unimar-blue hover:bg-unimar-blue/95 text-white rounded-lg text-sm font-bold transition shadow-sm hover:shadow-md h-11 cursor-pointer">
                                             Ver Detalle
                                         </a>
                                     </td>
@@ -323,10 +323,10 @@
                         <h3 class="text-lg font-bold text-slate-800 font-sans">
                             Configurar Hitos Académicos
                         </h3>
-                        <p class="text-xs text-slate-400 mt-0.5 truncate max-w-md font-medium" x-text="productionTitle"></p>
+                        <p class="text-sm text-slate-550 mt-0.5 truncate max-w-md font-bold uppercase tracking-wider" x-text="productionTitle"></p>
                     </div>
-                    <button type="button" @click="openModal = false" class="text-slate-400 hover:text-slate-600 transition">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <button type="button" @click="openModal = false" aria-label="Cerrar modal" class="p-2 -m-2 text-slate-550 hover:text-slate-700 rounded-xl cursor-pointer">
+                        <svg aria-hidden="true" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path>
                         </svg>
                     </button>
@@ -341,8 +341,8 @@
                         <!-- Botón Cargar Fechas Estándar -->
                         <button type="button" 
                                 @click="loadStandardMilestones()" 
-                                class="w-full mb-2 py-2.5 px-4 bg-unimar-blue/10 hover:bg-unimar-blue/15 text-unimar-blue font-bold rounded-xl text-xs uppercase tracking-wider transition border border-unimar-blue/20 inline-flex items-center justify-center space-x-2">
-                            <svg class="w-4 h-4 text-unimar-blue shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                class="w-full mb-2 py-3 px-4 bg-unimar-blue/10 hover:bg-unimar-blue/15 text-unimar-blue font-bold rounded-xl text-sm uppercase tracking-wider transition border border-unimar-blue/20 inline-flex items-center justify-center space-x-2 h-11 cursor-pointer">
+                            <svg aria-hidden="true" class="w-4 h-4 text-unimar-blue shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path>
                             </svg>
                             <span>Cargar Fechas Estándar (UNIMAR)</span>
@@ -355,8 +355,9 @@
                                 <!-- Botón Eliminar Hito -->
                                 <button type="button" 
                                         @click="removeMilestone(index)" 
-                                        class="absolute top-2.5 right-2.5 text-rose-500 hover:text-rose-700 transition">
-                                    <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        aria-label="Eliminar hito"
+                                        class="absolute top-2.5 right-2.5 p-2 -m-2 text-rose-500 hover:text-rose-700 rounded-xl cursor-pointer">
+                                    <svg aria-hidden="true" class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                                     </svg>
                                 </button>
@@ -366,18 +367,18 @@
                                 <!-- Fila 1: Título y Tipo -->
                                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                     <div class="sm:col-span-2 space-y-1">
-                                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Título del Hito</label>
+                                        <label class="block text-sm font-bold text-slate-550 uppercase tracking-wider">Título del Hito</label>
                                         <input type="text" 
                                                :name="'milestones['+index+'][title]'" 
                                                x-model="milestone.title" 
                                                required 
-                                               class="block w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-700 focus:border-unimar-blue focus:ring focus:ring-unimar-blue/10 transition duration-150" />
+                                               class="block w-full px-3 py-2 h-10 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-700 focus:border-unimar-blue focus:outline-none focus:ring-2 focus:ring-[#0d4d98]/50 transition duration-150" />
                                     </div>
                                     <div class="space-y-1">
-                                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Tipo</label>
+                                        <label class="block text-sm font-bold text-slate-555 uppercase tracking-wider">Tipo</label>
                                         <select :name="'milestones['+index+'][type]'" 
                                                 x-model="milestone.type" 
-                                                class="block w-full py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-700 focus:border-unimar-blue focus:ring focus:ring-unimar-blue/10 transition duration-150 cursor-pointer">
+                                                class="block w-full py-2 px-3 h-10 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-700 focus:border-unimar-blue focus:outline-none focus:ring-2 focus:ring-[#0d4d98]/50 transition duration-150 cursor-pointer">
                                             <option value="delivery">Entrega</option>
                                             <option value="pre_defense">Pre-Defensa</option>
                                             <option value="defense">Defensa</option>
@@ -389,18 +390,18 @@
                                 <!-- Fila 2: Fecha y Estado -->
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div class="space-y-1">
-                                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Fecha Límite</label>
+                                        <label class="block text-sm font-bold text-slate-555 uppercase tracking-wider">Fecha Límite</label>
                                         <input type="date" 
                                                :name="'milestones['+index+'][scheduled_date]'" 
                                                x-model="milestone.scheduled_date" 
                                                required 
-                                               class="block w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-700 focus:border-unimar-blue focus:ring focus:ring-unimar-blue/10 transition duration-150" />
+                                               class="block w-full px-3 py-2 h-10 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-700 focus:border-unimar-blue focus:outline-none focus:ring-2 focus:ring-[#0d4d98]/50 transition duration-150" />
                                     </div>
                                     <div class="space-y-1">
-                                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Estado</label>
+                                        <label class="block text-sm font-bold text-slate-555 uppercase tracking-wider">Estado</label>
                                         <select :name="'milestones['+index+'][status]'" 
                                                 x-model="milestone.status" 
-                                                class="block w-full py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-700 focus:border-unimar-blue focus:ring focus:ring-unimar-blue/10 transition duration-150 cursor-pointer">
+                                                class="block w-full py-2 px-3 h-10 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-700 focus:border-unimar-blue focus:outline-none focus:ring-2 focus:ring-[#0d4d98]/50 transition duration-150 cursor-pointer">
                                             <option value="pending">Pendiente</option>
                                             <option value="completed">Completado</option>
                                             <option value="missed">Atrasado</option>
@@ -414,8 +415,8 @@
                         <!-- Botón Añadir Hito Libre -->
                         <button type="button" 
                                 @click="addMilestone()" 
-                                class="w-full py-2 border-2 border-dashed border-slate-300 hover:border-unimar-blue text-slate-500 hover:text-unimar-blue rounded-xl text-xs font-bold inline-flex items-center justify-center transition focus:outline-none">
-                            <svg class="w-4.5 h-4.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                class="w-full py-3 border-2 border-dashed border-slate-300 hover:border-unimar-blue text-slate-555 hover:text-unimar-blue rounded-xl text-sm font-bold inline-flex items-center justify-center transition focus:outline-none h-11 cursor-pointer">
+                            <svg aria-hidden="true" class="w-4.5 h-4.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path>
                             </svg>
                             <span>Añadir Hito Académico Personalizado</span>
@@ -426,16 +427,15 @@
                     <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex justify-end space-x-3">
                         <button type="button" 
                                 @click="openModal = false" 
-                                class="py-2 px-4 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-bold rounded-xl text-xs uppercase tracking-wider transition focus:outline-none">
+                                class="py-3 px-4 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-bold rounded-xl text-sm uppercase tracking-wider transition focus:outline-none h-11 flex items-center justify-center cursor-pointer">
                             Cancelar
                         </button>
                         <button type="submit" 
-                                class="py-2 px-5 bg-unimar-blue hover:bg-unimar-blue/95 text-white font-bold rounded-xl text-xs uppercase tracking-wider transition shadow-sm hover:shadow-md focus:outline-none">
+                                class="py-3 px-5 bg-unimar-blue hover:bg-unimar-blue/95 text-white font-bold rounded-xl text-sm uppercase tracking-wider transition shadow-sm hover:shadow-md focus:outline-none h-11 flex items-center justify-center cursor-pointer">
                             Guardar Cambios
                         </button>
                     </div>
                 </form>
-
             </div>
         </div>
 

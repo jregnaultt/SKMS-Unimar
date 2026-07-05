@@ -6,6 +6,8 @@
     $statusColors = [
         'draft' => 'bg-slate-100 text-slate-700 border-slate-200',
         'under_review' => 'bg-yellow-50 text-yellow-800 border-yellow-200',
+        'under_tutor_review' => 'bg-yellow-50 text-yellow-800 border-yellow-200',
+        'under_jury_review' => 'bg-purple-50 text-purple-800 border-purple-200',
         'needs_corrections' => 'bg-orange-50 text-orange-800 border-orange-200',
         'approved' => 'bg-emerald-50 text-emerald-800 border-emerald-200',
         'published' => 'bg-blue-50 text-blue-800 border-blue-200',
@@ -14,6 +16,8 @@
     $statusLabels = [
         'draft' => 'Borrador',
         'under_review' => 'En Revisión',
+        'under_tutor_review' => 'En Revisión (Tutor)',
+        'under_jury_review' => 'En Revisión (Jurado)',
         'needs_corrections' => 'Requiere Correcciones',
         'approved' => 'Aprobado',
         'published' => 'Publicado',
@@ -26,12 +30,18 @@
     $isAuthor = $production->users()->where('user_id', $user->id)->wherePivot('role', 'author')->exists();
     $isTutor = $production->users()->where('user_id', $user->id)->wherePivot('role', 'tutor')->exists();
     $isJury = $production->users()->where('user_id', $user->id)->wherePivot('role', 'jury')->exists();
-    $isCoordinator = $user->hasRole(['Coordinador', 'Super Admin']);
+    $isCoordinator = $user->hasRole(['Coordinador', 'Super Admin', 'Decano']);
 @endphp
 
 <x-dashboard-layout :roles="$roles" :activeRole="$activeRole">
     <!-- Load Google Identity Services script -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+    <!-- Load PDF.js script -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+    </script>
 
     <!-- Main Wrapper with Alpine.js state -->
     <div class="py-6 space-y-8" x-data="{ 
@@ -52,6 +62,111 @@
         pdfLoaded: false,
         clientId: '{{ config('services.google.client_id') }}',
         scope: ['https://www.googleapis.com/auth/drive.readonly'],
+        showNewObservation: false,
+        compareMode: false,
+        compareVersionNumber: '',
+        activePin: { page: null, x: 0, y: 0 },
+        pins: @json($comments->whereNull('parent_id')->values()),
+        pdfPageCount: 0,
+        pdfPageCountCompare: 0,
+        pageAspectRatios: {},
+        pageAspectRatiosCompare: {},
+        isSyncingScroll: false,
+        isTutor: {{ $isTutor ? 'true' : 'false' }},
+        isJury: {{ $isJury ? 'true' : 'false' }},
+        isCoordinator: {{ $isCoordinator ? 'true' : 'false' }},
+
+        toggleCompareMode() {
+            this.compareMode = !this.compareMode;
+            if (!this.compareMode) {
+                if (window._pdfDocs) {
+                    window._pdfDocs.compare = null;
+                }
+                this.pdfPageCountCompare = 0;
+                this.pageAspectRatiosCompare = {};
+            }
+        },
+
+        loadCompareVersion(verNum) {
+            if (!verNum) {
+                if (window._pdfDocs) {
+                    window._pdfDocs.compare = null;
+                }
+                this.pdfPageCountCompare = 0;
+                this.pageAspectRatiosCompare = {};
+                return;
+            }
+            const url = '{{ route('productions.document', $production) }}' + '?version=' + verNum;
+            this.loadPdf(url, true);
+        },
+
+        loadPdf(url, isCompare = false) {
+            pdfjsLib.getDocument(url).promise.then(pdf => {
+                if (!window._pdfDocs) {
+                    window._pdfDocs = { main: null, compare: null };
+                }
+                if (isCompare) {
+                    window._pdfDocs.compare = pdf;
+                    this.pdfPageCountCompare = pdf.numPages;
+                    this.pageAspectRatiosCompare = {};
+                } else {
+                    window._pdfDocs.main = pdf;
+                    this.pdfPageCount = pdf.numPages;
+                    this.pageAspectRatios = {};
+                }
+            }).catch(err => {
+                console.error('Error loading PDF:', err);
+                alert('No se pudo cargar el documento PDF: ' + err.message);
+            });
+        },
+
+        renderPage(pageNum, isCompare = false) {
+            const pdf = window._pdfDocs ? (isCompare ? window._pdfDocs.compare : window._pdfDocs.main) : null;
+            if (!pdf) return;
+            
+            pdf.getPage(pageNum).then(page => {
+                const viewport = page.getViewport({ scale: 1.5 });
+                const canvasId = isCompare ? 'canvas-compare-' + pageNum : 'canvas-main-' + pageNum;
+                
+                this.$nextTick(() => {
+                    const canvas = document.getElementById(canvasId);
+                    if (!canvas) return;
+
+                    const context = canvas.getContext('2d');
+                    canvas.height = viewport.height;
+                    canvas.width = viewport.width;
+
+                    if (isCompare) {
+                        this.pageAspectRatiosCompare[pageNum] = `${viewport.width}/${viewport.height}`;
+                    } else {
+                        this.pageAspectRatios[pageNum] = `${viewport.width}/${viewport.height}`;
+                    }
+
+                    const renderContext = {
+                        canvasContext: context,
+                        viewport: viewport
+                    };
+                    page.render(renderContext);
+                });
+            });
+        },
+
+        startPinning(pageNum, x, y) {
+            this.activePin = { page: pageNum, x: x, y: y };
+            this.showNewObservation = true;
+        },
+
+        syncScroll(source, target) {
+            if (!source || !target || this.isSyncingScroll) return;
+            this.isSyncingScroll = true;
+
+            const percentage = source.scrollTop / (source.scrollHeight - source.clientHeight);
+            target.scrollTop = percentage * (target.scrollHeight - target.clientHeight);
+
+            this.$nextTick(() => {
+                setTimeout(() => { this.isSyncingScroll = false; }, 20);
+            });
+        },
 
         openGoogleDocsEditor() {
             if (!this.googleDriveFileId) return;
@@ -552,7 +667,7 @@
                     @endphp
                     
                     <button type="button" 
-                            @click="pdfLoaded = true"
+                            @click="pdfLoaded = true; loadPdf(activePdfUrl, false);"
                             class="inline-flex items-center px-5 py-3 bg-[#0d4d98] hover:bg-blue-800 text-white rounded-xl text-xs font-bold uppercase tracking-wider transition shadow-md hover:shadow-lg">
                         <svg class="w-4 h-4 mr-2 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -562,15 +677,15 @@
                     </button>
                 </div>
 
-                <!-- State 2: Iframe Loader (Activated onClick) -->
-                <div x-show="pdfLoaded" class="absolute inset-0 w-full h-full" style="display: none;">
+                <!-- State 2: PDF.js Interactive / Compare Layout -->
+                <div x-show="pdfLoaded" class="absolute inset-0 w-full h-full flex flex-col" style="display: none;">
                     <template x-if="googleDriveFileId && activeVersionNumber === 'Actual'">
-                        <iframe :src="'https://docs.google.com/document/d/' + googleDriveFileId + '/edit?embedded=true'" class="absolute inset-0 w-full h-full border-none" allow="fullscreen"></iframe>
+                        <iframe :src="'https://docs.google.com/document/d/' + googleDriveFileId + '/edit?embedded=true'" class="absolute inset-0 w-full h-full border-none animate-fade-in" allow="fullscreen"></iframe>
                     </template>
                     <template x-if="!googleDriveFileId || activeVersionNumber !== 'Actual'">
-                        <div class="absolute inset-0 w-full h-full">
+                        <div class="absolute inset-0 w-full h-full flex flex-col">
                             @if (!$production->hasMedia('documento') && $production->google_drive_file_id)
-                                <div class="absolute inset-0 flex flex-col items-center justify-center bg-slate-50 p-6 text-center z-10">
+                                <div class="absolute inset-0 flex flex-col items-center justify-center bg-slate-50 p-6 text-center z-30">
                                     <svg class="animate-spin h-10 w-10 text-indigo-600 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -584,7 +699,96 @@
                                     </script>
                                 </div>
                             @endif
-                            <iframe :src="activePdfUrl" class="absolute inset-0 w-full h-full border-none" allow="fullscreen"></iframe>
+
+                            <!-- Top Bar Controls -->
+                            <div class="p-3 bg-white border-b border-slate-200 flex items-center justify-between z-20 shrink-0">
+                                <div class="flex items-center space-x-2">
+                                    @if ($production->documentVersions->count() > 1)
+                                        <button type="button" 
+                                                @click="toggleCompareMode()"
+                                                class="px-3.5 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition border flex items-center space-x-1.5"
+                                                :class="compareMode ? 'bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100' : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+                                            <span x-text="compareMode ? 'Desactivar Comparación' : 'Comparar Versiones'"></span>
+                                        </button>
+                                    @endif
+
+                                    <div x-show="compareMode" class="flex items-center space-x-2" style="display: none;">
+                                        <span class="text-xs text-slate-500 font-semibold">Historial:</span>
+                                        <select @change="loadCompareVersion($el.value)" class="text-[11px] rounded-lg border-slate-200 focus:ring-[#0d4d98] focus:border-[#0d4d98] py-1 pl-2 pr-8">
+                                            <option value="">Seleccionar versión...</option>
+                                            @foreach ($production->documentVersions as $ver)
+                                                <option value="{{ $ver->version_number }}">{{ 'Versión ' . $ver->version_number }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center space-x-3 text-xs text-slate-500 font-semibold">
+                                    <span x-text="'Páginas: ' + pdfPageCount"></span>
+                                </div>
+                            </div>
+
+                            <!-- PDF View Grid (Split/Single) -->
+                            <div class="flex-1 w-full flex overflow-hidden bg-slate-100">
+                                <!-- Left Column (Compare version) -->
+                                <div id="pdf-compare-container" 
+                                     x-show="compareMode" 
+                                     class="w-1/2 border-r border-slate-250 overflow-y-auto p-4 bg-slate-150 relative" 
+                                     style="display: none;"
+                                     @scroll="syncScroll($el, document.getElementById('pdf-main-container'))">
+                                    <template x-for="pageNum in Array.from({length: pdfPageCountCompare}, (_, i) => i + 1)" :key="pageNum">
+                                        <div class="relative mb-4 border border-slate-200 shadow-sm bg-white mx-auto overflow-hidden"
+                                             :id="'compare-page-' + pageNum"
+                                             :style="`aspect-ratio: ${pageAspectRatiosCompare[pageNum] || '612/792'}; max-width: 612px;`"
+                                             x-init="renderPage(pageNum, true)">
+                                             <canvas :id="'canvas-compare-' + pageNum" class="block w-full h-auto"></canvas>
+                                        </div>
+                                    </template>
+                                </div>
+
+                                <!-- Right Column (Active version) -->
+                                <div id="pdf-main-container" 
+                                     class="flex-1 overflow-y-auto p-4 bg-slate-100 relative"
+                                     @scroll="compareMode ? syncScroll($el, document.getElementById('pdf-compare-container')) : null">
+                                    <template x-for="pageNum in Array.from({length: pdfPageCount}, (_, i) => i + 1)" :key="pageNum">
+                                        <div class="relative mb-4 border border-slate-200 shadow bg-white mx-auto overflow-hidden"
+                                             :id="'main-page-' + pageNum"
+                                             :style="`aspect-ratio: ${pageAspectRatios[pageNum] || '612/792'}; max-width: 612px;`"
+                                             x-init="renderPage(pageNum, false)">
+                                             
+                                             <!-- Canvas -->
+                                             <canvas :id="'canvas-main-' + pageNum" class="block w-full h-auto"></canvas>
+                                             
+                                             <!-- Annotation overlay layer -->
+                                             <div class="absolute inset-0 z-10" 
+                                                  :class="(isTutor || isJury || isCoordinator) ? 'cursor-crosshair' : ''"
+                                                  @click="if (isTutor || isJury || isCoordinator) {
+                                                      const rect = $el.getBoundingClientRect();
+                                                      const x = (($event.clientX - rect.left) / rect.width) * 100;
+                                                      const y = (($event.clientY - rect.top) / rect.height) * 100;
+                                                      startPinning(pageNum, x, y);
+                                                  }">
+                                             </div>
+                                             
+                                             <!-- Render Pins -->
+                                             <template x-for="pin in pins" :key="pin.id">
+                                                 <template x-if="pin.annotation_position && pin.annotation_position.page == pageNum">
+                                                     <a 
+                                                         :href="'#comment-' + pin.id"
+                                                         class="absolute z-20 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white shadow-md transition-transform hover:scale-110 animate-fade-in"
+                                                         :class="pin.status === 'addressed' ? 'bg-emerald-500' : (pin.status === 'in_progress' ? 'bg-amber-500' : 'bg-rose-500')"
+                                                         :style="`left: calc(${pin.annotation_position.x}% - 12px); top: calc(${pin.annotation_position.y}% - 12px);`"
+                                                         :title="'Observación #' + pin.id"
+                                                     >
+                                                         <span x-text="pin.id"></span>
+                                                     </a>
+                                                 </template>
+                                             </template>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
                         </div>
                     </template>
                 </div>
@@ -596,7 +800,7 @@
             
             <!-- Left Side: Comments / Observations Board (2/3 width) -->
             @php
-                $reviewableStates = ['under_review', 'needs_corrections'];
+                $reviewableStates = ['under_review', 'under_tutor_review', 'under_jury_review', 'needs_corrections'];
                 $isReadOnly = ! in_array($production->workflow_state, $reviewableStates);
                 $rootComments = $comments->whereNull('parent_id');
                 $pendingCount = $rootComments->where('status.value', 'pending')->count();
@@ -779,9 +983,23 @@
                             <p class="text-xs text-slate-400 mb-4">Registra una observación detallada sobre el documento. El estudiante recibirá una notificación.</p>
                             <form action="{{ route('comments.store', $production) }}" method="POST">
                                 @csrf
+                                <input type="hidden" name="annotation_position[page]" :value="activePin.page">
+                                <input type="hidden" name="annotation_position[x]" :value="activePin.x">
+                                <input type="hidden" name="annotation_position[y]" :value="activePin.y">
+
+                                <template x-if="activePin.page">
+                                    <div class="mb-3 bg-blue-50 border border-blue-100 text-blue-800 p-2.5 rounded-xl text-[11px] font-semibold flex items-center justify-between">
+                                        <div class="flex items-center space-x-1.5">
+                                            <svg class="w-4 h-4 shrink-0 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                            <span x-text="`Pin colocado: Pág. ${activePin.page} (X: ${Math.round(activePin.x)}%, Y: ${Math.round(activePin.y)}%)`"></span>
+                                        </div>
+                                        <button type="button" @click="activePin.page = null" class="text-blue-500 hover:text-blue-700 text-[10px] uppercase font-bold tracking-wider hover:underline">Quitar Pin</button>
+                                    </div>
+                                </template>
+
                                 <div class="mb-3">
                                     <label class="block text-xs font-bold text-slate-500 mb-1 uppercase">Referencia de sección (opcional)</label>
-                                    <input type="text" name="reference_section" maxlength="100"
+                                    <input type="text" name="reference_section" id="new-observation-reference" maxlength="100"
                                            class="w-full rounded-xl border-slate-200 text-xs focus:ring-[#0d4d98] focus:border-[#0d4d98]"
                                            placeholder="Ej: Página 23, Sección 3.2, Metodología...">
                                 </div>
@@ -794,7 +1012,7 @@
                                               placeholder="Describe el cambio solicitado con detalle suficiente para que el estudiante pueda corregir..."></textarea>
                                 </div>
                                 <div class="flex justify-end gap-2 text-xs font-bold">
-                                    <button type="button" @click="showNewObservation = false"
+                                    <button type="button" @click="showNewObservation = false; activePin.page = null;"
                                             class="px-4 py-2 bg-slate-100 text-slate-600 rounded-xl hover:bg-slate-200 transition uppercase tracking-wider">
                                         Cancelar
                                     </button>
@@ -855,64 +1073,126 @@
                     @if ($production->workflow_state === 'draft' && ($isAuthor || $isCoordinator))
                         <form action="{{ route('productions.transition', $production) }}" method="POST">
                             @csrf
-                            <input type="hidden" name="target_state" value="under_review">
+                            <input type="hidden" name="target_state" value="under_tutor_review">
                             <button type="submit" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow transition duration-150">
-                                Enviar a Revisión Oficial
+                                Enviar a Revisión del Tutor
                             </button>
                         </form>
 
-                    <!-- Action: Tutor / Jury reviews under_review production -->
-                    @elseif ($production->workflow_state === 'under_review' && ($isTutor || $isJury || $isCoordinator))
-                        <div class="space-y-3">
-                            <!-- Approve -->
-                            <form action="{{ route('productions.transition', $production) }}" method="POST" onsubmit="return confirm('¿Estás seguro de que deseas APROBAR esta producción científica?')">
-                                @csrf
-                                <input type="hidden" name="target_state" value="approved">
-                                <button type="submit" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow transition duration-150 flex items-center justify-center">
-                                    <svg class="w-4 h-4 mr-1.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
-                                    Aprobar Documento
+                    <!-- Action: Tutor reviews under_tutor_review production -->
+                    @elseif ($production->workflow_state === 'under_tutor_review')
+                        @if ($isTutor || $isCoordinator)
+                            <div class="space-y-3">
+                                @if ($production->jury_review_requested)
+                                    <div class="bg-amber-50 border border-amber-200 text-amber-800 p-3 rounded-xl text-[11px] font-medium leading-normal flex items-start space-x-2">
+                                        <svg class="w-4 h-4 shrink-0 text-amber-500 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                                        <span>El estudiante solicita el pase para evaluación del Jurado.</span>
+                                    </div>
+                                @endif
+
+                                <!-- Approve Pass to Jury -->
+                                <form action="{{ route('productions.transition', $production) }}" method="POST" onsubmit="return confirm('¿Estás seguro de autorizar el pase a revisión del Jurado?')">
+                                    @csrf
+                                    <input type="hidden" name="target_state" value="under_jury_review">
+                                    <button type="submit" class="w-full py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow transition duration-150 flex items-center justify-center">
+                                        <svg class="w-4 h-4 mr-1.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+                                        Dar Pase a Jurado
+                                    </button>
+                                </form>
+
+                                <!-- Needs Corrections Trigger -->
+                                <button type="button" @click="showCorrectionModal = true" class="w-full py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow transition duration-150 flex items-center justify-center">
+                                    <svg class="w-4 h-4 mr-1.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                    Solicitar Correcciones
                                 </button>
-                            </form>
 
-                            <!-- Needs Corrections Trigger -->
-                            <button type="button" @click="showCorrectionModal = true" class="w-full py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow transition duration-150 flex items-center justify-center">
-                                <svg class="w-4 h-4 mr-1.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                                Solicitar Correcciones
-                            </button>
+                                <!-- Reject Trigger -->
+                                <button type="button" @click="showRejectModal = true" class="w-full py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow transition duration-150 flex items-center justify-center">
+                                    <svg class="w-4 h-4 mr-1.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                    Rechazar Documento
+                                </button>
+                            </div>
+                        @elseif ($isAuthor)
+                            @if (!$production->jury_review_requested)
+                                <form action="{{ route('productions.request-jury-review', $production) }}" method="POST">
+                                    @csrf
+                                    <button type="submit" class="w-full py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow transition duration-150 flex items-center justify-center">
+                                        <svg class="w-4 h-4 mr-1.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+                                        Solicitar Revisión del Jurado
+                                    </button>
+                                </form>
+                            @else
+                                <div class="bg-purple-50 border border-purple-200 text-purple-800 p-4 rounded-xl text-xs font-medium text-center">
+                                    Solicitud de revisión por jurado enviada. Esperando visto bueno de tu tutor.
+                                </div>
+                            @endif
+                        @else
+                            <p class="text-xs text-slate-400 text-center py-2 italic font-medium">En revisión del Tutor.</p>
+                        @endif
 
-                            <!-- Reject Trigger -->
-                            <button type="button" @click="showRejectModal = true" class="w-full py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow transition duration-150 flex items-center justify-center">
-                                <svg class="w-4 h-4 mr-1.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
-                                Rechazar Documento
-                            </button>
-                        </div>
+                    <!-- Action: Jury reviews under_jury_review production -->
+                    @elseif ($production->workflow_state === 'under_jury_review')
+                        @if ($isJury || $isCoordinator)
+                            <div class="space-y-3">
+                                <!-- Approve -->
+                                <form action="{{ route('productions.transition', $production) }}" method="POST" onsubmit="return confirm('¿Estás seguro de que deseas APROBAR esta producción científica?')">
+                                    @csrf
+                                    <input type="hidden" name="target_state" value="approved">
+                                    <button type="submit" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow transition duration-150 flex items-center justify-center">
+                                        <svg class="w-4 h-4 mr-1.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                                        Aprobar Documento
+                                    </button>
+                                </form>
+
+                                <!-- Needs Corrections Trigger -->
+                                <button type="button" @click="showCorrectionModal = true" class="w-full py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow transition duration-150 flex items-center justify-center">
+                                    <svg class="w-4 h-4 mr-1.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                    Solicitar Correcciones
+                                </button>
+
+                                <!-- Reject Trigger -->
+                                <button type="button" @click="showRejectModal = true" class="w-full py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow transition duration-150 flex items-center justify-center">
+                                    <svg class="w-4 h-4 mr-1.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                    Rechazar Documento
+                                </button>
+                            </div>
+                        @else
+                            <p class="text-xs text-slate-400 text-center py-2 italic font-medium">Tesis en revisión formal por el Jurado.</p>
+                        @endif
 
                     <!-- Action: Student resubmits after needs_corrections -->
                     @elseif ($production->workflow_state === 'needs_corrections' && ($isAuthor || $isCoordinator))
                         <form action="{{ route('productions.transition', $production) }}" method="POST" class="space-y-4">
                             @csrf
-                            <input type="hidden" name="target_state" value="under_review">
+                            <input type="hidden" name="target_state" value="under_tutor_review">
                             <input type="hidden" name="file_id" :value="fileId">
 
-                            <div class="bg-slate-50 p-4 rounded-xl border border-dashed border-slate-200 text-center">
-                                <label class="block text-[10px] font-bold text-slate-450 mb-2 uppercase">Subir Nueva Versión (PDF)</label>
-                                <input type="file" @change="handleFileSelect" class="hidden" id="new-pdf-resubmit" accept="application/pdf">
-                                <label for="new-pdf-resubmit" class="px-3 py-2 bg-white border border-slate-200 text-slate-750 rounded-xl text-xs font-bold uppercase tracking-wider cursor-pointer hover:bg-slate-50 transition inline-block shadow-sm">
-                                    Seleccionar Archivo
-                                </label>
-                                <p class="text-[10px] text-slate-400 mt-2 font-medium" x-text="statusMessage || 'Ningún archivo cargado todavía'"></p>
-                                
-                                <div x-show="isUploading" class="w-full bg-slate-200 h-1.5 rounded-full mt-2" style="display: none;">
-                                    <div class="bg-[#0d4d98] h-1.5 rounded-full transition-all" :style="'width: ' + uploadProgress + '%'"></div>
+                            @if ($production->google_drive_file_id)
+                                <div class="bg-indigo-50 border border-indigo-100 p-4 rounded-xl text-[11px] text-indigo-800 leading-normal">
+                                    <p class="font-bold mb-1">Nota de Google Docs:</p>
+                                    Tus correcciones se toman directamente del documento embebido. Asegúrate de haber guardado tus cambios antes de enviar.
                                 </div>
-                            </div>
+                            @else
+                                <div class="bg-slate-50 p-4 rounded-xl border border-dashed border-slate-200 text-center">
+                                    <label class="block text-[10px] font-bold text-slate-450 mb-2 uppercase">Subir Nueva Versión (PDF)</label>
+                                    <input type="file" @change="handleFileSelect" class="hidden" id="new-pdf-resubmit" accept="application/pdf">
+                                    <label for="new-pdf-resubmit" class="px-3 py-2 bg-white border border-slate-200 text-slate-750 rounded-xl text-xs font-bold uppercase tracking-wider cursor-pointer hover:bg-slate-50 transition inline-block shadow-sm">
+                                        Seleccionar Archivo
+                                    </label>
+                                    <p class="text-[10px] text-slate-400 mt-2 font-medium" x-text="statusMessage || 'Ningún archivo cargado todavía'"></p>
+                                    
+                                    <div x-show="isUploading" class="w-full bg-slate-200 h-1.5 rounded-full mt-2" style="display: none;">
+                                        <div class="bg-[#0d4d98] h-1.5 rounded-full transition-all" :style="'width: ' + uploadProgress + '%'"></div>
+                                    </div>
+                                </div>
+                            @endif
 
                             <div class="space-y-1">
                                 <label class="block text-[10px] font-bold text-slate-450 uppercase">Cambios realizados</label>
                                 <textarea name="changelog" required rows="3" class="w-full rounded-xl border-slate-200 text-xs focus:ring-[#0d4d98] focus:border-[#0d4d98]" placeholder="Describe brevemente las correcciones aplicadas..."></textarea>
                             </div>
 
-                            <button type="submit" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow transition" :disabled="!fileId">
+                            <button type="submit" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow transition" :disabled="!googleDriveFileId && !fileId">
                                 Enviar Correcciones
                             </button>
                         </form>
