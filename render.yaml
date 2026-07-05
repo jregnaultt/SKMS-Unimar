@@ -21,7 +21,7 @@ services:
       - key: LOG_CHANNEL
         value: stderr
       - key: APP_KEY
-        generateValue: true
+        value: "base64:JxOW2xsfXCWLqQnwtK1ZdKiK7IiQvhjVjPJ/vPLONZ8="
       - key: APP_URL
         value: https://skms-unimar-web.onrender.com # Replace with your custom domain if mapping one
       - key: DB_CONNECTION
