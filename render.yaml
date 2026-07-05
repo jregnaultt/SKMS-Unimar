@@ -35,7 +35,9 @@ services:
       - key: DB_PASSWORD
         sync: false
       - key: MYSQL_ATTR_SSL_CA
-        value: /etc/ssl/certs/ca-certificates.crt
+        value: ""
+      - key: MYSQL_ATTR_SSL_VERIFY_SERVER_CERT
+        value: "false"
       - key: REDIS_HOST
         fromService:
           type: redis
