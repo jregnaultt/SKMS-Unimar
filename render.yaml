@@ -1,37 +1,16 @@
 services:
-  # 1. Managed Redis Service
+  # 1. Managed Redis Service (Free Plan)
   - type: redis
     name: skms-redis
     plan: free
     maxmemoryPolicy: allkeys-lru
     ipAllowList: []
 
-  # 2. Private MySQL Database Service
-  - type: pserv
-    name: skms-mysql
-    runtime: image
-    image:
-      url: docker.io/library/mysql:8.4
-    dockerCommand: mysqld
-    envVars:
-      - key: MYSQL_DATABASE
-        value: skms_unimar
-      - key: MYSQL_USER
-        value: skms_user
-      - key: MYSQL_PASSWORD
-        generateValue: true
-      - key: MYSQL_ROOT_PASSWORD
-        generateValue: true
-    disk:
-      name: mysql-data
-      mountPath: /var/lib/mysql
-      sizeGB: 10
-
-  # 3. Web Service (Laravel with FrankenPHP and Octane)
+  # 2. Web Service (Laravel with FrankenPHP, Octane, and Queue Worker)
   - type: web
     name: skms-unimar-web
     runtime: docker
-    plan: starter
+    plan: free
     preDeployCommand: php artisan migrate --force
     envVars:
       - key: APP_NAME
@@ -47,70 +26,15 @@ services:
       - key: DB_CONNECTION
         value: mysql
       - key: DB_HOST
-        value: skms-mysql
+        sync: false
       - key: DB_PORT
         value: "3306"
       - key: DB_DATABASE
-        value: skms_unimar
+        sync: false
       - key: DB_USERNAME
-        value: skms_user
+        sync: false
       - key: DB_PASSWORD
-        fromService:
-          type: pserv
-          name: skms-mysql
-          envVarKey: MYSQL_PASSWORD
-      - key: REDIS_HOST
-        fromService:
-          type: redis
-          name: skms-redis
-          property: host
-      - key: REDIS_PORT
-        fromService:
-          type: redis
-          name: skms-redis
-          property: port
-      - key: QUEUE_CONNECTION
-        value: redis
-      - key: CACHE_STORE
-        value: redis
-      - key: SESSION_DRIVER
-        value: redis
-      - key: OCTANE_SERVER
-        value: frankenphp
-
-  # 4. Background Queue Worker (same codebase/image, different start command)
-  - type: worker
-    name: skms-unimar-worker
-    runtime: docker
-    plan: starter
-    dockerCommand: php artisan queue:work --verbose --tries=3 --timeout=90
-    envVars:
-      - key: APP_NAME
-        value: SKMS-Unimar
-      - key: APP_ENV
-        value: production
-      - key: APP_DEBUG
-        value: "false"
-      - key: APP_KEY
-        fromService:
-          type: web
-          name: skms-unimar-web
-          envVarKey: APP_KEY
-      - key: DB_CONNECTION
-        value: mysql
-      - key: DB_HOST
-        value: skms-mysql
-      - key: DB_PORT
-        value: "3306"
-      - key: DB_DATABASE
-        value: skms_unimar
-      - key: DB_USERNAME
-        value: skms_user
-      - key: DB_PASSWORD
-        fromService:
-          type: pserv
-          name: skms-mysql
-          envVarKey: MYSQL_PASSWORD
+        sync: false
       - key: REDIS_HOST
         fromService:
           type: redis

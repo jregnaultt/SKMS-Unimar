@@ -18,10 +18,11 @@ RUN composer dump-autoload --no-dev --optimize
 # Stage 3: Final production image
 FROM dunglas/frankenphp:1-php8.3
 
-# Install system dependencies (poppler-utils for pdftotext tool in spatie/pdf-to-text)
+# Install system dependencies (poppler-utils, unzip, supervisor)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     poppler-utils \
     unzip \
+    supervisor \
     && rm -rf /var/lib/apt/lists/*
 
 # Install required PHP extensions using dunglas/frankenphp built-in extension helper
@@ -42,11 +43,14 @@ WORKDIR /app
 COPY --from=composer-builder /app /app
 COPY --from=node-builder /app/public/build /app/public/build
 
+# Copy supervisor config
+COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
 # Setup storage & cache permissions
 RUN chown -R www-data:www-data /app/storage /app/bootstrap/cache
 
 # Expose ports for web server (HTTP, HTTPS, HTTP/3 UDP)
 EXPOSE 80 443 443/udp
 
-# Set Octane start command
-CMD ["php", "artisan", "octane:start", "--server=frankenphp", "--host=0.0.0.0", "--port=80"]
+# Start Supervisor to run both FrankenPHP and the queue worker
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
