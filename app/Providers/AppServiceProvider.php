@@ -10,6 +10,7 @@ use App\Listeners\NotifyClaimRejected;
 use App\Listeners\NotifyClaimSubmitted;
 use App\Listeners\SendCommentNotification;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -27,6 +28,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        if (config('app.env') === 'production') {
+            URL::forceScheme('https');
+        }
+
         Event::listen(ClaimSubmitted::class, NotifyClaimSubmitted::class);
         Event::listen(ClaimApproved::class, NotifyClaimApproved::class);
         Event::listen(ClaimRejected::class, NotifyClaimRejected::class);
