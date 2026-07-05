@@ -16,7 +16,7 @@ COPY . .
 RUN composer dump-autoload --no-dev --optimize
 
 # Stage 3: Final production image
-FROM dunglas/frankenphp:1-php8.3
+FROM dunglas/frankenphp:1-php8.4
 
 # Install system dependencies (poppler-utils, unzip, supervisor)
 RUN apt-get update && apt-get install -y --no-install-recommends \
