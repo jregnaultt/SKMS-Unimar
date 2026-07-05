@@ -32,12 +32,13 @@ RUN setcap -r /usr/local/bin/frankenphp
 # Install required PHP extensions using dunglas/frankenphp built-in extension helper
 RUN install-php-extensions \
     pdo_mysql \
-    pcntl \
+    redis \
     gd \
-    zip \
     intl \
+    zip \
+    pcntl \
     opcache \
-    redis
+    exif
 
 # Use production PHP configuration
 RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
