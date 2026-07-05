@@ -8,7 +8,7 @@ php artisan route:list
 
 # Run database migrations automatically on startup
 echo "Running database migrations..."
-php artisan migrate --force
+php artisan migrate --force --seed
 
 # Start Supervisor (which starts FrankenPHP/Octane and the Queue Worker)
 echo "Starting Supervisor..."
