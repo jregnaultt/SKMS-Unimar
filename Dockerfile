@@ -43,8 +43,10 @@ WORKDIR /app
 COPY --from=composer-builder /app /app
 COPY --from=node-builder /app/public/build /app/public/build
 
-# Copy supervisor config
+# Copy supervisor config and entrypoint script
 COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY docker/entrypoint.sh /app/docker/entrypoint.sh
+RUN chmod +x /app/docker/entrypoint.sh
 
 # Setup storage & cache permissions
 RUN chown -R www-data:www-data /app/storage /app/bootstrap/cache
@@ -52,5 +54,5 @@ RUN chown -R www-data:www-data /app/storage /app/bootstrap/cache
 # Expose ports for web server (HTTP, HTTPS, HTTP/3 UDP)
 EXPOSE 80 443 443/udp
 
-# Start Supervisor to run both FrankenPHP and the queue worker
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
+# Start container via entrypoint script
+CMD ["/bin/sh", "/app/docker/entrypoint.sh"]
