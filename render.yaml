@@ -25,15 +25,17 @@ services:
       - key: DB_CONNECTION
         value: mysql
       - key: DB_HOST
-        sync: false
+        value: skms-unimar-regnaultjavier2-7827.d.aivencloud.com
       - key: DB_PORT
-        value: "3306"
+        value: "25080"
       - key: DB_DATABASE
-        sync: false
+        value: defaultdb
       - key: DB_USERNAME
-        sync: false
+        value: avnadmin
       - key: DB_PASSWORD
         sync: false
+      - key: MYSQL_ATTR_SSL_CA
+        value: /etc/ssl/certs/ca-certificates.crt
       - key: REDIS_HOST
         fromService:
           type: redis
