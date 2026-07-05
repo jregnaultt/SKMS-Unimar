@@ -23,7 +23,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     poppler-utils \
     unzip \
     supervisor \
+    libcap2-bin \
     && rm -rf /var/lib/apt/lists/*
+
+# Remove file capabilities from frankenphp binary to prevent Operation not permitted error on Render
+RUN setcap -r /usr/local/bin/frankenphp
 
 # Install required PHP extensions using dunglas/frankenphp built-in extension helper
 RUN install-php-extensions \
