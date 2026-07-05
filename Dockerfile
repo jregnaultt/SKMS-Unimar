@@ -51,8 +51,8 @@ RUN chmod +x /app/docker/entrypoint.sh
 # Setup storage & cache permissions
 RUN chown -R www-data:www-data /app/storage /app/bootstrap/cache
 
-# Expose ports for web server (HTTP, HTTPS, HTTP/3 UDP)
-EXPOSE 80 443 443/udp
+# Expose port for web server
+EXPOSE 8080
 
 # Start container via entrypoint script
 CMD ["/bin/sh", "/app/docker/entrypoint.sh"]
