@@ -28,3 +28,7 @@ yarn-error.log
 /.context
 /scratch
 /test_*.php
+
+**/caddy
+frankenphp
+frankenphp-worker.php

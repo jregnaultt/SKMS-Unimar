@@ -1,0 +1,93 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "dev", "deploy" ]
+  pull_request:
+    branches: [ "dev", "deploy" ]
+
+jobs:
+  tests:
+    name: Run Tests & Linting
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+          MYSQL_DATABASE: skms_unimar_test
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.3'
+        extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite, gd, mysql, pdo_mysql
+        coverage: none
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Copy .env file
+      run: php -r "file_exists('.env') || copy('.env.example', '.env');"
+
+    - name: Install Composer Dependencies
+      run: composer install --prefer-dist --no-progress --no-interaction --ignore-platform-reqs
+
+    - name: Install NPM Dependencies & Build Assets
+      run: |
+        npm ci
+        npm run build
+
+    - name: Generate Application Key
+      run: php artisan key:generate
+
+    - name: Run Database Migrations
+      env:
+        DB_CONNECTION: mysql
+        DB_HOST: 127.0.0.1
+        DB_PORT: 3306
+        DB_DATABASE: skms_unimar_test
+        DB_USERNAME: root
+        DB_PASSWORD: ""
+      run: php artisan migrate --force
+
+    - name: Run PHPUnit Tests
+      env:
+        DB_CONNECTION: mysql
+        DB_HOST: 127.0.0.1
+        DB_PORT: 3306
+        DB_DATABASE: skms_unimar_test
+        DB_USERNAME: root
+        DB_PASSWORD: ""
+      run: php artisan test --compact
+
+    - name: Run Laravel Pint (Code Style Check)
+      run: ./vendor/bin/pint --test
+
+  deploy:
+    name: Deploy to Render
+    needs: tests
+    if: github.ref == 'refs/heads/deploy' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+    - name: Trigger Deploy
+      env:
+        DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
+      run: |
+        if [ -n "$DEPLOY_HOOK" ]; then
+          echo "Triggering Render deployment..."
+          curl -f -X POST "$DEPLOY_HOOK"
+        else
+          echo "RENDER_DEPLOY_HOOK is not set, skipping manual deploy trigger."
+          echo "Make sure Render auto-deploy is enabled, or configure RENDER_DEPLOY_HOOK in GitHub Secrets."
+        fi

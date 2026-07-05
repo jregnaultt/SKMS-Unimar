@@ -1,0 +1,52 @@
+# Stage 1: Build frontend assets
+FROM node:20-alpine AS node-builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN npm run build
+
+# Stage 2: Build PHP dependencies
+FROM composer:2 AS composer-builder
+WORKDIR /app
+COPY composer*.json ./
+# Ignore local platform requirements during build since they will be met in the final image
+RUN composer install --no-dev --no-scripts --no-autoloader --ignore-platform-reqs
+COPY . .
+RUN composer dump-autoload --no-dev --optimize
+
+# Stage 3: Final production image
+FROM dunglas/frankenphp:1-php8.3
+
+# Install system dependencies (poppler-utils for pdftotext tool in spatie/pdf-to-text)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    poppler-utils \
+    unzip \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install required PHP extensions using dunglas/frankenphp built-in extension helper
+RUN install-php-extensions \
+    pdo_mysql \
+    pcntl \
+    gd \
+    zip \
+    intl \
+    opcache \
+    redis
+
+# Use production PHP configuration
+RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
+
+# Copy application code
+WORKDIR /app
+COPY --from=composer-builder /app /app
+COPY --from=node-builder /app/public/build /app/public/build
+
+# Setup storage & cache permissions
+RUN chown -R www-data:www-data /app/storage /app/bootstrap/cache
+
+# Expose ports for web server (HTTP, HTTPS, HTTP/3 UDP)
+EXPOSE 80 443 443/udp
+
+# Set Octane start command
+CMD ["php", "artisan", "octane:start", "--server=frankenphp", "--host=0.0.0.0", "--port=80"]
