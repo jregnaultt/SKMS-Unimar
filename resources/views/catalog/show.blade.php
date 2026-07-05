@@ -13,8 +13,8 @@
             <meta name="citation_keywords" content="{{ $production->keywords->pluck('name')->implode(', ') }}">
         @endif
 
-        <script type="application/ld+json">
-        {!! json_encode([
+        @php
+        $schemaData = [
             '@context' => 'https://schema.org',
             '@type' => 'ScholarlyArticle',
             'mainEntityOfPage' => [
@@ -36,7 +36,11 @@
                 'name' => 'Universidad de Margarita',
                 'url' => 'https://unimar.edu.ve',
             ],
-        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) !!}
+        ];
+        @endphp
+
+        <script type="application/ld+json">
+        {!! json_encode($schemaData, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) !!}
         </script>
     </x-slot>
 
