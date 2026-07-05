@@ -6,6 +6,7 @@
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
         <title>{{ config('app.name', 'SKMS Unimar') }}</title>
+        <link rel="icon" type="image/x-icon" href="{{ asset('images/logoIco.ico') }}">
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -27,20 +28,18 @@
             <!-- Contenido textual decorativo premium -->
             <div class="relative z-10 p-16 text-white max-w-xl flex flex-col space-y-6">
                 <div class="flex items-center space-x-3">
-                    <div class="p-2.5 bg-white/10 rounded-xl border border-white/20 text-unimar-gold">
-                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
-                        </svg>
+                    <div class="p-2 bg-white/10 rounded-xl border border-white/20">
+                        <img src="{{ asset('images/logo.svg') }}" alt="SKMS Unimar" class="w-12 h-12 object-contain brightness-0 invert">
                     </div>
                     <div>
                         <span class="font-extrabold text-2xl tracking-tight block">SKMS</span>
-                        <span class="text-xs text-white/70 tracking-widest font-semibold uppercase block">Universidad de Margarita</span>
+                        <span class="text-sm text-white/70 tracking-widest font-semibold uppercase block">Universidad de Margarita</span>
                     </div>
                 </div>
                 
                 <div class="border-l-4 border-unimar-gold pl-6 py-2">
                     <h3 class="text-2xl font-bold text-white tracking-tight">Decanato de Ingeniería y Afines</h3>
-                    <p class="text-sm text-white/80 mt-2 font-medium">
+                    <p class="text-base text-white/80 mt-2 font-medium">
                         Sistema de Gestión de Conocimiento Científico para la administración del ciclo de vida de producciones de investigación.
                     </p>
                 </div>
@@ -59,11 +58,7 @@
                 <!-- Logo para móviles (oculto en pantallas grandes ya que el sidebar lo tiene) -->
                 <div class="flex lg:hidden justify-center mb-8">
                     <a href="/" class="flex items-center space-x-2">
-                        <div class="p-2 bg-unimar-blue rounded-lg text-unimar-gold">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
-                            </svg>
-                        </div>
+                        <img src="{{ asset('images/logo.svg') }}" alt="SKMS Unimar" class="w-12 h-12 object-contain">
                         <span class="font-extrabold text-lg text-slate-800 tracking-tight">SKMS UNIMAR</span>
                     </a>
                 </div>
@@ -75,7 +70,7 @@
                 
                 <!-- Footer decorativo en el lado derecho -->
                 <div class="mt-8 text-center">
-                    <p class="text-[10px] text-slate-400">
+                    <p class="text-xs text-slate-400">
                         &copy; {{ date('Y') }} Decanato de Ingeniería - Universidad de Margarita.
                     </p>
                 </div>

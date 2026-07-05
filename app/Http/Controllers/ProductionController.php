@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\ProductionStateChanged;
 use App\Http\Requests\StoreProductionRequest;
 use App\Jobs\ExportGoogleDocToPdfJob;
 use App\Jobs\ExtractMetadataJob;
@@ -9,11 +10,15 @@ use App\Models\AcademicPeriod;
 use App\Models\AcademicProgram;
 use App\Models\Comment;
 use App\Models\DocumentVersion;
+use App\Models\Enrollment;
 use App\Models\Keyword;
+use App\Models\PeriodMilestone;
 use App\Models\Production;
+use App\Models\ProductionMilestone;
 use App\Models\ProductionType;
 use App\Models\ResearchLine;
 use App\Models\Revision;
+use App\Models\User;
 use App\Services\GoogleDriveService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -26,12 +31,31 @@ class ProductionController extends Controller
 {
     public function create()
     {
+        $user = auth()->user();
+        $isCoordinator = $user->hasRole(['Coordinador', 'Super Admin', 'Decano']);
+
+        $activePeriod = AcademicPeriod::where('is_active', true)->orderBy('end_date', 'desc')->first();
+        $enrollment = null;
+
+        if (! $isCoordinator && $user->hasRole('Estudiante')) {
+            if ($activePeriod) {
+                $enrollment = Enrollment::where('academic_period_id', $activePeriod->id)
+                    ->where('student_id', $user->id)
+                    ->with(['subject', 'tutor'])
+                    ->first();
+            }
+            if (! $enrollment) {
+                return redirect()->route('dashboard')->with('error', 'No tienes una inscripción activa para el período académico actual. Por favor, comunícate con la coordinación.');
+            }
+        }
+
         $academicPrograms = AcademicProgram::where('is_active', true)->orderBy('name')->get();
         $productionTypes = ProductionType::orderBy('name')->get();
         $academicPeriods = AcademicPeriod::where('is_active', true)->orderBy('name', 'desc')->get();
         $researchLines = ResearchLine::where('is_active', true)->orderBy('name')->get();
+        $tutors = User::role('Tutor')->orderBy('name')->get();
 
-        return view('pages.productions.create', compact('academicPrograms', 'productionTypes', 'academicPeriods', 'researchLines'));
+        return view('pages.productions.create', compact('academicPrograms', 'productionTypes', 'academicPeriods', 'researchLines', 'tutors', 'enrollment', 'activePeriod'));
     }
 
     public function store(StoreProductionRequest $request): RedirectResponse
@@ -61,18 +85,21 @@ class ProductionController extends Controller
 
         try {
             DB::transaction(function () use ($request, $tempFullPath, $googleDriveFileId, $googleDocumentTitle, $googleAccessToken) {
+                $tutorUser = User::findOrFail($request->input('tutor_id'));
+
                 // 1. Create the production record
                 $production = Production::create([
                     'uuid' => (string) Str::uuid(),
                     'title' => $request->input('title'),
                     'abstract' => $request->input('abstract'),
                     'authors' => $request->input('authors'),
-                    'tutor' => $request->input('tutor'),
+                    'tutor' => $tutorUser->name,
                     'academic_program_id' => $request->input('academic_program_id'),
                     'research_line_id' => $request->input('research_line_id'),
                     'production_type_id' => $request->input('production_type_id'),
                     'academic_period_id' => $request->input('academic_period_id'),
-                    'workflow_state' => $request->input('action') === 'submit' ? 'under_review' : 'draft',
+                    'subject_id' => $request->input('subject_id'),
+                    'workflow_state' => $request->input('action') === 'submit' ? 'under_tutor_review' : 'draft',
                     'submission_date' => $request->input('action') === 'submit' ? now() : null,
                     'google_drive_file_id' => $googleDriveFileId,
                     'google_document_title' => $googleDocumentTitle,
@@ -105,6 +132,42 @@ class ProductionController extends Controller
                 $production->users()->attach($request->user()->id, [
                     'role' => 'author',
                 ]);
+
+                // 5. Associate the selected tutor as tutor (pivot)
+                $production->users()->attach($tutorUser->id, [
+                    'role' => 'tutor',
+                ]);
+
+                // 6. Copy milestones from period_milestones to production_milestones
+                if ($production->subject_id) {
+                    $periodMilestones = PeriodMilestone::where('academic_period_id', $production->academic_period_id)
+                        ->where('subject_id', $production->subject_id)
+                        ->where(function ($query) use ($tutorUser) {
+                            $query->whereNull('tutor_id')
+                                ->orWhere('tutor_id', $tutorUser->id);
+                        })
+                        ->get();
+
+                    foreach ($periodMilestones as $pm) {
+                        if ($pm->student_id && $pm->student_id !== auth()->id()) {
+                            continue;
+                        }
+                        if (is_array($pm->excluded_student_ids) && in_array(auth()->id(), $pm->excluded_student_ids)) {
+                            continue;
+                        }
+                        ProductionMilestone::create([
+                            'production_id' => $production->id,
+                            'subject_id' => $production->subject_id,
+                            'period_milestone_id' => $pm->id,
+                            'type' => $pm->type,
+                            'title' => $pm->title,
+                            'scheduled_date' => $pm->scheduled_date,
+                            'status' => 'pending',
+                            'notify_tutor' => $pm->notify_tutor ?? true,
+                            'notify_jury' => $pm->notify_jury ?? false,
+                        ]);
+                    }
+                }
             });
 
             $statusMessage = $request->input('action') === 'submit'
@@ -148,10 +211,19 @@ class ProductionController extends Controller
 
         $user = auth()->user();
         $isAssociated = $production->users()->where('user_id', $user->id)->exists();
-        $isCoordinator = $user->hasRole(['Coordinador', 'Super Admin']);
+        $isCoordinator = $user->hasRole(['Coordinador', 'Super Admin', 'Decano']);
 
         if ($production->workflow_state !== 'published' && ! $isAssociated && ! $isCoordinator) {
             abort(403, 'No tienes autorización para ver esta producción científica.');
+        }
+
+        if ($production->google_drive_file_id) {
+            try {
+                $driveService = resolve(GoogleDriveService::class);
+                $driveService->syncCommentsForProduction($production);
+            } catch (\Exception $e) {
+                Log::warning('No se pudieron sincronizar los comentarios de Google Docs al cargar show: '.$e->getMessage());
+            }
         }
 
         $revisions = Revision::where('production_id', $production->id)
@@ -168,14 +240,80 @@ class ProductionController extends Controller
             ->orderBy('created_at', 'asc')
             ->get();
 
-        return view('pages.productions.show', compact('production', 'revisions', 'versions', 'comments'));
+        $tutors = collect();
+        $juries = collect();
+        $assignedTutor = null;
+        $assignedJury = null;
+
+        if ($isCoordinator) {
+            $tutors = User::role('Tutor')->orderBy('name')->get();
+            $juries = User::role('Jurado')->orderBy('name')->get();
+            $assignedTutor = $production->users()->wherePivot('role', 'tutor')->first();
+            $assignedJury = $production->users()->wherePivot('role', 'jury')->first();
+        }
+
+        return view('pages.productions.show', compact(
+            'production', 'revisions', 'versions', 'comments',
+            'tutors', 'juries', 'assignedTutor', 'assignedJury'
+        ));
+    }
+
+    public function assignUsers(Request $request, Production $production)
+    {
+        $request->validate([
+            'tutor_id' => 'nullable|exists:users,id',
+            'jury_id' => 'nullable|exists:users,id',
+        ]);
+
+        $user = auth()->user();
+        if (! $user->hasRole(['Coordinador', 'Super Admin', 'Decano'])) {
+            abort(403, 'No tienes autorización para realizar asignaciones.');
+        }
+
+        DB::transaction(function () use ($request, $production) {
+            // Remove existing tutor role for this production
+            $production->users()->wherePivot('role', 'tutor')->detach();
+            // Remove existing jury role for this production
+            $production->users()->wherePivot('role', 'jury')->detach();
+
+            // Attach new tutor if selected
+            if ($request->filled('tutor_id')) {
+                $production->users()->attach($request->input('tutor_id'), ['role' => 'tutor']);
+            }
+
+            // Attach new jury if selected
+            if ($request->filled('jury_id')) {
+                $production->users()->attach($request->input('jury_id'), ['role' => 'jury']);
+            }
+        });
+
+        return back()->with('success', 'Asignación de tutor y jurado guardada con éxito.');
+    }
+
+    public function edit(Production $production)
+    {
+        $production->load(['academicProgram', 'researchLine', 'productionType', 'academicPeriod', 'users']);
+
+        $user = auth()->user();
+        $isAuthor = $production->users()->where('user_id', $user->id)->wherePivot('role', 'author')->exists();
+        $isCoordinator = $user->hasRole(['Coordinador', 'Super Admin', 'Decano']);
+
+        if (! $isAuthor && ! $isCoordinator) {
+            abort(403, 'No tienes autorización para editar esta producción científica.');
+        }
+
+        if (! $production->google_drive_file_id) {
+            return redirect()->route('productions.show', $production)->with('error', 'Esta producción no está vinculada a Google Docs.');
+        }
+
+        return view('pages.productions.edit', compact('production'));
     }
 
     public function downloadDocument(Production $production)
     {
         $user = auth()->user();
         $isAssociated = $production->users()->where('user_id', $user->id)->exists();
-        $isCoordinator = $user->hasRole(['Coordinador', 'Super Admin']);
+        $isCoordinator = $user->hasRole(['Coordinador', 'Super Admin', 'Decano']);
 
         if ($production->workflow_state !== 'published' && ! $isAssociated && ! $isCoordinator) {
             abort(403, 'No tienes autorización para acceder a este documento.');
@@ -194,7 +332,7 @@ class ProductionController extends Controller
         $production = $version->production;
         $user = auth()->user();
         $isAssociated = $production->users()->where('user_id', $user->id)->exists();
-        $isCoordinator = $user->hasRole(['Coordinador', 'Super Admin']);
+        $isCoordinator = $user->hasRole(['Coordinador', 'Super Admin', 'Decano']);
 
         if ($production->workflow_state !== 'published' && ! $isAssociated && ! $isCoordinator) {
             abort(403, 'No tienes autorización para acceder a este documento.');
@@ -224,9 +362,11 @@ class ProductionController extends Controller
         }
 
         $production->update([
-            'workflow_state' => 'under_review',
+            'workflow_state' => 'under_tutor_review',
             'submission_date' => now(),
         ]);
+
+        event(new ProductionStateChanged($production, 'draft', 'under_tutor_review', $request->user()));
 
         return back()->with('success', '¡El borrador ha sido enviado a revisión con éxito!');
     }
@@ -261,7 +401,7 @@ class ProductionController extends Controller
             ->where('user_id', $request->user()->id)
             ->wherePivot('role', 'author')
             ->exists();
-        $isCoordinator = $request->user()->hasRole(['Coordinador', 'Super Admin']);
+        $isCoordinator = $request->user()->hasRole(['Coordinador', 'Super Admin', 'Decano']);
 
         if (! $isAuthor && ! $isCoordinator) {
             return response()->json(['error' => 'No tienes autorización para sincronizar este documento.'], 403);
@@ -288,5 +428,33 @@ class ProductionController extends Controller
 
             return response()->json(['error' => 'Falla al exportar el documento: '.$e->getMessage()], 500);
         }
+    }
+
+    public function requestJuryReview(Request $request, Production $production): RedirectResponse
+    {
+        $isAuthor = $production->users()
+            ->where('user_id', $request->user()->id)
+            ->wherePivot('role', 'author')
+            ->exists();
+
+        if (! $isAuthor) {
+            abort(403, 'No tienes autorización sobre esta producción científica.');
+        }
+
+        if ($production->workflow_state !== 'under_tutor_review') {
+            return back()->with('error', 'Solo se puede solicitar revisión de jurado cuando el documento está en revisión del tutor.');
+        }
+
+        $production->update([
+            'jury_review_requested' => true,
+        ]);
+
+        // Find tutor to notify
+        $tutor = $production->users()->wherePivot('role', 'tutor')->first();
+        if ($tutor) {
+            event(new ProductionStateChanged($production, 'under_tutor_review', 'under_tutor_review', $request->user(), 'Solicitud de revisión por jurado enviada al tutor.'));
+        }
+
+        return back()->with('success', '¡Se ha enviado la solicitud de revisión al jurado a tu tutor exitosamente!');
     }
 }

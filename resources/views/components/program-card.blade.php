@@ -28,7 +28,7 @@
 
     <!-- Footer Actions -->
     <div class="flex items-center justify-between w-full mt-8 pt-5 border-t border-slate-100/80 gap-3">
-        <span class="text-[10px] font-extrabold text-unimar-blue bg-unimar-blue/5 border border-unimar-blue/10 px-2.5 py-0.5 rounded-full uppercase tracking-wider group-hover:bg-unimar-blue group-hover:text-white group-hover:border-transparent transition-colors duration-300">
+        <span class="text-xs font-extrabold text-unimar-blue bg-unimar-blue/5 border border-unimar-blue/10 px-2.5 py-0.5 rounded-full uppercase tracking-wider group-hover:bg-unimar-blue group-hover:text-white group-hover:border-transparent transition-colors duration-300">
             {{ $count }}
         </span>
         <a href="{{ $link }}" class="text-base font-bold text-unimar-blue hover:text-unimar-gold flex items-center transition-colors">

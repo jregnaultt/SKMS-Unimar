@@ -2,22 +2,3 @@
 @tailwind components;
 @tailwind utilities;
 
-/* SKMS Dashboard-Only Typography Scale Overrides */
-.dashboard-system-layout .text-\[9px\] {
-    font-size: 11px !important;
-}
-.dashboard-system-layout .text-\[10px\] {
-    font-size: 12.5px !important;
-}
-.dashboard-system-layout .text-\[11px\] {
-    font-size: 13.5px !important;
-}
-.dashboard-system-layout .text-xs {
-    font-size: 14.5px !important;
-}
-.dashboard-system-layout .text-sm {
-    font-size: 16.5px !important;
-}
-.dashboard-system-layout .text-base {
-    font-size: 18px !important;
-}

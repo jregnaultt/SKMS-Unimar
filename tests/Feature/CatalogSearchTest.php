@@ -58,11 +58,59 @@ class CatalogSearchTest extends TestCase
         ]);
     }
 
-    public function test_unauthenticated_user_cannot_access_catalog(): void
+    public function test_unauthenticated_user_can_access_catalog(): void
     {
         $response = $this->get(route('catalog.index'));
 
-        $response->assertRedirect(route('login'));
+        $response->assertStatus(200);
+        $response->assertViewIs('catalog.public-index');
+        $response->assertSee('Catálogo de Producción Científica');
+    }
+
+    public function test_guest_can_view_published_production_details(): void
+    {
+        $production = $this->createProduction('published', ['title' => 'Tesis Publicada Indexada']);
+
+        $response = $this->get(route('catalog.show-public', $production->uuid));
+
+        $response->assertStatus(200);
+        $response->assertViewIs('catalog.show');
+        $response->assertSee('Tesis Publicada Indexada');
+        $response->assertSee('citation_title');
+        $response->assertSee('ScholarlyArticle');
+    }
+
+    public function test_guest_cannot_view_unpublished_production_details(): void
+    {
+        $production = $this->createProduction('draft', ['title' => 'Tesis Privada Borrador']);
+
+        $response = $this->get(route('catalog.show-public', $production->uuid));
+
+        $response->assertStatus(404);
+    }
+
+    public function test_guest_can_download_published_production_pdf(): void
+    {
+        $production = $this->createProduction('published');
+        $production->addMediaFromString('Dummy PDF Content')
+            ->toMediaCollection('documento');
+
+        $response = $this->get(route('catalog.download-public-pdf', $production->uuid));
+
+        $response->assertStatus(200);
+        $response->assertHeader('Content-Type', 'application/pdf');
+        $this->assertEquals('Dummy PDF Content', $response->streamedContent());
+    }
+
+    public function test_guest_cannot_download_unpublished_production_pdf(): void
+    {
+        $production = $this->createProduction('draft');
+        $production->addMediaFromString('Dummy PDF Content')
+            ->toMediaCollection('documento');
+
+        $response = $this->get(route('catalog.download-public-pdf', $production->uuid));
+
+        $response->assertStatus(404);
     }
 
     public function test_user_can_access_catalog(): void
@@ -84,7 +132,7 @@ class CatalogSearchTest extends TestCase
 
         $this->createProduction('published', ['title' => 'Tesis Publicada']);
         $this->createProduction('draft', ['title' => 'Tesis Borrador']);
-        $this->createProduction('under_review', ['title' => 'Tesis En Revisión']);
+        $this->createProduction('under_tutor_review', ['title' => 'Tesis En Revisión']);
         $this->createProduction('approved', ['title' => 'Tesis Aprobada']);
 
         $response = $this->actingAs($user)->get(route('catalog.index'));

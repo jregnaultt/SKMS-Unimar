@@ -10,8 +10,8 @@ Estos comandos gestionan todo el ciclo de vida de ejecución de Docker Sail y el
 
 | Comando | Descripción | Qué hace por detrás |
 | :--- | :--- | :--- |
-| `start_skms` | **Enciende todo el proyecto** | Inicia los contenedores de Sail (`up -d`) y levanta el servidor de desarrollo de Vite en segundo plano. |
-| `stop_skms` | **Apaga todo el proyecto** | Detiene los contenedores de Sail (`down`) y cierra el servidor de desarrollo de Vite. |
+| `start_skms` | **Enciende todo el proyecto** | Inicia los contenedores de Sail (`up -d`) incluyendo el servidor de desarrollo de Vite de forma automatizada. |
+| `stop_skms` | **Apaga todo el proyecto** | Detiene los contenedores de Sail (`down`) liberando todos los puertos y memoria. |
 
 > [!IMPORTANT]
 > **Arquitectura de Contenedores Automatizada:**
@@ -20,7 +20,7 @@ Estos comandos gestionan todo el ciclo de vida de ejecución de Docker Sail y el
 > - **Procesador de Colas (`laravel.worker`):** Ejecuta `queue:work` automáticamente para procesar tareas asíncronas en segundo plano.
 > - **Servidor Reverb (`laravel.reverb`):** Corre el servidor de WebSockets en el puerto `8090` automáticamente.
 > - **Base de Datos (`mysql`):** Servidor MySQL disponible externamente en el puerto `3309`.
-> - **Servidor Vite (Local):** Iniciado automáticamente en segundo plano en [http://localhost:5174](http://localhost:5174) (Logs guardados en `storage/logs/vite.log`).
+> - **Servidor Vite (`laravel.vite`):** Iniciado automáticamente en el puerto `5173` ([http://localhost:5173](http://localhost:5173)).
 
 ---
 

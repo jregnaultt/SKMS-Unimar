@@ -18,7 +18,7 @@ export default (allResearchLines = []) => ({
         abstract: '',
         keywords: '',
         authors: '',
-        tutor: ''
+        tutor_id: ''
     },
     
     init() {

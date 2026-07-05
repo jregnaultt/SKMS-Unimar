@@ -88,11 +88,11 @@ class WorkflowServiceTest extends TestCase
         $this->production->addMediaFromString('Dummy PDF content')
             ->toMediaCollection('documento');
 
-        $this->assertTrue($this->workflowService->canTransition($this->production, 'under_review', $this->student));
+        $this->assertTrue($this->workflowService->canTransition($this->production, 'under_tutor_review', $this->student));
 
-        $this->workflowService->transition($this->production, 'under_review', $this->student);
+        $this->workflowService->transition($this->production, 'under_tutor_review', $this->student);
 
-        $this->assertEquals('under_review', $this->production->refresh()->workflow_state);
+        $this->assertEquals('under_tutor_review', $this->production->refresh()->workflow_state);
         $this->assertNotNull($this->production->submission_date);
 
         // Verify version 1 is created
@@ -107,7 +107,7 @@ class WorkflowServiceTest extends TestCase
             'production_id' => $this->production->id,
             'user_id' => $this->student->id,
             'previous_state' => 'draft',
-            'new_state' => 'under_review',
+            'new_state' => 'under_tutor_review',
         ]);
     }
 
@@ -123,8 +123,8 @@ class WorkflowServiceTest extends TestCase
 
     public function test_tutor_or_jury_can_transition_under_review_states(): void
     {
-        // Set production state to under_review
-        $this->production->update(['workflow_state' => 'under_review']);
+        // Set production state to under_tutor_review
+        $this->production->update(['workflow_state' => 'under_tutor_review']);
 
         // Attach tutor and jury
         $this->production->users()->attach($this->tutorUser->id, ['role' => 'tutor']);
@@ -132,32 +132,41 @@ class WorkflowServiceTest extends TestCase
 
         // Tutor checks
         $this->assertTrue($this->workflowService->canTransition($this->production, 'needs_corrections', $this->tutorUser));
-        $this->assertTrue($this->workflowService->canTransition($this->production, 'approved', $this->tutorUser));
+        $this->assertTrue($this->workflowService->canTransition($this->production, 'under_jury_review', $this->tutorUser));
         $this->assertTrue($this->workflowService->canTransition($this->production, 'rejected', $this->tutorUser));
+
+        // Tutor cannot transition to approved directly (must go to jury first)
+        $this->assertFalse($this->workflowService->canTransition($this->production, 'approved', $this->tutorUser));
+
+        // transition to under_jury_review by tutor
+        $this->workflowService->transition($this->production, 'under_jury_review', $this->tutorUser);
+        $this->assertEquals('under_jury_review', $this->production->refresh()->workflow_state);
 
         // Jury checks
         $this->assertTrue($this->workflowService->canTransition($this->production, 'needs_corrections', $this->juryUser));
         $this->assertTrue($this->workflowService->canTransition($this->production, 'approved', $this->juryUser));
         $this->assertTrue($this->workflowService->canTransition($this->production, 'rejected', $this->juryUser));
 
-        // Execute transition to approved by tutor
-        $this->workflowService->transition($this->production, 'approved', $this->tutorUser);
+        // Execute transition to approved by jury
+        $this->workflowService->transition($this->production, 'approved', $this->juryUser);
         $this->assertEquals('approved', $this->production->refresh()->workflow_state);
         $this->assertNotNull($this->production->approval_date);
     }
 
     public function test_unassigned_tutor_or_jury_cannot_transition(): void
     {
-        $this->production->update(['workflow_state' => 'under_review']);
+        $this->production->update(['workflow_state' => 'under_tutor_review']);
 
         // Do not attach the tutor/jury to the production
-        $this->assertFalse($this->workflowService->canTransition($this->production, 'approved', $this->tutorUser));
+        $this->assertFalse($this->workflowService->canTransition($this->production, 'under_jury_review', $this->tutorUser));
+
+        $this->production->update(['workflow_state' => 'under_jury_review']);
         $this->assertFalse($this->workflowService->canTransition($this->production, 'approved', $this->juryUser));
     }
 
     public function test_coordinator_can_override_and_transition(): void
     {
-        $this->production->update(['workflow_state' => 'under_review']);
+        $this->production->update(['workflow_state' => 'under_jury_review']);
 
         // Coordinator does not need to be attached in pivot
         $this->assertTrue($this->workflowService->canTransition($this->production, 'approved', $this->coordinatorUser));
@@ -196,16 +205,16 @@ class WorkflowServiceTest extends TestCase
         Storage::disk('local')->put("temp_pdfs/{$fileId}.pdf", 'Version 2 Content');
 
         // 3. Perform transition
-        $this->assertTrue($this->workflowService->canTransition($this->production, 'under_review', $this->student));
+        $this->assertTrue($this->workflowService->canTransition($this->production, 'under_tutor_review', $this->student));
 
-        $this->workflowService->transition($this->production, 'under_review', $this->student, [
+        $this->workflowService->transition($this->production, 'under_tutor_review', $this->student, [
             'file_id' => $fileId,
             'changelog' => 'Se corrigieron los parrafos sugeridos por el tutor.',
         ]);
 
         // 4. Assertions
         $this->production->refresh();
-        $this->assertEquals('under_review', $this->production->workflow_state);
+        $this->assertEquals('under_tutor_review', $this->production->workflow_state);
 
         // Verify version 2 exists
         $this->assertDatabaseHas('document_versions', [

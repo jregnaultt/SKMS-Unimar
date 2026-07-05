@@ -32,7 +32,8 @@ class WorkflowController extends Controller
             $this->workflowService->transition($production, $targetState, $user, $request->validated());
 
             $messages = [
-                'under_review' => '¡El documento ha sido enviado a revisión exitosamente!',
+                'under_tutor_review' => '¡El documento ha sido enviado a revisión del tutor exitosamente!',
+                'under_jury_review' => '¡El documento ha sido enviado a revisión del jurado exitosamente!',
                 'needs_corrections' => 'Se ha solicitado la corrección del documento con éxito.',
                 'approved' => '¡Producción científica aprobada con éxito!',
                 'rejected' => 'La producción científica ha sido rechazada.',

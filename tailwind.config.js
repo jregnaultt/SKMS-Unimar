@@ -14,6 +14,9 @@ export default {
             fontFamily: {
                 sans: ['Montserrat', ...defaultTheme.fontFamily.sans],
             },
+            fontSize: {
+                xxs: ['11px', { lineHeight: '1.4' }],
+            },
             colors: {
                 unimar: {
                     blue: '#0d4d98',

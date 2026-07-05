@@ -49,6 +49,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'google_token_expires_at' => 'datetime',
         ];
     }
 
@@ -60,5 +61,20 @@ class User extends Authenticatable
     public function productions(): BelongsToMany
     {
         return $this->belongsToMany(Production::class)->withPivot('role')->withTimestamps();
+    }
+
+    public function enrollments(): HasMany
+    {
+        return $this->hasMany(Enrollment::class, 'student_id');
+    }
+
+    public function tutorEnrollments(): HasMany
+    {
+        return $this->hasMany(Enrollment::class, 'tutor_id');
+    }
+
+    public function subjectTutorPeriods(): HasMany
+    {
+        return $this->hasMany(SubjectTutorPeriod::class, 'tutor_id');
     }
 }

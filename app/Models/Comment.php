@@ -28,6 +28,8 @@ class Comment extends Model
     {
         return [
             'status' => CommentStatus::class,
+            'resolved_in_google' => 'boolean',
+            'annotation_position' => 'array',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];

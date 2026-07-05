@@ -26,7 +26,7 @@ class WorkflowTransitionRequest extends FormRequest
         $currentState = $production ? $production->workflow_state : null;
 
         return [
-            'target_state' => 'required|in:under_review,needs_corrections,approved,published,rejected',
+            'target_state' => 'required|in:under_tutor_review,under_jury_review,needs_corrections,approved,published,rejected',
             'comment' => [
                 'nullable',
                 'string',
@@ -40,9 +40,10 @@ class WorkflowTransitionRequest extends FormRequest
             'file_id' => [
                 'nullable',
                 'string',
-                function ($attribute, $value, $fail) use ($currentState) {
+                function ($attribute, $value, $fail) use ($production, $currentState) {
                     $target = $this->input('target_state');
-                    if ($currentState === 'needs_corrections' && $target === 'under_review' && empty($value)) {
+                    $isGoogleDoc = $production && ! empty($production->google_drive_file_id);
+                    if ($currentState === 'needs_corrections' && $target === 'under_tutor_review' && ! $isGoogleDoc && empty($value)) {
                         $fail('Debe subir el documento corregido antes de enviar.');
                     }
                 },
@@ -52,7 +53,7 @@ class WorkflowTransitionRequest extends FormRequest
                 'string',
                 function ($attribute, $value, $fail) use ($currentState) {
                     $target = $this->input('target_state');
-                    if ($currentState === 'needs_corrections' && $target === 'under_review' && empty(trim($value ?? ''))) {
+                    if ($currentState === 'needs_corrections' && $target === 'under_tutor_review' && empty(trim($value ?? ''))) {
                         $fail('Debe describir los cambios realizados.');
                     }
                 },

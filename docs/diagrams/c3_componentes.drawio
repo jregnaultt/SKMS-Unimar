@@ -1,0 +1,187 @@
+<mxGraphModel adaptiveColors="auto">
+  <root>
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
+    
+    <!-- Límite de la Aplicación Laravel Monolítica -->
+    <mxCell id="c_laravel_boundary" value="&lt;b&gt;APLICACIÓN WEB (LARAVEL MONOLITH)&lt;/b&gt;" style="swimlane;startSize=30;fillColor=#faf5ff;strokeColor=#d8b4fe;strokeWidth=2;html=1;rounded=1;arcSize=6;" vertex="1" parent="1">
+      <mxGeometry x="140" y="40" width="760" height="660" as="geometry"/>
+    </mxCell>
+
+    <!-- ==================== INTERNALS OF LARAVEL ==================== -->
+
+    <!-- Routing Engine Group -->
+    <mxCell id="grp_routes" value="" style="group;container=1;pointerEvents=0;" vertex="1" parent="c_laravel_boundary">
+      <mxGeometry x="40" y="70" width="220" height="90" as="geometry"/>
+    </mxCell>
+    <mxCell id="box_routes" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#cbd5e1;strokeWidth=1.5;" vertex="1" parent="grp_routes">
+      <mxGeometry width="220" height="90" as="geometry"/>
+    </mxCell>
+    <mxCell id="img_routes" value="" style="shape=image;image=https://raw.githubusercontent.com/simple-icons/simple-icons/develop/icons/laravel.svg;fillColor=#475569;" vertex="1" parent="grp_routes">
+      <mxGeometry x="15" y="20" width="50" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="lbl_routes" value="&lt;b&gt;Laravel Routing Engine&lt;/b&gt;&lt;br&gt;routes/web.php&lt;br&gt;&lt;font color='#4b5563'&gt;Enruta peticiones y valida sesiones.&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="grp_routes">
+      <mxGeometry x="75" y="5" width="135" height="80" as="geometry"/>
+    </mxCell>
+
+    <!-- Auth Controller Group -->
+    <mxCell id="grp_auth" value="" style="group;container=1;pointerEvents=0;" vertex="1" parent="c_laravel_boundary">
+      <mxGeometry x="40" y="200" width="220" height="90" as="geometry"/>
+    </mxCell>
+    <mxCell id="box_auth" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#cbd5e1;strokeWidth=1.5;" vertex="1" parent="grp_auth">
+      <mxGeometry width="220" height="90" as="geometry"/>
+    </mxCell>
+    <mxCell id="img_auth" value="" style="shape=image;image=https://raw.githubusercontent.com/simple-icons/simple-icons/develop/icons/auth0.svg;fillColor=#64748b;" vertex="1" parent="grp_auth">
+      <mxGeometry x="15" y="20" width="50" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="lbl_auth" value="&lt;b&gt;Breeze Auth Controller&lt;/b&gt;&lt;br&gt;Autenticación Breeze&lt;br&gt;&lt;font color='#4b5563'&gt;Gestiona accesos y roles de usuario.&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="grp_auth">
+      <mxGeometry x="75" y="5" width="135" height="80" as="geometry"/>
+    </mxCell>
+
+    <!-- Catalog Controller Group -->
+    <mxCell id="grp_catalog" value="" style="group;container=1;pointerEvents=0;" vertex="1" parent="c_laravel_boundary">
+      <mxGeometry x="300" y="70" width="220" height="90" as="geometry"/>
+    </mxCell>
+    <mxCell id="box_catalog" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eff6ff;strokeColor=#3b82f6;strokeWidth=2;" vertex="1" parent="grp_catalog">
+      <mxGeometry width="220" height="90" as="geometry"/>
+    </mxCell>
+    <mxCell id="img_catalog" value="" style="shape=image;image=https://raw.githubusercontent.com/simple-icons/simple-icons/develop/icons/laravel.svg;fillColor=#2563eb;" vertex="1" parent="grp_catalog">
+      <mxGeometry x="15" y="20" width="50" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="lbl_catalog" value="&lt;b&gt;CatalogController&lt;/b&gt;&lt;br&gt;search() Action&lt;br&gt;&lt;font color='#1e3a8a'&gt;Filtra metadatos Dublin Core con QUERY/POST.&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="grp_catalog">
+      <mxGeometry x="75" y="5" width="135" height="80" as="geometry"/>
+    </mxCell>
+
+    <!-- Production Controller Group -->
+    <mxCell id="grp_prod" value="" style="group;container=1;pointerEvents=0;" vertex="1" parent="c_laravel_boundary">
+      <mxGeometry x="300" y="200" width="220" height="90" as="geometry"/>
+    </mxCell>
+    <mxCell id="box_prod" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#cbd5e1;strokeWidth=1.5;" vertex="1" parent="grp_prod">
+      <mxGeometry width="220" height="90" as="geometry"/>
+    </mxCell>
+    <mxCell id="img_prod" value="" style="shape=image;image=https://raw.githubusercontent.com/simple-icons/simple-icons/develop/icons/laravel.svg;fillColor=#475569;" vertex="1" parent="grp_prod">
+      <mxGeometry x="15" y="20" width="50" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="lbl_prod" value="&lt;b&gt;ProductionController&lt;/b&gt;&lt;br&gt;Gestión de Documentos&lt;br&gt;&lt;font color='#4b5563'&gt;Controla la carga física de las tesis.&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="grp_prod">
+      <mxGeometry x="75" y="5" width="135" height="80" as="geometry"/>
+    </mxCell>
+
+    <!-- Workflow Controller Group -->
+    <mxCell id="grp_wf" value="" style="group;container=1;pointerEvents=0;" vertex="1" parent="c_laravel_boundary">
+      <mxGeometry x="300" y="330" width="220" height="90" as="geometry"/>
+    </mxCell>
+    <mxCell id="box_wf" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#faf5ff;strokeColor=#a78bfa;strokeWidth=2;" vertex="1" parent="grp_wf">
+      <mxGeometry width="220" height="90" as="geometry"/>
+    </mxCell>
+    <mxCell id="img_wf" value="" style="shape=image;image=https://raw.githubusercontent.com/simple-icons/simple-icons/develop/icons/laravel.svg;fillColor=#7c3aed;" vertex="1" parent="grp_wf">
+      <mxGeometry x="15" y="20" width="50" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="lbl_wf" value="&lt;b&gt;WorkflowController&lt;/b&gt;&lt;br&gt;Transiciones de Tesis&lt;br&gt;&lt;font color='#5b21b6'&gt;Atiende solicitudes de cambio de estado.&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="grp_wf">
+      <mxGeometry x="75" y="5" width="135" height="80" as="geometry"/>
+    </mxCell>
+
+    <!-- Comment Controller Group -->
+    <mxCell id="grp_comment" value="" style="group;container=1;pointerEvents=0;" vertex="1" parent="c_laravel_boundary">
+      <mxGeometry x="300" y="460" width="220" height="90" as="geometry"/>
+    </mxCell>
+    <mxCell id="box_comment" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#cbd5e1;strokeWidth=1.5;" vertex="1" parent="grp_comment">
+      <mxGeometry width="220" height="90" as="geometry"/>
+    </mxCell>
+    <mxCell id="img_comment" value="" style="shape=image;image=https://raw.githubusercontent.com/simple-icons/simple-icons/develop/icons/laravel.svg;fillColor=#475569;" vertex="1" parent="grp_comment">
+      <mxGeometry x="15" y="20" width="50" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="lbl_comment" value="&lt;b&gt;CommentController&lt;/b&gt;&lt;br&gt;Feedback / Comentarios&lt;br&gt;&lt;font color='#4b5563'&gt;Registra observaciones en secciones del PDF.&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="grp_comment">
+      <mxGeometry x="75" y="5" width="135" height="80" as="geometry"/>
+    </mxCell>
+
+    <!-- WorkflowService Group -->
+    <mxCell id="grp_wf_service" value="" style="group;container=1;pointerEvents=0;" vertex="1" parent="c_laravel_boundary">
+      <mxGeometry x="540" y="330" width="200" height="90" as="geometry"/>
+    </mxCell>
+    <mxCell id="box_wf_service" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#c084fc;strokeWidth=2;" vertex="1" parent="grp_wf_service">
+      <mxGeometry width="200" height="90" as="geometry"/>
+    </mxCell>
+    <mxCell id="img_php" value="" style="shape=image;image=https://raw.githubusercontent.com/simple-icons/simple-icons/develop/icons/php.svg;fillColor=#777BB4;" vertex="1" parent="grp_wf_service">
+      <mxGeometry x="10" y="20" width="50" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="lbl_wf_service" value="&lt;b&gt;WorkflowService&lt;/b&gt;&lt;br&gt;Motor del Flujo&lt;br&gt;&lt;font color='#6b7280'&gt;Contiene reglas de transiciones y estados.&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="grp_wf_service">
+      <mxGeometry x="65" y="5" width="130" height="80" as="geometry"/>
+    </mxCell>
+
+    <!-- Notification System Group -->
+    <mxCell id="grp_notif" value="" style="group;container=1;pointerEvents=0;" vertex="1" parent="c_laravel_boundary">
+      <mxGeometry x="540" y="460" width="200" height="90" as="geometry"/>
+    </mxCell>
+    <mxCell id="box_notif" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#94a3b8;strokeWidth=1.5;" vertex="1" parent="grp_notif">
+      <mxGeometry width="200" height="90" as="geometry"/>
+    </mxCell>
+    <mxCell id="img_notif" value="" style="shape=image;image=https://raw.githubusercontent.com/simple-icons/simple-icons/develop/icons/postmark.svg;fillColor=#FFC80A;" vertex="1" parent="grp_notif">
+      <mxGeometry x="10" y="20" width="50" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="lbl_notif" value="&lt;b&gt;Notification &amp;amp; Events&lt;/b&gt;&lt;br&gt;Laravel Event System&lt;br&gt;&lt;font color='#475569'&gt;Notifica cambios a los involucrados por email.&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="grp_notif">
+      <mxGeometry x="65" y="5" width="130" height="80" as="geometry"/>
+    </mxCell>
+
+    <!-- ==================== PERSISTENCIA Y EXTERNOS ==================== -->
+    
+    <!-- Base de Datos MySQL (Lado Derecho) -->
+    <mxCell id="db_mysql" value="&lt;b&gt;BASE DE DATOS RELACIONAL&lt;/b&gt;&lt;br&gt;MySQL 8.0+&lt;br&gt;&lt;font color='#065f46'&gt;Modelos Eloquent: User, Production, Comment, Revision.&lt;/font&gt;" style="shape=cylinder3;boundedLbl=1;backgroundOutline=1;size=15;html=1;fillColor=#ecfdf5;strokeColor=#059669;strokeWidth=2;align=center;whiteSpace=wrap;" vertex="1" parent="1">
+      <mxGeometry x="960" y="110" width="160" height="120" as="geometry"/>
+    </mxCell>
+
+    <!-- Almacenamiento Local -->
+    <mxCell id="storage_files" value="&lt;b&gt;SISTEMA DE ARCHIVOS&lt;/b&gt;&lt;br&gt;Spatie MediaLibrary&lt;br&gt;&lt;font color='#9a3412'&gt;Almacena PDFs de tesis y versiones de documentos.&lt;/font&gt;" style="shape=folder;html=1;tabWidth=40;tabHeight=14;tabPosition=left;fillColor=#fffbeb;strokeColor=#d97706;strokeWidth=2;align=center;whiteSpace=wrap;" vertex="1" parent="1">
+      <mxGeometry x="960" y="280" width="160" height="110" as="geometry"/>
+    </mxCell>
+
+    <!-- SMTP Server -->
+    <mxCell id="ext_smtp" value="&lt;b&gt;Servidor de Correo&lt;/b&gt;&lt;br&gt;SMTP Server&lt;br&gt;&lt;font color='#374151'&gt;Google SMTP / Mailer. Despacha notificaciones.&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f3f4f6;strokeColor=#9ca3af;strokeWidth=1.5;dashed=1;" vertex="1" parent="1">
+      <mxGeometry x="960" y="470" width="160" height="80" as="geometry"/>
+    </mxCell>
+
+    <!-- Conectores (Edges) -->
+    <!-- Enrutamientos -->
+    <mxCell id="e_routes_auth" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#64748b;strokeWidth=1;endArrow=classic;" edge="1" source="box_routes" target="box_auth" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="e_routes_catalog" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#64748b;strokeWidth=1;endArrow=classic;" edge="1" source="box_routes" target="box_catalog" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="e_routes_prod" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#64748b;strokeWidth=1;endArrow=classic;" edge="1" source="box_routes" target="box_prod" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="e_routes_wf" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#64748b;strokeWidth=1;endArrow=classic;" edge="1" source="box_routes" target="box_wf" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- Workflow invocaciones -->
+    <mxCell id="e_wf_service" value="Invoca" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#7c3aed;strokeWidth=2;endArrow=classic;" edge="1" source="box_wf" target="box_wf_service" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="e_wf_notif" value="Dispara eventos" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#8b5cf6;strokeWidth=1.5;endArrow=classic;" edge="1" source="box_wf_service" target="box_notif" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- Conexiones externas al monolito -->
+    <mxCell id="e_catalog_db" value="Consulta" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#059669;strokeWidth=2;endArrow=classic;exitX=1;exitY=0.5;" edge="1" source="box_catalog" target="db_mysql" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="e_prod_storage" value="Guarda PDF" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#d97706;strokeWidth=1.5;endArrow=classic;exitX=1;exitY=0.5;" edge="1" source="box_prod" target="storage_files" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="e_notif_smtp" value="Despacha" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#4b5563;strokeWidth=1.5;endArrow=classic;" edge="1" source="box_notif" target="ext_smtp" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="e_wf_db" value="Persiste cambios" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#059669;strokeWidth=2;endArrow=classic;exitX=0.5;exitY=0;exitDx=0;exitDy=0;" edge="1" source="box_wf_service" target="db_mysql" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+  </root>
+</mxGraphModel>

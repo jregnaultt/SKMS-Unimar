@@ -5,6 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
         <title>SKMS-Unimar | Decanato de Ingeniería y Afines</title>
+        <link rel="icon" type="image/x-icon" href="{{ asset('images/logoIco.ico') }}">
 
         <!-- Google Fonts - Montserrat (Official UNIMAR Font) -->
         <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -63,40 +64,32 @@
             <div class="max-w-[1380px] mx-auto px-6 h-20 flex items-center justify-between">
                 <!-- Brand Logo -->
                 <a href="{{ url('/') }}" class="flex items-center space-x-3 group">
-                    <div class="w-10 h-10 rounded-lg bg-unimar-blue flex items-center justify-center text-white font-bold text-lg shadow-md shadow-unimar-blue/20 transition-transform group-hover:scale-105">
-                        U
-                    </div>
+                    <img src="{{ asset('images/logo.svg') }}" alt="SKMS Unimar" class="w-12 h-12 object-contain transition-transform group-hover:scale-105">
                     <div class="flex flex-col">
-                        <span class="text-sm font-extrabold tracking-wider text-unimar-blue uppercase leading-none">SKMS</span>
-                        <span class="text-xs font-semibold text-gray-500 mt-0.5 uppercase tracking-wider">Decanato de Ingeniería</span>
+                        <span class="text-base font-extrabold tracking-wider text-unimar-blue uppercase leading-none">SKMS</span>
+                        <span class="text-sm font-semibold text-gray-500 mt-0.5 uppercase tracking-wider">Decanato de Ingeniería</span>
                     </div>
                 </a>
 
                 <!-- Navigation Links (Desktop) -->
                 <nav class="hidden lg:flex items-center space-x-8">
-                    <a href="{{ url('/') }}" class="text-sm font-semibold text-unimar-blue border-b-2 border-unimar-blue pb-1">Inicio</a>
-                    <a href="#especialidades" class="text-sm font-semibold text-gray-600 hover:text-unimar-blue transition-colors">Carreras</a>
-                    <a href="#lineas-investigacion" class="text-sm font-semibold text-gray-600 hover:text-unimar-blue transition-colors">Líneas</a>
-                    <a href="#publicaciones" class="text-sm font-semibold text-gray-600 hover:text-unimar-blue transition-colors">Investigaciones</a>
+                    <a href="{{ url('/') }}" class="text-base font-semibold text-unimar-blue border-b-2 border-unimar-blue pb-1">Inicio</a>
+                    <a href="#especialidades" class="text-base font-semibold text-gray-600 hover:text-unimar-blue transition-colors">Carreras</a>
+                    <a href="#lineas-investigacion" class="text-base font-semibold text-gray-600 hover:text-unimar-blue transition-colors">Líneas</a>
+                    <a href="#publicaciones" class="text-base font-semibold text-gray-600 hover:text-unimar-blue transition-colors">Investigaciones</a>
                 </nav>
 
                 <!-- Auth Buttons (Desktop) -->
                 <div class="hidden lg:flex items-center space-x-6">
                     @if (Route::has('login'))
                         @auth
-                            <a href="{{ url('/dashboard') }}" class="inline-flex items-center justify-center px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-white bg-unimar-blue hover:bg-[#09356b] rounded-lg transition-all duration-200 shadow-md shadow-unimar-blue/10 hover:shadow-lg hover:shadow-unimar-blue/20">
+                            <a href="{{ url('/dashboard') }}" class="inline-flex items-center justify-center px-5 py-2.5 text-sm font-bold uppercase tracking-wider text-white bg-unimar-blue hover:bg-[#09356b] rounded-lg transition-all duration-200 shadow-md shadow-unimar-blue/10 hover:shadow-lg hover:shadow-unimar-blue/20">
                                 Dashboard
                             </a>
                         @else
-                            <a href="{{ route('login') }}" class="text-xs font-bold uppercase tracking-wider text-unimar-blue hover:text-[#09356b] transition-colors">
+                            <a href="{{ route('login') }}" class="inline-flex items-center justify-center px-5 py-2.5 text-sm font-bold uppercase tracking-wider text-white bg-unimar-blue hover:bg-[#09356b] rounded-lg transition-all duration-200 shadow-md shadow-unimar-blue/10 hover:shadow-lg hover:shadow-unimar-blue/20">
                                 Acceder
                             </a>
-
-                            @if (Route::has('register'))
-                                <a href="{{ route('register') }}" class="inline-flex items-center justify-center px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-white bg-unimar-blue hover:bg-[#09356b] rounded-lg transition-all duration-200 shadow-md shadow-unimar-blue/10 hover:shadow-lg hover:shadow-unimar-blue/20">
-                                    Registrarse
-                                </a>
-                            @endif
                         @endauth
                     @endif
                 </div>
@@ -123,28 +116,22 @@
                  class="lg:hidden border-t border-gray-200/40 bg-white/95 backdrop-blur-md px-6 py-5 space-y-4 shadow-inner" 
                  style="display: none;">
                 <nav class="flex flex-col space-y-3">
-                    <a href="{{ url('/') }}" @click="mobileMenuOpen = false" class="text-sm font-semibold text-unimar-blue py-1">Inicio</a>
-                    <a href="#especialidades" @click="mobileMenuOpen = false" class="text-sm font-semibold text-gray-600 hover:text-unimar-blue transition-colors py-1">Carreras</a>
-                    <a href="#lineas-investigacion" @click="mobileMenuOpen = false" class="text-sm font-semibold text-gray-600 hover:text-unimar-blue transition-colors py-1">Líneas</a>
-                    <a href="#publicaciones" @click="mobileMenuOpen = false" class="text-sm font-semibold text-gray-600 hover:text-unimar-blue transition-colors py-1">Investigaciones</a>
+                    <a href="{{ url('/') }}" @click="mobileMenuOpen = false" class="text-base font-semibold text-unimar-blue py-1">Inicio</a>
+                    <a href="#especialidades" @click="mobileMenuOpen = false" class="text-base font-semibold text-gray-600 hover:text-unimar-blue transition-colors py-1">Carreras</a>
+                    <a href="#lineas-investigacion" @click="mobileMenuOpen = false" class="text-base font-semibold text-gray-600 hover:text-unimar-blue transition-colors py-1">Líneas</a>
+                    <a href="#publicaciones" @click="mobileMenuOpen = false" class="text-base font-semibold text-gray-600 hover:text-unimar-blue transition-colors py-1">Investigaciones</a>
                 </nav>
 
                 <div class="pt-4 border-t border-slate-200/50 flex flex-col space-y-2.5">
                     @if (Route::has('login'))
                         @auth
-                            <a href="{{ url('/dashboard') }}" class="w-full inline-flex items-center justify-center px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-white bg-unimar-blue hover:bg-[#09356b] rounded-lg transition shadow-md">
+                            <a href="{{ url('/dashboard') }}" class="w-full inline-flex items-center justify-center px-5 py-2.5 text-sm font-bold uppercase tracking-wider text-white bg-unimar-blue hover:bg-[#09356b] rounded-lg transition shadow-md">
                                 Dashboard
                             </a>
                         @else
-                            <a href="{{ route('login') }}" class="w-full text-center py-2.5 text-xs font-bold uppercase tracking-wider text-unimar-blue hover:text-[#09356b] transition-colors border border-unimar-blue/20 rounded-lg bg-white">
+                            <a href="{{ route('login') }}" class="w-full inline-flex items-center justify-center px-5 py-2.5 text-sm font-bold uppercase tracking-wider text-white bg-unimar-blue hover:bg-[#09356b] rounded-lg transition shadow-md">
                                 Acceder
                             </a>
-
-                            @if (Route::has('register'))
-                                <a href="{{ route('register') }}" class="w-full inline-flex items-center justify-center px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-white bg-unimar-blue hover:bg-[#09356b] rounded-lg transition shadow-md">
-                                    Registrarse
-                                </a>
-                            @endif
                         @endauth
                     @endif
                 </div>
@@ -228,7 +215,7 @@
                     <h2 class="text-xl sm:text-2xl lg:text-3xl font-extrabold text-white leading-tight">
                         Sistema de Gestión del Conocimiento Científico
                     </h2>
-                    <p class="text-xs sm:text-sm font-bold text-unimar-gold uppercase tracking-widest mt-1">
+                    <p class="text-sm sm:text-base font-bold text-unimar-gold uppercase tracking-widest mt-1">
                         Decanato de Ingeniería y Afines
                     </p>
                 </div>
@@ -238,9 +225,9 @@
                     <form action="{{ route('catalog.index') }}" method="GET" class="relative group">
                         <input 
                             type="text" 
-                            name="search" 
+                            name="q" 
                             placeholder="Buscar trabajos especiales de grado, tesis y artículos..."
-                            class="w-full h-16 pl-6 pr-16 text-gray-800 bg-white border border-white/10 rounded-lg focus:outline-none focus:ring-4 focus:ring-unimar-gold/40 focus:border-transparent transition-all duration-200 shadow-2xl text-sm placeholder-gray-400 font-medium"
+                            class="w-full h-16 pl-6 pr-16 text-gray-800 bg-white border border-white/10 rounded-lg focus:outline-none focus:ring-4 focus:ring-unimar-gold/40 focus:border-transparent transition-all duration-200 shadow-2xl text-base placeholder-gray-400 font-medium"
                         >
                         <button 
                             type="submit" 
@@ -255,12 +242,12 @@
                 </div>
 
                 <!-- Popular Search Tags (Utilizing space beautifully) -->
-                <div class="flex flex-wrap items-center justify-center gap-2.5 text-xs text-white/80 max-w-xl">
+                <div class="flex flex-wrap items-center justify-center gap-2.5 text-sm text-white/80 max-w-xl">
                     <span class="font-semibold text-white/60">Filtros rápidos:</span>
-                    <a href="{{ route('catalog.index') }}?program=sistemas" class="px-3 py-1 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 hover:text-white transition-all">Sistemas</a>
-                    <a href="{{ route('catalog.index') }}?program=civil" class="px-3 py-1 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 hover:text-white transition-all">Civil</a>
-                    <a href="{{ route('catalog.index') }}?program=industrial" class="px-3 py-1 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 hover:text-white transition-all">Industrial</a>
-                    <a href="{{ route('catalog.index') }}?type=tesis" class="px-3 py-1 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 hover:text-white transition-all">Tesis de Grado</a>
+                    <a href="{{ route('catalog.index') }}?q=Sistemas" class="px-3 py-1 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 hover:text-white transition-all">Sistemas</a>
+                    <a href="{{ route('catalog.index') }}?q=Civil" class="px-3 py-1 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 hover:text-white transition-all">Civil</a>
+                    <a href="{{ route('catalog.index') }}?q=Industrial" class="px-3 py-1 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 hover:text-white transition-all">Industrial</a>
+                    <a href="{{ route('catalog.index') }}?q=Tesis" class="px-3 py-1 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 hover:text-white transition-all">Tesis de Grado</a>
                 </div>
 
             </div>
@@ -458,19 +445,17 @@
                 <!-- Left: Logo & Location -->
                 <div class="md:col-span-6 flex flex-col items-start space-y-3">
                     <div class="flex items-center space-x-3">
-                        <div class="w-8 h-8 rounded bg-unimar-blue flex items-center justify-center text-white font-bold text-sm">
-                            U
-                        </div>
-                        <span class="text-xs font-extrabold tracking-wider text-unimar-blue uppercase">Universidad de Margarita</span>
+                        <img src="{{ asset('images/logo.svg') }}" alt="SKMS Unimar" class="w-[39px] h-[39px] object-contain">
+                        <span class="text-sm font-extrabold tracking-wider text-unimar-blue uppercase">Universidad de Margarita</span>
                     </div>
-                    <p class="text-[10px] text-gray-500 max-w-sm leading-relaxed font-medium">
+                    <p class="text-xs text-gray-500 max-w-sm leading-relaxed font-medium">
                         Av. Concepción Mariño, Sector El Toporo, El Valle del Espíritu Santo, Edo. Nueva Esparta, Venezuela.
                     </p>
                 </div>
 
                 <!-- Right: Copyright & Legal -->
                 <div class="md:col-span-6 flex flex-col md:items-end space-y-2">
-                    <p class="text-[10px] text-gray-500 text-left md:text-right font-medium">
+                    <p class="text-xs text-gray-500 text-left md:text-right font-medium">
                         © Copyright 2001-2026 Universidad de Margarita, RIF: J-30660040-0. Isla de Margarita - Venezuela.
                     </p>
                     <p class="text-[9px] text-gray-400 text-left md:text-right uppercase tracking-wider font-extrabold">

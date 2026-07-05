@@ -5,7 +5,7 @@
 @endphp
 
 <x-dashboard-layout :roles="$userRoles" :activeRole="$activeRole">
-    <div class="space-y-8 max-w-7xl mx-auto pb-12" x-data="{
+    <div class="space-y-8 max-w-8xl mx-auto pb-12" x-data="{
         openDrawer: false,
         logId: null,
         loading: false,
@@ -15,7 +15,7 @@
             this.loading = true;
             this.logId = id;
             this.logData = null;
-            
+
             fetch('/admin/audit-logs/' + id)
                 .then(res => res.json())
                 .then(data => {
@@ -32,21 +32,21 @@
             let diffs = [];
             let oldVals = log.old_values || {};
             let newVals = log.new_values || {};
-            
+
             // Get unique set of all keys
             let keys = Array.from(new Set([...Object.keys(oldVals), ...Object.keys(newVals)]));
-            
+
             let formatVal = (val) => {
                 if (val === null || val === undefined) return 'null';
                 if (typeof val === 'boolean') return val ? 'true' : 'false';
                 if (typeof val === 'object') return JSON.stringify(val);
                 return String(val);
             };
-            
+
             keys.forEach(key => {
                 let oldVal = oldVals[key];
                 let newVal = newVals[key];
-                
+
                 if (oldVals.hasOwnProperty(key) && newVals.hasOwnProperty(key)) {
                     if (oldVal !== newVal) {
                         diffs.push({ key: key, type: 'removed', val: formatVal(oldVal) });
@@ -64,23 +64,23 @@
             return diffs;
         }
     }">
-        
+
         <!-- Encabezado de la Página -->
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-5">
             <div>
                 <h1 class="text-3xl font-bold text-slate-800 tracking-tight font-sans">Bitácora de Auditoría</h1>
-                <p class="text-sm text-slate-500 mt-1 font-medium">Historial cronológico de acciones de seguridad, modificaciones de datos y transacciones del sistema</p>
+                <p class="text-base text-slate-500 mt-1 font-medium">Historial cronológico de acciones de seguridad, modificaciones de datos y transacciones del sistema</p>
             </div>
-            
+
             <!-- Buscador Rápido -->
             <div class="w-full md:w-80 shrink-0">
                 <form action="{{ route('admin.audit-logs.index') }}" method="GET">
                     <div class="relative">
-                        <input type="text" 
-                               name="search" 
-                               value="{{ request('search') }}" 
-                               placeholder="Buscar por usuario, acción o IP..." 
-                               class="block w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:border-unimar-blue focus:ring focus:ring-unimar-blue/10 transition duration-150 text-slate-700 placeholder-slate-400 font-medium" />
+                        <input type="text"
+                               name="search"
+                               value="{{ request('search') }}"
+                               placeholder="Buscar por usuario, acción o IP..."
+                               class="block w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-base focus:border-unimar-blue focus:ring focus:ring-unimar-blue/10 transition duration-150 text-slate-700 placeholder-slate-400 font-medium" />
                         <button type="submit" class="absolute left-3 top-3 text-slate-400 hover:text-unimar-blue transition">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
@@ -98,21 +98,21 @@
                     <svg class="w-5 h-5 mr-3 text-emerald-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
-                    <span class="font-semibold text-xs">{{ session('success') }}</span>
+                    <span class="font-semibold text-base">{{ session('success') }}</span>
                 </div>
             </div>
         @endif
 
         <!-- Grid para la tabla y el panel deslizable -->
         <div class="relative flex flex-col lg:flex-row gap-8 items-start">
-            
+
             <!-- Tabla de Logs de Auditoría -->
             <div class="w-full transition-all duration-300 bg-white border border-slate-200/80 shadow-sm rounded-2xl overflow-hidden"
                  :class="openDrawer ? 'lg:w-2/3' : 'w-full'">
-                
+
                 <div class="p-6 border-b border-slate-100">
                     <h3 class="text-lg font-bold text-slate-800 font-sans">Historial de Transacciones</h3>
-                    <p class="text-xs text-slate-500 mt-0.5 font-medium">Detalle forense de las operaciones realizadas por los usuarios en la plataforma</p>
+                    <p class="text-base text-slate-500 mt-0.5 font-medium">Detalle forense de las operaciones realizadas por los usuarios en la plataforma</p>
                 </div>
 
                 @if ($logs->isEmpty())
@@ -120,14 +120,14 @@
                         <svg class="mx-auto h-12 w-12 text-slate-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                         </svg>
-                        <h4 class="text-sm font-semibold text-slate-700">No se encontraron registros de auditoría</h4>
-                        <p class="text-xs text-slate-500 mt-1">Intenta modificar los términos de tu búsqueda rápida.</p>
+                        <h4 class="text-base font-semibold text-slate-700">No se encontraron registros de auditoría</h4>
+                        <p class="text-base text-slate-500 mt-1">Intenta modificar los términos de tu búsqueda rápida.</p>
                     </div>
                 @else
                     <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse">
+                        <table class="w-full text-left border-collapse min-w-[800px]">
                             <thead>
-                                <tr class="bg-slate-50 border-b border-slate-200 text-xs font-bold uppercase tracking-wider text-slate-500">
+                                <tr class="bg-slate-50 border-b border-slate-200 text-base font-bold uppercase tracking-wider text-slate-500">
                                     <th class="p-4 pl-6">Fecha / Hora</th>
                                     <th class="p-4">Usuario</th>
                                     <th class="p-4">Acción</th>
@@ -135,7 +135,7 @@
                                     <th class="p-4 pr-6 text-right">Acciones</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-slate-100 text-sm text-slate-700">
+                            <tbody class="divide-y divide-slate-100 text-base text-slate-700">
                                 @foreach ($logs as $log)
                                     @php
                                         $actionLower = strtolower($log->action);
@@ -155,7 +155,7 @@
                                     @endphp
                                     <tr class="hover:bg-slate-50/50 transition duration-150"
                                         :class="logId == {{ $log->id }} ? 'bg-slate-50 border-l-4 border-unimar-blue' : ''">
-                                        <td class="p-4 pl-6 whitespace-nowrap text-xs text-slate-500 font-medium">
+                                        <td class="p-4 pl-6 whitespace-nowrap text-base text-slate-500 font-medium">
                                             <div class="flex items-center space-x-2">
                                                 <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -168,24 +168,24 @@
                                                 {{ $log->user->name ?? 'Sistema / Visitante' }}
                                             </div>
                                             @if($log->user)
-                                                <div class="text-xs text-slate-400 font-medium mt-0.5">
+                                                <div class="text-base text-slate-400 font-medium mt-0.5">
                                                     {{ $log->user->email }}
                                                 </div>
                                             @endif
                                         </td>
                                         <td class="p-4 whitespace-nowrap">
-                                            <span class="px-2.5 py-0.5 inline-flex items-center text-[10px] font-bold rounded-xl border {{ $actionClass }}">
+                                            <span class="px-2.5 py-0.5 inline-flex items-center text-xs font-bold rounded-xl border {{ $actionClass }}">
                                                 {!! $actionIcon !!}
                                                 {{ $log->action }}
                                             </span>
                                         </td>
-                                        <td class="p-4 whitespace-nowrap font-mono text-xs text-slate-500 font-medium">
+                                        <td class="p-4 whitespace-nowrap font-mono text-base text-slate-500 font-medium">
                                             {{ $log->ip_address ?? 'N/A' }}
                                         </td>
-                                        <td class="p-4 pr-6 whitespace-nowrap text-right text-sm font-medium">
-                                            <button type="button" 
-                                                    @click="fetchLogDetails({{ $log->id }})" 
-                                                    class="inline-flex items-center px-3 py-1.5 bg-white border border-slate-200 hover:bg-slate-50 hover:border-slate-300 text-slate-700 rounded-xl text-xs font-bold transition shadow-sm focus:outline-none">
+                                        <td class="p-4 pr-6 whitespace-nowrap text-right text-base font-medium">
+                                            <button type="button"
+                                                    @click="fetchLogDetails({{ $log->id }})"
+                                                    class="inline-flex items-center px-3.5 py-2.5 bg-white border border-slate-200 hover:bg-slate-50 hover:border-slate-300 text-slate-700 rounded-xl text-base font-bold transition shadow-sm focus:outline-none h-11 cursor-pointer">
                                                 Inspeccionar
                                             </button>
                                         </td>
@@ -213,15 +213,15 @@
                  x-transition:leave-end="translate-x-full opacity-0"
                  class="w-full lg:w-1/3 bg-white border border-slate-200 shadow-xl rounded-2xl overflow-hidden sticky top-6 shrink-0"
                  style="display: none;">
-                
+
                 <!-- Cabecera del Drawer -->
                 <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
                     <div>
                         <h3 class="text-lg font-bold text-slate-800 font-sans">Detalles de Auditoría</h3>
-                        <p class="text-xs text-slate-400 font-medium mt-0.5">ID del Registro: <span class="font-mono text-unimar-blue font-bold" x-text="logId"></span></p>
+                        <p class="text-base text-slate-550 font-bold uppercase tracking-wider mt-0.5">ID del Registro: <span class="font-mono text-unimar-blue font-bold" x-text="logId"></span></p>
                     </div>
-                    <button type="button" @click="openDrawer = false" class="text-slate-400 hover:text-slate-600 transition">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <button type="button" @click="openDrawer = false" class="text-slate-400 hover:text-slate-600 transition cursor-pointer">
+                        <svg aria-hidden="true" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path>
                         </svg>
                     </button>
@@ -231,47 +231,47 @@
                 <div class="p-6 space-y-6 overflow-y-auto max-h-[calc(100vh-220px)]">
                     <!-- Loading State -->
                     <div x-show="loading" class="flex flex-col items-center justify-center py-16 space-y-3">
-                        <svg class="animate-spin h-8 w-8 text-unimar-blue" fill="none" viewBox="0 0 24 24">
+                        <svg aria-hidden="true" class="animate-spin h-8 w-8 text-unimar-blue" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
-                        <span class="text-xs font-bold text-slate-500">Cargando detalles...</span>
+                        <span class="text-base font-bold text-slate-600">Cargando detalles...</span>
                     </div>
 
                     <!-- Detail Content -->
-                    <div x-show="!loading && logData" class="space-y-6">
+                    <div x-show="!loading && logData" class="space-y-4">
                         <!-- Meta Grid -->
-                        <div class="space-y-3 p-4 bg-slate-50 rounded-2xl border border-slate-200/60 text-xs text-slate-700">
+                        <div class="space-y-3 p-4 bg-slate-50 rounded-2xl border border-slate-200/60 text-base text-slate-700">
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
-                                    <span class="block text-slate-400 font-bold uppercase tracking-wider text-[10px]">Acción Realizada</span>
+                                    <span class="block text-base font-bold uppercase tracking-wider text-slate-550">Acción Realizada</span>
                                     <span class="block font-bold text-slate-800 mt-1" x-text="logData?.action"></span>
                                 </div>
                                 <div>
-                                    <span class="block text-slate-400 font-bold uppercase tracking-wider text-[10px]">Dirección IP</span>
+                                    <span class="block text-base font-bold uppercase tracking-wider text-slate-550">Dirección IP</span>
                                     <span class="block font-mono font-bold text-slate-800 mt-1" x-text="logData?.ip_address ?? 'N/A'"></span>
                                 </div>
                             </div>
                             <div class="pt-3 border-t border-slate-200/60">
-                                <span class="block text-slate-400 font-bold uppercase tracking-wider text-[10px]">Usuario Responsable</span>
+                                <span class="block text-base font-bold uppercase tracking-wider text-slate-550">Usuario Responsable</span>
                                 <span class="block font-semibold text-slate-800 mt-1" x-text="logData?.user?.name ? `${logData.user.name} (${logData.user.email})` : 'Sistema / Desconocido'"></span>
                             </div>
                             <div class="pt-3 border-t border-slate-200/60">
-                                <span class="block text-slate-400 font-bold uppercase tracking-wider text-[10px]">Entidad / Modelo Afectado</span>
+                                <span class="block text-base font-bold uppercase tracking-wider text-slate-550">Entidad / Modelo Afectado</span>
                                 <span class="block font-mono text-slate-800 mt-1" x-text="logData?.auditable_type ? `${logData.auditable_type} # ${logData.auditable_id}` : 'N/A'"></span>
                             </div>
                             <div class="pt-3 border-t border-slate-200/60">
-                                <span class="block text-slate-400 font-bold uppercase tracking-wider text-[10px]">Fecha y Hora</span>
+                                <span class="block text-base font-bold uppercase tracking-wider text-slate-550">Fecha y Hora</span>
                                 <span class="block font-semibold text-slate-800 mt-1" x-text="logData?.created_at ? new Date(logData.created_at).toLocaleString('es-VE') : 'N/A'"></span>
                             </div>
                         </div>
 
                         <!-- Visual Diff -->
                         <div class="space-y-3">
-                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Comparativa de Cambios (Visual Diff)</label>
-                            
+                            <label class="block text-base font-bold text-slate-600 uppercase tracking-wider">Comparativa de Cambios (Visual Diff)</label>
+
                             <div class="border border-slate-200 rounded-2xl overflow-hidden bg-slate-50/50">
-                                <div class="bg-slate-100/80 px-4 py-2 border-b border-slate-200 text-[10px] font-bold text-slate-500 uppercase tracking-wider font-sans flex justify-between">
+                                <div class="bg-slate-100/80 px-4 py-2 border-b border-slate-200 text-base font-bold text-slate-550 uppercase tracking-wider font-sans flex justify-between">
                                     <span>Campo</span>
                                     <span>Cambio Realizado</span>
                                 </div>
@@ -281,17 +281,17 @@
                                              :class="{
                                                  'bg-rose-50 text-rose-700 font-medium': item.type === 'removed',
                                                  'bg-emerald-50 text-emerald-700 font-medium': item.type === 'added',
-                                                 'text-slate-500 bg-slate-50/30': item.type === 'unchanged'
+                                                 'text-slate-555 bg-slate-50/30': item.type === 'unchanged'
                                              }">
-                                            <div class="font-bold truncate text-[9px] uppercase tracking-wider text-slate-400 mb-1" x-text="item.key"></div>
+                                            <div class="font-bold truncate text-[9px] uppercase tracking-wider text-slate-550 mb-1" x-text="item.key"></div>
                                             <div class="break-all whitespace-pre-wrap flex items-start leading-relaxed">
-                                                <span class="mr-1.5 font-bold shrink-0 text-xs" x-text="item.type === 'removed' ? '−' : (item.type === 'added' ? '+' : ' ')"></span>
+                                                <span class="mr-1.5 font-bold shrink-0 text-base" x-text="item.type === 'removed' ? '−' : (item.type === 'added' ? '+' : ' ')"></span>
                                                 <span x-text="item.val"></span>
                                             </div>
                                         </div>
                                     </template>
                                     <template x-if="getDiff(logData).length === 0">
-                                        <div class="text-center py-6 text-slate-400 italic text-[11px]">
+                                        <div class="text-center py-6 text-slate-550 italic text-[11px] font-semibold">
                                             No se registraron modificaciones de valores en este log.
                                         </div>
                                     </template>
@@ -303,9 +303,9 @@
 
                 <!-- Pie del Drawer -->
                 <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex justify-end">
-                    <button type="button" 
-                            @click="openDrawer = false" 
-                            class="py-2 px-5 bg-unimar-blue hover:bg-unimar-blue/95 text-white font-bold rounded-xl text-xs uppercase tracking-wider transition shadow-sm hover:shadow-md focus:outline-none">
+                    <button type="button"
+                            @click="openDrawer = false"
+                            class="py-3 px-5 bg-unimar-blue hover:bg-unimar-blue/95 text-white font-bold rounded-xl text-base uppercase tracking-wider transition shadow-sm hover:shadow-md focus:outline-none h-11 inline-flex items-center justify-center cursor-pointer">
                         Cerrar Detalles
                     </button>
                 </div>

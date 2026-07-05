@@ -33,7 +33,7 @@ class FeedbackCommentsTest extends TestCase
         $this->jury = User::factory()->create();
         $this->outsider = User::factory()->create();
 
-        $this->production = Production::factory()->create(['workflow_state' => 'under_review']);
+        $this->production = Production::factory()->create(['workflow_state' => 'under_tutor_review']);
 
         $this->production->users()->attach($this->student->id, ['role' => 'author']);
         $this->production->users()->attach($this->tutor->id, ['role' => 'tutor']);
@@ -104,6 +104,31 @@ class FeedbackCommentsTest extends TestCase
             'id' => $observation->id,
             'status' => CommentStatus::Addressed->value,
         ]);
+    }
+
+    public function test_tutor_can_create_observation_with_annotation_position(): void
+    {
+        $this->actingAs($this->tutor)
+            ->post(route('comments.store', $this->production), [
+                'content' => 'Falta justificación en el segundo párrafo.',
+                'reference_section' => 'Pág 5',
+                'annotation_position' => [
+                    'page' => 5,
+                    'x' => 45.2,
+                    'y' => 20.8,
+                ],
+            ])
+            ->assertRedirect();
+
+        $observation = Comment::where('production_id', $this->production->id)
+            ->whereNull('parent_id')
+            ->first();
+
+        $this->assertNotNull($observation);
+        $this->assertNotNull($observation->annotation_position);
+        $this->assertEquals(5, $observation->annotation_position['page']);
+        $this->assertEquals(45.2, $observation->annotation_position['x']);
+        $this->assertEquals(20.8, $observation->annotation_position['y']);
     }
 
     // ─── Scenario 2: Role Authorization ───────────────────────────────────────

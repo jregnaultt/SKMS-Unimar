@@ -56,6 +56,7 @@ class DashboardController extends Controller
                 $data = $this->getEvaluatorData($user, $activeRole);
                 break;
             case 'Coordinador':
+            case 'Decano':
                 $data = $this->getCoordinatorData($request);
                 break;
             case 'Super Admin':

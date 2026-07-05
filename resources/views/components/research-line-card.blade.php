@@ -12,7 +12,7 @@
     <div class="absolute inset-0 bg-gradient-to-br from-unimar-blue/[0.01] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
 
     <div class="space-y-5 relative z-10">
-        <span class="text-[10px] font-extrabold uppercase tracking-wider text-unimar-gold bg-unimar-gold/10 border border-unimar-gold/20 px-2.5 py-0.5 rounded-full inline-block">
+        <span class="text-xs font-extrabold uppercase tracking-wider text-unimar-gold bg-unimar-gold/10 border border-unimar-gold/20 px-2.5 py-0.5 rounded-full inline-block">
             {{ $program }}
         </span>
 

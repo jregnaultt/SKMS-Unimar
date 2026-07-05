@@ -20,6 +20,8 @@ class ProductionUploadTest extends TestCase
 
     protected $student;
 
+    protected $tutor;
+
     protected $program;
 
     protected $line;
@@ -34,10 +36,15 @@ class ProductionUploadTest extends TestCase
 
         // Setup base roles
         Role::firstOrCreate(['name' => 'Estudiante']);
+        Role::firstOrCreate(['name' => 'Tutor']);
 
         // Create standard test student
         $this->student = User::factory()->create();
         $this->student->assignRole('Estudiante');
+
+        // Create standard test tutor
+        $this->tutor = User::factory()->create();
+        $this->tutor->assignRole('Tutor');
 
         // Create standard catalogs
         $this->program = AcademicProgram::create([
@@ -72,7 +79,7 @@ class ProductionUploadTest extends TestCase
         $response = $this->actingAs($this->student)->post(route('productions.store'), []);
 
         $response->assertSessionHasErrors([
-            'title', 'abstract', 'authors', 'tutor', 'keywords',
+            'title', 'abstract', 'authors', 'tutor_id', 'keywords',
             'academic_program_id', 'research_line_id',
             'production_type_id', 'academic_period_id',
             'file_id', 'action',
@@ -88,7 +95,7 @@ class ProductionUploadTest extends TestCase
             'title' => 'Una Tesis Sorprendente de IA',
             'abstract' => 'Este es el resumen de la tesis de inteligencia artificial.',
             'authors' => 'Javier Andres Regnault',
-            'tutor' => 'Prof. Tutor Valido',
+            'tutor_id' => $this->tutor->id,
             'keywords' => 'IA, Redes Neuronales, Laravel',
             'academic_program_id' => $this->program->id,
             'research_line_id' => $this->line->id,
@@ -142,7 +149,7 @@ class ProductionUploadTest extends TestCase
             'title' => 'Analisis de Sistemas Inteligentes',
             'abstract' => 'Este es el resumen de la tesis de sistemas inteligentes.',
             'authors' => 'Javier Andres Regnault',
-            'tutor' => 'Prof. Tutor Valido',
+            'tutor_id' => $this->tutor->id,
             'keywords' => 'Sistemas, IA',
             'academic_program_id' => $this->program->id,
             'research_line_id' => $this->line->id,
@@ -159,7 +166,7 @@ class ProductionUploadTest extends TestCase
 
         $this->assertDatabaseHas('productions', [
             'title' => 'Analisis de Sistemas Inteligentes',
-            'workflow_state' => 'under_review',
+            'workflow_state' => 'under_tutor_review',
         ]);
 
         $production = Production::where('title', 'Analisis de Sistemas Inteligentes')->first();
@@ -178,7 +185,7 @@ class ProductionUploadTest extends TestCase
             'title' => 'Una Tesis Fantasma',
             'abstract' => 'Este es el resumen de la tesis fantasma.',
             'authors' => 'Javier Andres Regnault',
-            'tutor' => 'Prof. Tutor Valido',
+            'tutor_id' => $this->tutor->id,
             'keywords' => 'IA',
             'academic_program_id' => $this->program->id,
             'research_line_id' => $this->line->id,
@@ -212,7 +219,7 @@ class ProductionUploadTest extends TestCase
 
         $this->assertDatabaseHas('productions', [
             'id' => $prod->id,
-            'workflow_state' => 'under_review',
+            'workflow_state' => 'under_tutor_review',
         ]);
         $this->assertNotNull($prod->refresh()->submission_date);
     }
@@ -257,7 +264,7 @@ class ProductionUploadTest extends TestCase
         $prod = Production::create([
             'uuid' => (string) Str::uuid(),
             'title' => 'Tesis En Revision',
-            'workflow_state' => 'under_review',
+            'workflow_state' => 'under_tutor_review',
         ]);
         $prod->users()->attach($this->student->id, ['role' => 'author']);
 

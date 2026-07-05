@@ -18,9 +18,10 @@ class WorkflowService
      * @var array<string, array<int, string>>
      */
     protected array $validTransitions = [
-        'draft' => ['under_review'],
-        'under_review' => ['needs_corrections', 'approved', 'rejected'],
-        'needs_corrections' => ['under_review'],
+        'draft' => ['under_tutor_review'],
+        'under_tutor_review' => ['needs_corrections', 'under_jury_review', 'rejected'],
+        'under_jury_review' => ['needs_corrections', 'approved', 'rejected'],
+        'needs_corrections' => ['under_tutor_review'],
         'approved' => ['published'],
         'published' => [],
         'rejected' => [],
@@ -39,27 +40,31 @@ class WorkflowService
         }
 
         // 2. Coordinators and Super Admins can transition anything
-        if ($user->hasRole(['Coordinador', 'Super Admin'])) {
+        if ($user->hasRole(['Coordinador', 'Super Admin', 'Decano'])) {
             return true;
         }
 
         // 3. Check role-conditioned transitions for normal users
         // Students (Authors) can submit drafts or resubmit corrections
-        if ($currentState === 'draft' && $targetState === 'under_review') {
+        if ($currentState === 'draft' && $targetState === 'under_tutor_review') {
             return $this->isProductionUser($production, $user, 'author') && $user->hasRole('Estudiante');
         }
 
-        if ($currentState === 'needs_corrections' && $targetState === 'under_review') {
+        if ($currentState === 'needs_corrections' && $targetState === 'under_tutor_review') {
             return $this->isProductionUser($production, $user, 'author') && $user->hasRole('Estudiante');
         }
 
-        // Tutors/Juries can review, approve, reject, or request corrections
-        if ($currentState === 'under_review') {
+        // Tutors review under_tutor_review
+        if ($currentState === 'under_tutor_review') {
+            if (in_array($targetState, ['needs_corrections', 'under_jury_review', 'rejected'])) {
+                return $this->isProductionUser($production, $user, 'tutor') && $user->hasRole('Tutor');
+            }
+        }
+
+        // Juries review under_jury_review
+        if ($currentState === 'under_jury_review') {
             if (in_array($targetState, ['needs_corrections', 'approved', 'rejected'])) {
-                $isTutor = $this->isProductionUser($production, $user, 'tutor') && $user->hasRole('Tutor');
-                $isJury = $this->isProductionUser($production, $user, 'jury') && $user->hasRole('Jurado');
-
-                return $isTutor || $isJury;
+                return $this->isProductionUser($production, $user, 'jury') && $user->hasRole('Jurado');
             }
         }
 
@@ -92,14 +97,14 @@ class WorkflowService
 
         DB::transaction(function () use ($production, $targetState, $previousState, $user, $data) {
             // 1. Create version 1 if transitioning from draft for the first time
-            if ($previousState === 'draft' && $targetState === 'under_review') {
+            if ($previousState === 'draft' && $targetState === 'under_tutor_review') {
                 $this->createInitialVersion($production, $user);
             }
 
             // 2. Update production state
             $updateData = ['workflow_state' => $targetState];
 
-            if ($targetState === 'under_review') {
+            if ($targetState === 'under_tutor_review' && $previousState === 'draft') {
                 $updateData['submission_date'] = now();
             }
 
@@ -111,10 +116,15 @@ class WorkflowService
                 $updateData['published_at'] = now();
             }
 
+            // Reset request flag if tutor handles it
+            if ($currentState = $previousState === 'under_tutor_review' && $targetState === 'under_jury_review') {
+                $updateData['jury_review_requested'] = false;
+            }
+
             $production->update($updateData);
 
-            // 3. Handle file resubmission for needs_corrections -> under_review
-            if ($previousState === 'needs_corrections' && $targetState === 'under_review') {
+            // 3. Handle file resubmission for needs_corrections -> under_tutor_review
+            if ($previousState === 'needs_corrections' && $targetState === 'under_tutor_review') {
                 $this->handleResubmission($production, $user, $data);
             }
 
@@ -168,6 +178,28 @@ class WorkflowService
      */
     protected function handleResubmission(Production $production, User $user, array $data): void
     {
+        // For Google Drive Docs: we already synced/embedded it. We just need to version the current media.
+        if ($production->google_drive_file_id) {
+            $latestVersion = DocumentVersion::where('production_id', $production->id)
+                ->max('version_number') ?? 1;
+
+            $newVersionNumber = $latestVersion + 1;
+
+            $version = DocumentVersion::create([
+                'production_id' => $production->id,
+                'user_id' => $user->id,
+                'version_number' => $newVersionNumber,
+                'changelog' => $data['changelog'] ?? 'Correcciones aplicadas en Google Docs.',
+            ]);
+
+            $media = $production->getFirstMedia('documento');
+            if ($media) {
+                $media->copy($version, 'documento_version');
+            }
+
+            return;
+        }
+
         $fileId = $data['file_id'] ?? null;
         if (! $fileId) {
             throw new \InvalidArgumentException('Se requiere un archivo para reenviar la producción.');

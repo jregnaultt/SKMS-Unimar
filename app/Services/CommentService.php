@@ -17,7 +17,7 @@ class CommentService
      *
      * @var array<int, string>
      */
-    protected array $reviewableStates = ['under_review', 'needs_corrections'];
+    protected array $reviewableStates = ['under_review', 'under_tutor_review', 'under_jury_review', 'needs_corrections'];
 
     // ─── Authorization Checks ────────────────────────────────────────────────
 
@@ -30,7 +30,7 @@ class CommentService
             return false;
         }
 
-        if ($user->hasRole(['Coordinador', 'Super Admin'])) {
+        if ($user->hasRole(['Coordinador', 'Super Admin', 'Decano'])) {
             return true;
         }
 
@@ -114,6 +114,7 @@ class CommentService
             'reference_section' => $data['reference_section'] ?? null,
             'status' => CommentStatus::Pending->value,
             'parent_id' => null,
+            'annotation_position' => $data['annotation_position'] ?? null,
         ]);
 
         CommentCreated::dispatch($comment, $production, $user);

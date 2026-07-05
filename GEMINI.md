@@ -317,6 +317,7 @@ Every state change fires a Laravel Event -> Listener creates DB notification + s
 
 ## 11. AI Notes (MANDATORY)
 
+- **CRITICAL / MANDATORY RULE:** Never write, modify, or implement any code changes without asking the user first. Do not make assumptions or guess design/logic. Always ask open-ended questions or present a list of at least 3 options/alternatives before making any edits.
 - ALWAYS verify stack: Tailwind + Alpine.js + Laravel + Blade. NO Livewire, NO React, NO Vue.
 - NEVER suggest separate REST API, Sanctum, or SPA frameworks.
 - NEVER suggest paid libraries when an open source alternative exists.
@@ -330,3 +331,4 @@ Every state change fires a Laravel Event -> Listener creates DB notification + s
 - ALWAYS consult the global skills bank in `C:\Users\regna\.gemini\skills` and utilize the necessary skills for ANY request sent by the user. These skills contain curated patterns and expert guidelines for almost all technologies and scenarios.
 
 *Note to AI: Keep responses concise, prioritize this stack, and do not introduce unapproved third-party structural libraries.*
+

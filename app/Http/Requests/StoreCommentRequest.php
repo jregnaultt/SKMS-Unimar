@@ -11,15 +11,16 @@ class StoreCommentRequest extends FormRequest
         return auth()->check();
     }
 
-    /**
-     * @return array<string, array<int, mixed>>
-     */
     public function rules(): array
     {
         return [
             'content' => ['required', 'string', 'min:10', 'max:2000'],
             'reference_section' => ['nullable', 'string', 'max:100'],
             'parent_id' => ['nullable', 'integer', 'exists:comments,id'],
+            'annotation_position' => ['nullable', 'array'],
+            'annotation_position.page' => ['required_with:annotation_position', 'integer', 'min:1'],
+            'annotation_position.x' => ['required_with:annotation_position', 'numeric', 'min:0', 'max:100'],
+            'annotation_position.y' => ['required_with:annotation_position', 'numeric', 'min:0', 'max:100'],
         ];
     }
 

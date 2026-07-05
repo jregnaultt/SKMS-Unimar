@@ -38,8 +38,8 @@ class ProgressController extends Controller
      */
     public function coordinatorIndex(Request $request): View
     {
-        if (! auth()->user()->hasRole(['Coordinador', 'Super Admin'])) {
-            abort(403, 'Acceso denegado. Se requieren permisos de Coordinador.');
+        if (! auth()->user()->hasRole(['Coordinador', 'Super Admin', 'Decano'])) {
+            abort(403, 'Acceso denegado. Se requieren permisos de Coordinador o Decano.');
         }
 
         $filters = $request->only(['academic_program_id', 'research_line_id', 'workflow_state', 'tutor_id', 'search']);
@@ -66,8 +66,8 @@ class ProgressController extends Controller
      */
     public function configureMilestones(Request $request, Production $production): RedirectResponse
     {
-        if (! auth()->user()->hasRole(['Coordinador', 'Super Admin'])) {
-            abort(403, 'Acceso denegado. Se requieren permisos de Coordinador.');
+        if (! auth()->user()->hasRole(['Coordinador', 'Super Admin', 'Decano'])) {
+            abort(403, 'Acceso denegado. Se requieren permisos de Coordinador o Decano.');
         }
 
         $request->validate([
@@ -93,7 +93,7 @@ class ProgressController extends Controller
      */
     protected function authorizeProgressView(Production $production, User $user): void
     {
-        if ($user->hasRole(['Coordinador', 'Super Admin'])) {
+        if ($user->hasRole(['Coordinador', 'Super Admin', 'Decano'])) {
             return;
         }
 

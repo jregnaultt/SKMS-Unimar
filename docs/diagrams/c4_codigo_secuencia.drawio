@@ -1,0 +1,121 @@
+<mxGraphModel adaptiveColors="auto">
+  <root>
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
+    
+    <!-- ==================== PARTICIPANTS (LIFELINES) ==================== -->
+    
+    <!-- Usuario Lifeline -->
+    <mxCell id="ll_user" value="👤 Usuario" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;size=50;fillColor=#e0f2fe;strokeColor=#0284c7;strokeWidth=2;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="60" y="40" width="120" height="420" as="geometry"/>
+    </mxCell>
+
+    <!-- WorkflowController Lifeline -->
+    <mxCell id="ll_ctrl" value="WorkflowController" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;size=50;fillColor=#f8fafc;strokeColor=#475569;strokeWidth=2;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="260" y="40" width="140" height="420" as="geometry"/>
+    </mxCell>
+    <!-- Laravel Logo for Controller -->
+    <mxCell id="img_ctrl_logo" value="" style="shape=image;image=https://raw.githubusercontent.com/simple-icons/simple-icons/develop/icons/laravel.svg;fillColor=#FF2D20;" vertex="1" parent="ll_ctrl">
+      <mxGeometry x="55" y="-30" width="30" height="30" as="geometry"/>
+    </mxCell>
+
+    <!-- WorkflowService Lifeline -->
+    <mxCell id="ll_service" value="WorkflowService" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;size=50;fillColor=#faf5ff;strokeColor=#8b5cf6;strokeWidth=2;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="480" y="40" width="140" height="420" as="geometry"/>
+    </mxCell>
+    <!-- PHP Logo for Service -->
+    <mxCell id="img_service_logo" value="" style="shape=image;image=https://raw.githubusercontent.com/simple-icons/simple-icons/develop/icons/php.svg;fillColor=#777BB4;" vertex="1" parent="ll_service">
+      <mxGeometry x="52" y="-28" width="35" height="25" as="geometry"/>
+    </mxCell>
+
+    <!-- Production Model Lifeline -->
+    <mxCell id="ll_model" value="Production (Model)" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;size=50;fillColor=#ecfdf5;strokeColor=#10b981;strokeWidth=2;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="700" y="40" width="140" height="420" as="geometry"/>
+    </mxCell>
+    <!-- MySQL/Eloquent Logo for Model -->
+    <mxCell id="img_model_logo" value="" style="shape=image;image=https://raw.githubusercontent.com/simple-icons/simple-icons/develop/icons/mysql.svg;fillColor=#00758F;" vertex="1" parent="ll_model">
+      <mxGeometry x="55" y="-30" width="30" height="30" as="geometry"/>
+    </mxCell>
+
+    <!-- Event Dispatcher Lifeline -->
+    <mxCell id="ll_events" value="Event Dispatcher" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;size=50;fillColor=#fffbeb;strokeColor=#f59e0b;strokeWidth=2;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="920" y="40" width="140" height="420" as="geometry"/>
+    </mxCell>
+    <!-- Event/Mail Logo for Dispatcher -->
+    <mxCell id="img_events_logo" value="" style="shape=image;image=https://raw.githubusercontent.com/simple-icons/simple-icons/develop/icons/postmark.svg;fillColor=#FFC80A;" vertex="1" parent="ll_events">
+      <mxGeometry x="55" y="-30" width="30" height="30" as="geometry"/>
+    </mxCell>
+
+
+    <!-- ==================== MESSAGES & SEQUENCING ==================== -->
+    
+    <!-- 1. Request POST -->
+    <mxCell id="msg1" value="1. Request POST /transition" style="html=1;verticalAlign=bottom;endArrow=block;strokeColor=#0284c7;strokeWidth=2;labelBackgroundColor=#ffffff;fontStyle=1;" edge="1" parent="1">
+      <mxGeometry width="80" relative="1" as="geometry">
+        <mxPoint x="120" y="130" as="sourcePoint"/>
+        <mxPoint x="330" y="130" as="targetPoint"/>
+      </mxGeometry>
+    </mxCell>
+
+    <!-- 2. Controller calls transition() -->
+    <mxCell id="msg2" value="2. transition(Production, newState, User)" style="html=1;verticalAlign=bottom;endArrow=block;strokeColor=#475569;strokeWidth=2;labelBackgroundColor=#ffffff;" edge="1" parent="1">
+      <mxGeometry width="80" relative="1" as="geometry">
+        <mxPoint x="330" y="170" as="sourcePoint"/>
+        <mxPoint x="550" y="170" as="targetPoint"/>
+      </mxGeometry>
+    </mxCell>
+
+    <!-- 3. Self Validation -->
+    <mxCell id="msg3" value="3. canTransition(...) check roles &amp; states" style="html=1;verticalAlign=bottom;endArrow=block;strokeColor=#8b5cf6;strokeWidth=1.5;edgeStyle=orthogonalEdgeStyle;curved=1;" edge="1" parent="1">
+      <mxGeometry width="80" relative="1" as="geometry">
+        <mxPoint x="550" y="200" as="sourcePoint"/>
+        <mxPoint x="555" y="235" as="targetPoint"/>
+        <Array as="points">
+          <mxPoint x="585" y="200"/>
+          <mxPoint x="585" y="235"/>
+        </Array>
+      </mxGeometry>
+    </mxCell>
+
+    <!-- 4. Update state -->
+    <mxCell id="msg4" value="4. update(['workflow_state' =&gt; newState])" style="html=1;verticalAlign=bottom;endArrow=block;strokeColor=#8b5cf6;strokeWidth=2;labelBackgroundColor=#ffffff;" edge="1" parent="1">
+      <mxGeometry width="80" relative="1" as="geometry">
+        <mxPoint x="550" y="270" as="sourcePoint"/>
+        <mxPoint x="770" y="270" as="targetPoint"/>
+      </mxGeometry>
+    </mxCell>
+
+    <!-- 5. SQL Confirm -->
+    <mxCell id="msg5" value="5. Confirmación de Persistencia" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;strokeColor=#10b981;strokeWidth=1.5;labelBackgroundColor=#ffffff;" edge="1" parent="1">
+      <mxGeometry width="80" relative="1" as="geometry">
+        <mxPoint x="770" y="300" as="sourcePoint"/>
+        <mxPoint x="550" y="300" as="targetPoint"/>
+      </mxGeometry>
+    </mxCell>
+
+    <!-- 6. Event dispatch -->
+    <mxCell id="msg6" value="6. event(new StateChanged(...))" style="html=1;verticalAlign=bottom;endArrow=block;strokeColor=#8b5cf6;strokeWidth=2;labelBackgroundColor=#ffffff;" edge="1" parent="1">
+      <mxGeometry width="80" relative="1" as="geometry">
+        <mxPoint x="550" y="340" as="sourcePoint"/>
+        <mxPoint x="990" y="340" as="targetPoint"/>
+      </mxGeometry>
+    </mxCell>
+
+    <!-- 7. Controller response -->
+    <mxCell id="msg7" value="7. Response JSON (200 OK Success)" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;strokeColor=#475569;strokeWidth=1.5;labelBackgroundColor=#ffffff;" edge="1" parent="1">
+      <mxGeometry width="80" relative="1" as="geometry">
+        <mxPoint x="550" y="380" as="sourcePoint"/>
+        <mxPoint x="330" y="380" as="targetPoint"/>
+      </mxGeometry>
+    </mxCell>
+
+    <!-- 8. Browser renders -->
+    <mxCell id="msg8" value="8. Renderizar éxito / Redirección" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;strokeColor=#0284c7;strokeWidth=2;labelBackgroundColor=#ffffff;" edge="1" parent="1">
+      <mxGeometry width="80" relative="1" as="geometry">
+        <mxPoint x="330" y="410" as="sourcePoint"/>
+        <mxPoint x="120" y="410" as="targetPoint"/>
+      </mxGeometry>
+    </mxCell>
+
+  </root>
+</mxGraphModel>

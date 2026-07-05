@@ -11,10 +11,10 @@
     $comments = $progressData['comments'] ?? collect();
 @endphp
 
-<div class="space-y-6">
+<div class="space-y-4">
     <!-- Suggested Productions (Sugerencias de vinculación) -->
     @if ($suggestedProductions->isNotEmpty())
-        <div class="bg-gradient-to-r from-blue-500/10 via-indigo-500/5 to-transparent border border-blue-100 rounded-2xl p-6 shadow-sm">
+        <div class="bg-gradient-to-r from-blue-500/10 via-indigo-500/5 to-transparent border border-blue-100 rounded-2xl p-4 md:p-5 shadow-sm">
             <div class="flex items-center space-x-2.5 mb-4">
                 <span class="flex h-2.5 w-2.5 relative">
                     <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
@@ -22,7 +22,7 @@
                 </span>
                 <h3 class="text-base font-bold text-slate-800">Trabajos científicos sugeridos</h3>
             </div>
-            <p class="text-xs text-slate-500 mb-4">
+            <p class="text-sm text-slate-600 mb-4">
                 Hemos encontrado tesis históricas que podrían ser tuyas. Reclama tu vinculación oficial para que aparezcan en tu panel de control.
             </p>
             <div class="grid gap-4 md:grid-cols-2">
@@ -30,15 +30,15 @@
                     <div class="bg-white border border-slate-100 rounded-xl p-5 shadow-[0_4px_20px_rgba(13,77,152,0.02)] flex flex-col justify-between hover:-translate-y-0.5 hover:shadow-md transition-all duration-200">
                         <div>
                             <div class="flex justify-between items-center mb-2">
-                                <span class="px-2.5 py-0.5 text-[10px] font-bold rounded-full bg-slate-100 text-slate-600 uppercase tracking-wider">
+                                <span class="px-2.5 py-0.5 text-sm font-bold rounded-full bg-slate-100 text-slate-700 uppercase tracking-wider">
                                     {{ $prod->productionType->name ?? 'Tesis' }}
                                 </span>
-                                <span class="text-[10px] text-slate-400 font-semibold">
+                                <span class="text-sm text-slate-550 font-semibold">
                                     {{ $prod->academicPeriod->name ?? '' }}
                                 </span>
                             </div>
-                            <h4 class="text-xs font-bold text-slate-800 line-clamp-2 mb-3">{{ $prod->title }}</h4>
-                            <div class="space-y-1 text-[11px] text-slate-500">
+                            <h4 class="text-sm font-bold text-slate-800 line-clamp-2 mb-3">{{ $prod->title }}</h4>
+                            <div class="space-y-1 text-sm text-slate-600">
                                 <p>Autores: <strong class="text-slate-700">{{ $prod->authors }}</strong></p>
                                 <p>Tutor: <strong class="text-slate-700">{{ $prod->tutor }}</strong></p>
                             </div>
@@ -48,7 +48,7 @@
                                 @csrf
                                 <input type="hidden" name="production_id" value="{{ $prod->id }}">
                                 <input type="hidden" name="role" value="author">
-                                <button type="submit" class="px-3 py-1.5 bg-[#0d4d98] hover:bg-[#0b3d78] text-white rounded-lg text-[10px] font-bold transition">
+                                <button type="submit" class="px-4 py-2.5 bg-[#0d4d98] hover:bg-[#0b3d78] text-white rounded-lg text-sm font-bold transition">
                                     Reclamar Autoría
                                 </button>
                             </form>
@@ -56,7 +56,7 @@
                                 @csrf
                                 <input type="hidden" name="production_id" value="{{ $prod->id }}">
                                 <input type="hidden" name="role" value="tutor">
-                                <button type="submit" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-[10px] font-bold transition">
+                                <button type="submit" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-sm font-bold transition">
                                     Reclamar Tutoría
                                 </button>
                             </form>
@@ -70,28 +70,28 @@
     <!-- Active Production Details -->
     @if ($activeProduction)
         <!-- Title and General Info -->
-        <div class="bg-white border border-slate-100 rounded-2xl p-6 shadow-[0_10px_30px_rgba(13,77,152,0.03)] flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div class="bg-white border border-slate-100 rounded-2xl p-4 md:p-5 shadow-[0_10px_30px_rgba(13,77,152,0.03)] flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div class="space-y-2">
                 <div class="flex flex-wrap gap-2 items-center">
-                    <span class="px-2.5 py-0.5 text-[10px] font-bold rounded-full bg-[#0d4d98]/10 text-[#0d4d98] uppercase tracking-wider">
+                    <span class="px-2.5 py-0.5 text-sm font-bold rounded-full bg-[#0d4d98]/10 text-[#0d4d98] uppercase tracking-wider">
                         {{ $activeProduction->productionType->name ?? 'Tesis' }}
                     </span>
-                    <span class="text-xs text-slate-400 font-semibold">•</span>
-                    <span class="text-xs text-slate-500 font-medium">
+                    <span class="text-sm text-slate-550 font-semibold">•</span>
+                    <span class="text-sm text-slate-600 font-medium">
                         {{ $activeProduction->academicProgram->name ?? '' }}
                     </span>
                 </div>
-                <h3 class="text-lg font-extrabold text-slate-800 leading-tight">
+                <h3 class="text-xl font-extrabold text-slate-800 leading-tight">
                     {{ $activeProduction->title }}
                 </h3>
-                <p class="text-xs text-slate-500">
+                <p class="text-sm text-slate-600">
                     Tutor asignado: <strong class="text-slate-700">{{ $activeProduction->tutor ?? 'No especificado' }}</strong>
                 </p>
             </div>
 
             <!-- Workflow State Badge -->
             <div class="shrink-0 flex flex-col items-start md:items-end space-y-1.5">
-                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Estado actual</p>
+                <p class="text-sm text-slate-550 font-bold uppercase tracking-wider">Estado actual</p>
                 @php
                     $statusColors = [
                         'draft' => 'bg-slate-100 text-slate-800 border-slate-200',
@@ -112,15 +112,15 @@
                     $colorClass = $statusColors[$activeProduction->workflow_state] ?? 'bg-slate-100 text-slate-800';
                     $label = $statusLabels[$activeProduction->workflow_state] ?? $activeProduction->workflow_state;
                 @endphp
-                <span class="px-3.5 py-1.5 inline-flex text-xs leading-5 font-extrabold rounded-full border {{ $colorClass }}">
+                <span class="px-3.5 py-1.5 inline-flex text-sm leading-5 font-extrabold rounded-full border {{ $colorClass }}">
                     {{ $label }}
                 </span>
             </div>
         </div>
 
         <!-- Línea de Tiempo del Flujo (Workflow Timeline) -->
-        <div class="bg-white border border-slate-100 rounded-2xl p-6 shadow-[0_10px_30px_rgba(13,77,152,0.03)]">
-            <h4 class="text-xs font-extrabold text-slate-500 uppercase tracking-wider mb-6">Línea de Tiempo del Proceso</h4>
+        <div class="bg-white border border-slate-100 rounded-2xl p-4 md:p-5 shadow-[0_10px_30px_rgba(13,77,152,0.03)]">
+            <h4 class="text-base font-bold text-slate-600 uppercase tracking-wider mb-6">Línea de Tiempo del Proceso</h4>
             
             <div class="relative flex flex-col md:flex-row items-center justify-between gap-8 md:gap-0">
                 <!-- Línea conectora de fondo -->
@@ -156,20 +156,20 @@
                         } elseif ($isCompleted) {
                             $circleClass = 'bg-emerald-500 text-white';
                         } else {
-                            $circleClass = 'bg-slate-100 text-slate-400';
+                            $circleClass = 'bg-slate-100 text-slate-550';
                         }
                     @endphp
                     <div class="flex flex-col items-center z-10 w-full md:w-1/5 text-center">
-                        <div class="w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 {{ $circleClass }}">
+                        <div class="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 {{ $circleClass }}">
                             @if ($isCompleted)
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg aria-hidden="true" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
                                 </svg>
                             @else
                                 {{ $s['step'] }}
                             @endif
                         </div>
-                        <span class="text-xs font-bold mt-2.5 {{ $isCurrent ? 'text-slate-800' : 'text-slate-400' }}">
+                        <span class="text-sm font-bold mt-2.5 {{ $isCurrent ? 'text-slate-800' : 'text-slate-550' }}">
                             {{ $s['label'] }}
                         </span>
                     </div>
@@ -178,49 +178,49 @@
         </div>
 
         <!-- Main Dashboard Split Content -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
             
             <!-- Left Column: Buzón de Observaciones (2/3 width) -->
             <div class="lg:col-span-2 space-y-6">
-                <div class="bg-white border border-slate-100 rounded-2xl p-6 shadow-[0_10px_30px_rgba(13,77,152,0.03)]">
+                <div class="bg-white border border-slate-100 rounded-2xl p-4 md:p-5 shadow-[0_10px_30px_rgba(13,77,152,0.03)]">
                     <div class="flex items-center justify-between mb-6">
                         <div>
-                            <h4 class="text-sm font-extrabold text-slate-800">Buzón de Observaciones</h4>
-                            <p class="text-[10px] text-slate-400 font-semibold mt-0.5 uppercase tracking-wider">Revisiones y correcciones metodológicas</p>
+                            <h4 class="text-base font-extrabold text-slate-800">Buzón de Observaciones</h4>
+                            <p class="text-sm text-slate-550 font-semibold mt-0.5 uppercase tracking-wider">Revisiones y correcciones metodológicas</p>
                         </div>
-                        <span class="px-2.5 py-1 text-xs font-bold rounded-lg bg-orange-50 text-orange-700">
+                        <span class="px-2.5 py-1 text-sm font-bold rounded-lg bg-orange-50 text-orange-700">
                             {{ $commentsSummary['pending'] + $commentsSummary['in_progress'] }} Pendientes
                         </span>
                     </div>
 
                     @if ($comments->isEmpty())
-                        <div class="text-center py-12 border-2 border-dashed border-slate-100 rounded-xl">
+                        <div class="text-center py-8 border-2 border-dashed border-slate-100 rounded-xl">
                             <svg class="mx-auto h-10 w-10 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
                             </svg>
-                            <h5 class="mt-2 text-xs font-bold text-slate-700">Sin observaciones registradas</h5>
+                            <h5 class="mt-2 text-sm font-bold text-slate-700">Sin observaciones registradas</h5>
                             <p class="mt-1 text-[11px] text-slate-400">Tu tutor o jurado aún no han registrado observaciones sobre esta versión.</p>
                         </div>
                     @else
-                        <div class="space-y-6">
+                        <div class="space-y-4">
                             @foreach ($comments as $comment)
                                 <div class="p-5 border border-slate-100 rounded-xl bg-slate-50/50 space-y-4 hover:-translate-y-0.5 hover:shadow-sm transition-all duration-200">
                                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
                                         <div class="flex items-center space-x-2">
-                                            <span class="text-[10px] bg-slate-200 text-slate-800 px-2 py-0.5 rounded font-bold font-mono">
+                                            <span class="text-sm bg-slate-200 text-slate-800 px-2 py-0.5 rounded font-bold font-mono">
                                                 {{ $comment->reference_section ?? 'General' }}
                                             </span>
-                                            <span class="text-xs text-slate-400">•</span>
-                                            <span class="text-xs font-bold text-slate-700">{{ $comment->user->name }}</span>
+                                            <span class="text-sm text-slate-550">•</span>
+                                            <span class="text-sm font-bold text-slate-700">{{ $comment->user->name }}</span>
                                         </div>
                                         
                                         <!-- Interactive Status Selector Form -->
                                         <div class="flex items-center space-x-2">
-                                            <span class="text-[10px] text-slate-400 font-semibold">Avance:</span>
+                                            <span class="text-sm text-slate-550 font-semibold">Avance:</span>
                                             <form action="{{ route('comments.update-status', $comment) }}" method="POST" class="inline">
                                                 @csrf
                                                 @method('PATCH')
-                                                <select name="status" onchange="this.form.submit()" class="text-[11px] font-bold rounded-lg border-slate-200 py-0.5 px-2 pr-7 text-slate-700 focus:ring-[#0d4d98] focus:border-[#0d4d98] cursor-pointer bg-white">
+                                                <select name="status" onchange="this.form.submit()" class="text-sm font-bold rounded-lg border-slate-200 py-1.5 px-3 pr-8 text-slate-700 focus:ring-[#0d4d98] focus:border-[#0d4d98] cursor-pointer bg-white">
                                                     <option value="pending" {{ $comment->status === 'pending' ? 'selected' : '' }}>Pendiente</option>
                                                     <option value="in_progress" {{ $comment->status === 'in_progress' ? 'selected' : '' }}>En Progreso</option>
                                                     <option value="addressed" {{ $comment->status === 'addressed' ? 'selected' : '' }}>Subsanado</option>
@@ -229,7 +229,7 @@
                                         </div>
                                     </div>
 
-                                    <p class="text-xs text-slate-600 leading-relaxed">
+                                    <p class="text-base text-slate-600 leading-relaxed">
                                         {{ $comment->content }}
                                     </p>
 
@@ -237,10 +237,10 @@
                                     @if ($comment->replies->isNotEmpty())
                                         <div class="pl-4 border-l-2 border-slate-250 space-y-3 pt-2">
                                             @foreach ($comment->replies as $reply)
-                                                <div class="text-xs">
+                                                <div class="text-sm">
                                                     <p class="font-bold text-slate-700">{{ $reply->user->name }}:</p>
-                                                    <p class="text-slate-500 leading-normal mt-0.5">{{ $reply->content }}</p>
-                                                    <p class="text-[9px] text-slate-400 font-semibold mt-0.5">{{ $reply->created_at->diffForHumans() }}</p>
+                                                    <p class="text-slate-600 leading-normal mt-0.5">{{ $reply->content }}</p>
+                                                    <p class="text-sm text-slate-550 font-semibold mt-0.5">{{ $reply->created_at->diffForHumans() }}</p>
                                                 </div>
                                             @endforeach
                                         </div>
@@ -249,8 +249,8 @@
                                     <!-- Quick Reply Form -->
                                     <form action="{{ route('comments.reply', $comment) }}" method="POST" class="flex gap-2 pt-2">
                                         @csrf
-                                        <input type="text" name="content" placeholder="Responder a esta observación..." required class="flex-1 text-xs rounded-xl border-slate-200 px-3.5 py-2 focus:ring-[#0d4d98] focus:border-[#0d4d98]">
-                                        <button type="submit" class="px-3 py-2 bg-slate-100 hover:bg-[#0d4d98] hover:text-white text-slate-600 rounded-xl text-xs font-bold transition">
+                                        <input type="text" name="content" placeholder="Responder a esta observación..." required aria-label="Contenido de respuesta" class="flex-1 text-sm rounded-xl border-slate-200 px-3.5 py-2.5 h-11 focus:ring-[#0d4d98] focus:border-[#0d4d98]">
+                                        <button type="submit" class="px-4 py-2.5 h-11 bg-slate-100 hover:bg-[#0d4d98] hover:text-white text-slate-700 rounded-xl text-sm font-bold transition">
                                             Responder
                                         </button>
                                     </form>
@@ -261,8 +261,9 @@
                 </div>
 
                 <!-- Complete Version History Card -->
-                <div class="bg-white border border-slate-100 rounded-2xl p-6 shadow-[0_10px_30px_rgba(13,77,152,0.03)]">
-                    <h4 class="text-sm font-extrabold text-slate-800 mb-6">Historial de Versiones</h4>
+                @if (!$activeProduction->google_drive_file_id)
+                <div class="bg-white border border-slate-100 rounded-2xl p-4 md:p-5 shadow-[0_10px_30px_rgba(13,77,152,0.03)]">
+                    <h4 class="text-base font-extrabold text-slate-800 mb-6">Historial de Versiones</h4>
                     <div class="space-y-4">
                         @foreach ($versionHistory as $version)
                             <div class="flex items-start justify-between p-4 border border-slate-100 rounded-xl hover:bg-slate-50/30 transition">
@@ -272,63 +273,99 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
                                         </svg>
                                     </div>
-                                    <div>
-                                        <div class="flex items-center space-x-2">
-                                            <h5 class="text-xs font-bold text-slate-800">Versión {{ $version->version_number }}</h5>
-                                            <span class="text-[9px] text-slate-400 font-semibold">• {{ $version->created_at->diffForHumans() }}</span>
+                                                         <div class="flex items-center space-x-2">
+                                            <h5 class="text-sm font-bold text-slate-800">Versión {{ $version->version_number }}</h5>
+                                            <span class="text-sm text-slate-550 font-semibold">• {{ $version->created_at->diffForHumans() }}</span>
                                         </div>
-                                        <p class="text-xs text-slate-500 mt-1">
+                                        <p class="text-sm text-slate-600 mt-1">
                                             {{ $version->changelog ?? 'Sin descripción de cambios.' }}
                                         </p>
                                     </div>
                                 </div>
                                 
-                                <a href="{{ route('versions.document', $version) }}" target="_blank" class="px-2.5 py-1.5 bg-slate-50 border border-slate-200/60 hover:bg-[#0d4d98] hover:text-white rounded-lg text-[10px] font-bold transition text-slate-700">
+                                <a href="{{ route('versions.document', $version) }}" target="_blank" class="px-3.5 py-2.5 h-11 flex items-center justify-center bg-slate-50 border border-slate-200/60 hover:bg-[#0d4d98] hover:text-white rounded-lg text-sm font-bold transition text-slate-700">
                                     Ver Documento
                                 </a>
                             </div>
                         @endforeach
                     </div>
                 </div>
+                @endif
             </div>
 
             <!-- Right Column: Estado de Entrega y Carga de PDF (1/3 width) -->
-            <div class="space-y-6">
+            <div class="space-y-4">
                 <!-- Correction Progress Chart -->
-                <div class="bg-white border border-slate-100 rounded-2xl p-6 shadow-[0_10px_30px_rgba(13,77,152,0.03)] text-center space-y-4">
-                    <h4 class="text-xs font-extrabold text-slate-500 uppercase tracking-wider">Avance del Proyecto</h4>
+                <div class="bg-white border border-slate-100 rounded-2xl p-4 md:p-5 shadow-[0_10px_30px_rgba(13,77,152,0.03)] text-center space-y-4">
+                    <h4 class="text-base font-bold text-slate-600 uppercase tracking-wider">Avance del Proyecto</h4>
                     
                     <!-- Circular progress bar via inline CSS/SVG -->
                     <div class="relative w-36 h-36 mx-auto flex items-center justify-center">
-                        <svg class="w-full h-full transform -rotate-95" viewBox="0 0 36 36">
+                        <svg aria-hidden="true" class="w-full h-full transform -rotate-95" viewBox="0 0 36 36">
                             <path class="text-slate-100" stroke-width="3" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
                             <path class="text-[#0d4d98] transition-all duration-500 ease-out" stroke-dasharray="{{ $progressPercentage }}, 100" stroke-width="3" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
                         </svg>
                         <div class="absolute flex flex-col items-center">
-                            <span class="text-2xl font-extrabold text-slate-800">{{ $progressPercentage }}%</span>
-                            <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">Completado</span>
+                            <span class="text-3xl font-extrabold text-slate-800">{{ $progressPercentage }}%</span>
+                            <span class="text-sm text-slate-550 font-bold uppercase tracking-wider mt-0.5">Completado</span>
                         </div>
                     </div>
 
                     <div class="grid grid-cols-3 gap-2 pt-2 border-t border-slate-150 text-center">
                         <div>
-                            <span class="block text-sm font-bold text-slate-800">{{ $commentsSummary['pending'] }}</span>
-                            <span class="text-[9px] text-slate-400 font-semibold uppercase">Pendientes</span>
+                            <span class="block text-base font-bold text-slate-800">{{ $commentsSummary['pending'] }}</span>
+                            <span class="text-sm text-slate-550 font-semibold uppercase">Pendientes</span>
                         </div>
                         <div>
-                            <span class="block text-sm font-bold text-[#F5B800]">{{ $commentsSummary['in_progress'] }}</span>
-                            <span class="text-[9px] text-slate-400 font-semibold uppercase">En Proceso</span>
+                            <span class="block text-base font-bold text-[#F5B800]">{{ $commentsSummary['in_progress'] }}</span>
+                            <span class="text-sm text-slate-550 font-semibold uppercase">En Proceso</span>
                         </div>
                         <div>
-                            <span class="block text-sm font-bold text-emerald-500">{{ $commentsSummary['addressed'] }}</span>
-                            <span class="text-[9px] text-slate-400 font-semibold uppercase">Listas</span>
+                            <span class="block text-base font-bold text-emerald-500">{{ $commentsSummary['addressed'] }}</span>
+                            <span class="text-sm text-slate-550 font-semibold uppercase">Listas</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Carga de Nueva Versión (PDF) Card -->
-                <div class="bg-white border border-slate-100 rounded-2xl p-6 shadow-[0_10px_30px_rgba(13,77,152,0.03)] space-y-4" x-data="{ open: false }">
-                    <h4 class="text-xs font-extrabold text-slate-500 uppercase tracking-wider">Entregas y Documentos</h4>
+                <!-- Carga de Nueva Versión / Google Docs Sync Card -->
+                @if ($activeProduction->google_drive_file_id)
+                <div class="bg-white border border-slate-100 rounded-2xl p-4 md:p-5 shadow-[0_10px_30px_rgba(13,77,152,0.03)] space-y-4">
+                    <h4 class="text-base font-bold text-slate-600 uppercase tracking-wider">Documento en la Nube</h4>
+                    
+                    <div class="p-4 bg-blue-50/50 border border-blue-200/50 rounded-xl flex items-start space-x-3">
+                        <div class="p-1 bg-[#0d4d98]/10 text-[#0d4d98] rounded-lg mt-0.5">
+                            <svg aria-hidden="true" class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h5 class="text-sm font-bold text-slate-800">Google Docs Vinculado</h5>
+                            <p class="text-xs text-slate-650 mt-1 leading-normal">
+                                Título: <strong class="text-slate-850">{{ $activeProduction->google_document_title ?? 'Documento de Google' }}</strong>
+                            </p>
+                            <p class="text-[9px] text-slate-400 mt-1 uppercase tracking-wider font-extrabold">Edición Directa Activa</p>
+                        </div>
+                    </div>
+
+                    @if ($activeProduction->workflow_state === 'needs_corrections' || $activeProduction->workflow_state === 'draft')
+                        <a href="{{ route('productions.edit', $activeProduction) }}" class="w-full flex items-center justify-center space-x-2 px-4 py-2.5 bg-unimar-blue hover:bg-[#0b3d78] text-white rounded-xl text-sm font-bold uppercase tracking-wider transition shadow-sm hover:shadow-md h-11">
+                            <svg aria-hidden="true" class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                            </svg>
+                            <span>Abrir Editor SKMS</span>
+                        </a>
+                    @else
+                        <button disabled class="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-slate-100 text-slate-400 rounded-xl text-sm font-bold border border-slate-200 cursor-not-allowed">
+                            <svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                            </svg>
+                            <span>En revisión / Aprobado</span>
+                        </button>
+                    @endif
+                </div>
+                @else
+                <div class="bg-white border border-slate-100 rounded-2xl p-4 md:p-5 shadow-[0_10px_30px_rgba(13,77,152,0.03)] space-y-4" x-data="{ open: false }">
+                    <h4 class="text-base font-bold text-slate-600 uppercase tracking-wider">Entregas y Documentos</h4>
                     
                     <div class="p-4 bg-amber-50 border border-amber-200/50 rounded-xl flex items-start space-x-3">
                         <div class="p-1 bg-[#F5B800]/20 text-[#F5B800] rounded-lg mt-0.5">
@@ -337,22 +374,22 @@
                             </svg>
                         </div>
                         <div>
-                            <h5 class="text-xs font-bold text-slate-800">Fecha límite cercana</h5>
-                            <p class="text-[10px] text-slate-500 mt-0.5 leading-normal">
+                            <h5 class="text-sm font-bold text-slate-800">Fecha límite cercana</h5>
+                            <p class="text-xs text-slate-500 mt-0.5 leading-normal">
                                 Tu tutor espera la siguiente revisión. Sube la versión con las correcciones subsanadas.
                             </p>
                         </div>
                     </div>
 
                     @if ($activeProduction->workflow_state === 'needs_corrections' || $activeProduction->workflow_state === 'draft')
-                        <button @click="open = true" class="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-[#0d4d98] hover:bg-[#0b3d78] text-white rounded-xl text-xs font-bold shadow-md hover:shadow-lg transition-all duration-200">
+                        <button @click="open = true" class="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-[#0d4d98] hover:bg-[#0b3d78] text-white rounded-xl text-sm font-bold shadow-md hover:shadow-lg transition-all duration-200">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
                             </svg>
                             <span>Subir Nueva Versión (PDF)</span>
                         </button>
                     @else
-                        <button disabled class="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-slate-100 text-slate-400 rounded-xl text-xs font-bold border border-slate-200 cursor-not-allowed">
+                        <button disabled class="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-slate-100 text-slate-400 rounded-xl text-sm font-bold border border-slate-200 cursor-not-allowed">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
                             </svg>
@@ -362,7 +399,7 @@
 
                     <!-- Modal de Carga de Nueva Versión (Alpine.js) -->
                     <div x-show="open" class="fixed inset-0 bg-slate-950/40 backdrop-blur-sm flex items-center justify-center z-50 p-4" style="display: none;" x-transition>
-                        <div @click.outside="open = false" class="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl border border-slate-150 space-y-6"
+                        <div @click.outside="open = false" class="bg-white rounded-2xl p-4 md:p-5 w-full max-w-md shadow-2xl border border-slate-150 space-y-6"
                              x-data="{
                                  file: null,
                                  isUploading: false,
@@ -415,9 +452,9 @@
                                  }
                              }">
                             <div class="flex items-center justify-between border-b border-slate-100 pb-4">
-                                <h5 class="text-sm font-extrabold text-slate-800">Cargar Corrección Científica</h5>
-                                <button @click="open = false" class="text-slate-400 hover:text-slate-600">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <h5 class="text-base font-extrabold text-slate-800">Cargar Corrección Científica</h5>
+                                <button @click="open = false" aria-label="Cerrar modal" class="p-2 -m-2 text-slate-555 hover:text-slate-700 rounded-xl cursor-pointer">
+                                    <svg aria-hidden="true" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path>
                                     </svg>
                                 </button>
@@ -430,22 +467,22 @@
 
                                 <!-- Subidor de Archivo -->
                                 <div class="space-y-1.5">
-                                    <label class="block text-xs font-bold text-slate-500 uppercase">Documento corregido (PDF / DOCX)</label>
+                                    <label class="block text-sm font-bold text-slate-600 uppercase tracking-wider">Documento corregido (PDF / DOCX)</label>
                                     <label class="flex flex-col items-center justify-center w-full h-32 px-4 transition bg-slate-50 border-2 border-slate-250 border-dashed rounded-xl cursor-pointer hover:border-[#0d4d98] hover:bg-slate-100/55"
                                            :class="{'border-[#0d4d98] bg-slate-100': isUploading}">
-                                        <div class="flex flex-col items-center justify-center space-y-1.5 text-center">
-                                            <svg class="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-                                            </svg>
-                                            <span class="text-xs font-semibold text-slate-500" x-text="file ? file.name : 'Arrastra o selecciona el documento corregido'"></span>
-                                        </div>
-                                        <input type="file" class="hidden" accept="application/pdf, application/vnd.openxmlformats-officedocument.wordprocessingml.document" @change="handleFileSelect">
+                                         <div class="flex flex-col items-center justify-center space-y-1.5 text-center">
+                                             <svg aria-hidden="true" class="w-6 h-6 text-slate-555" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                                             </svg>
+                                             <span class="text-sm font-semibold text-slate-650" x-text="file ? file.name : 'Arrastra o selecciona el documento corregido'"></span>
+                                         </div>
+                                         <input type="file" class="hidden" aria-label="Seleccionar archivo" accept="application/pdf, application/vnd.openxmlformats-officedocument.wordprocessingml.document" @change="handleFileSelect">
                                     </label>
                                 </div>
 
                                 <!-- Barra de Progreso -->
                                 <div x-show="isUploading || statusMessage" class="space-y-1">
-                                    <div class="flex justify-between text-[10px] font-bold text-slate-600">
+                                    <div class="flex justify-between text-sm font-bold text-slate-600">
                                         <span x-text="statusMessage"></span>
                                         <span x-show="isUploading" x-text="uploadProgress + '%'"></span>
                                     </div>
@@ -456,16 +493,16 @@
 
                                 <!-- Registro de Cambios (Changelog) -->
                                 <div class="space-y-1.5">
-                                    <label for="changelog" class="block text-xs font-bold text-slate-500 uppercase">Cambios realizados (Changelog)</label>
-                                    <textarea id="changelog" name="changelog" x-model="changelog" rows="3" placeholder="Ej. Se corrigió el capítulo III y se actualizaron las referencias bibliográficas según las observaciones de tutor..." required class="w-full text-xs rounded-xl border-slate-200 focus:ring-[#0d4d98] focus:border-[#0d4d98]"></textarea>
+                                    <label for="changelog" class="block text-sm font-bold text-slate-600 uppercase tracking-wider">Cambios realizados (Changelog)</label>
+                                    <textarea id="changelog" name="changelog" x-model="changelog" rows="3" placeholder="Ej. Se corrigió el capítulo III y se actualizaron las referencias bibliográficas según las observaciones de tutor..." required class="w-full text-sm rounded-xl border-slate-200 focus:ring-[#0d4d98] focus:border-[#0d4d98]"></textarea>
                                 </div>
 
                                 <!-- Botones Acción -->
                                 <div class="flex items-center justify-end space-x-2 pt-2 border-t border-slate-100">
-                                    <button type="button" @click="open = false" class="px-4 py-2 text-xs font-bold text-slate-500 hover:bg-slate-50 rounded-xl transition">
+                                    <button type="button" @click="open = false" class="px-4 py-2.5 h-11 text-sm font-bold text-slate-555 hover:bg-slate-50 rounded-xl transition">
                                         Cancelar
                                     </button>
-                                    <button type="submit" :disabled="isUploading || !fileId" class="px-4 py-2 bg-[#0d4d98] hover:bg-[#0b3d78] disabled:bg-slate-300 disabled:cursor-not-allowed text-white rounded-xl text-xs font-bold shadow transition">
+                                    <button type="submit" :disabled="isUploading || !fileId" class="px-4 py-2.5 h-11 bg-[#0d4d98] hover:bg-[#0b3d78] disabled:bg-slate-300 disabled:cursor-not-allowed text-white rounded-xl text-sm font-bold shadow transition">
                                         Enviar a Revisión
                                     </button>
                                 </div>
@@ -473,22 +510,23 @@
                         </div>
                     </div>
                 </div>
+                @endif
             </div>
         </div>
 
     @else
         <!-- No productions yet -->
-        <div class="bg-white border border-slate-100 rounded-2xl p-10 shadow-[0_10px_30px_rgba(13,77,152,0.03)] text-center max-w-xl mx-auto space-y-4">
+        <div class="bg-white border border-slate-100 rounded-2xl p-6 shadow-[0_10px_30px_rgba(13,77,152,0.03)] text-center max-w-xl mx-auto space-y-4">
             <div class="w-16 h-16 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mx-auto">
                 <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
                 </svg>
             </div>
-            <h4 class="text-sm font-extrabold text-slate-850">No tienes producciones científicas registradas</h4>
-            <p class="text-xs text-slate-500 leading-relaxed">
+            <h4 class="text-base font-extrabold text-slate-850">No tienes producciones científicas registradas</h4>
+            <p class="text-base text-slate-500 leading-relaxed">
                 Comienza subiendo tu primer trabajo de grado o de investigación al sistema para que tu tutor pueda iniciar el proceso de revisión y corrección metodológica.
             </p>
-            <a href="{{ route('productions.create') }}" class="inline-flex items-center space-x-2 px-4 py-2.5 bg-[#0d4d98] hover:bg-[#0b3d78] text-white rounded-xl text-xs font-bold shadow transition">
+            <a href="{{ route('productions.create') }}" class="inline-flex items-center space-x-2 px-4 py-2.5 bg-[#0d4d98] hover:bg-[#0b3d78] text-white rounded-xl text-sm font-bold shadow transition">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                 </svg>

@@ -643,7 +643,7 @@ class OaiPmhService
      */
     protected function productionUrl(Production $production): string
     {
-        return URL::route('productions.show', $production, false);
+        return URL::route('catalog.show-public', ['uuid' => $production->uuid], true);
     }
 
     /**

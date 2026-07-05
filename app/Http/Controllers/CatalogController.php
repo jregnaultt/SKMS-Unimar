@@ -65,7 +65,11 @@ class CatalogController extends Controller
             ->orderBy('tutor')
             ->pluck('tutor');
 
-        return view('catalog.index', compact('productions', 'programs', 'lines', 'productionTypes', 'tutors'));
+        if (auth()->check()) {
+            return view('catalog.index', compact('productions', 'programs', 'lines', 'productionTypes', 'tutors'));
+        }
+
+        return view('catalog.public-index', compact('productions', 'programs', 'lines', 'productionTypes', 'tutors'));
     }
 
     /**
@@ -113,5 +117,38 @@ class CatalogController extends Controller
         $productions = $query->orderBy('published_at', 'desc')->paginate(10);
 
         return response()->json($productions);
+    }
+
+    /**
+     * Display the public detail page of a published scientific production.
+     */
+    public function showPublic(string $uuid): View
+    {
+        $production = Production::where('uuid', $uuid)
+            ->published()
+            ->with(['academicProgram', 'researchLine', 'productionType', 'keywords'])
+            ->firstOrFail();
+
+        return view('catalog.show', compact('production'));
+    }
+
+    /**
+     * Download the PDF of a published scientific production publicly.
+     */
+    public function downloadPublicPdf(string $uuid)
+    {
+        $production = Production::where('uuid', $uuid)
+            ->published()
+            ->firstOrFail();
+
+        $media = $production->getFirstMedia('documento');
+
+        if (! $media) {
+            abort(404, 'Archivo no encontrado.');
+        }
+
+        return response()->download($media->getPath(), $media->file_name, [
+            'Content-Type' => 'application/pdf',
+        ]);
     }
 }

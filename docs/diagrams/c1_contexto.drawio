@@ -1,0 +1,90 @@
+<mxGraphModel adaptiveColors="auto">
+  <root>
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
+    
+    <!-- Límite Institucional UNIMAR -->
+    <mxCell id="c_unimar" value="&lt;b&gt;Universidad de Margarita (UNIMAR) - Límite Organizacional&lt;/b&gt;" style="swimlane;startSize=30;fillColor=#f8fafc;strokeColor=#cbd5e1;strokeWidth=2;html=1;rounded=1;arcSize=6;" vertex="1" parent="1">
+      <mxGeometry x="180" y="40" width="460" height="520" as="geometry"/>
+    </mxCell>
+
+    <!-- Sistema Central (Laravel Monolith) -->
+    <mxCell id="grp_skms" value="" style="group;container=1;pointerEvents=0;" vertex="1" parent="c_unimar">
+      <mxGeometry x="60" y="160" width="340" height="200" as="geometry"/>
+    </mxCell>
+    <mxCell id="sys_skms" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0d4d98;strokeColor=#0b3d78;strokeWidth=3;" vertex="1" parent="grp_skms">
+      <mxGeometry width="340" height="200" as="geometry"/>
+    </mxCell>
+    <mxCell id="img_unimar" value="" style="shape=image;image=https://raw.githubusercontent.com/simple-icons/simple-icons/develop/icons/laravel.svg;fillColor=#ffffff;" vertex="1" parent="grp_skms">
+      <mxGeometry x="30" y="55" width="90" height="90" as="geometry"/>
+    </mxCell>
+    <mxCell id="lbl_skms" value="&lt;b&gt;&lt;font color='#ffffff' size='4'&gt;SKMS-Unimar&lt;/font&gt;&lt;/b&gt;&lt;br&gt;&lt;br&gt;&lt;font color='#e2e8f0'&gt;Plataforma monolítica de gestión de conocimiento científico. Permite el flujo de aprobación, feedback interactivo, catalogación bajo Dublin Core y publicación de trabajos especiales de grado de UNIMAR.&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="grp_skms">
+      <mxGeometry x="140" y="10" width="180" height="180" as="geometry"/>
+    </mxCell>
+
+    <!-- Actores (Lado Izquierdo, Amplio Espacio) -->
+    <mxCell id="act_student" value="&lt;b&gt;Estudiante / Investigador&lt;/b&gt;&lt;br&gt;&lt;font color='#4b5563'&gt;Sube tesis en borrador, gestiona metadatos y atiende las correcciones del tutor.&lt;/font&gt;" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#e0f2fe;strokeColor=#0284c7;strokeWidth=2;align=center;whiteSpace=wrap;" vertex="1" parent="1">
+      <mxGeometry x="40" y="80" width="60" height="100" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="act_tutor" value="&lt;b&gt;Tutor / Jurado&lt;/b&gt;&lt;br&gt;&lt;font color='#4b5563'&gt;Revisa borradores, añade observaciones por página/sección y aprueba/rechaza.&lt;/font&gt;" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#f0fdf4;strokeColor=#16a34a;strokeWidth=2;align=center;whiteSpace=wrap;" vertex="1" parent="1">
+      <mxGeometry x="40" y="240" width="60" height="100" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="act_coord" value="&lt;b&gt;Coordinador de Investigación&lt;/b&gt;&lt;br&gt;&lt;font color='#4b5563'&gt;Valida los metadatos Dublin Core, exporta reportes y publica tesis aprobadas.&lt;/font&gt;" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#fef2f2;strokeColor=#dc2626;strokeWidth=2;align=center;whiteSpace=wrap;" vertex="1" parent="1">
+      <mxGeometry x="40" y="400" width="60" height="100" as="geometry"/>
+    </mxCell>
+
+    <!-- Sistemas Externos (Lado Derecho, Amplio Espacio, Con Iconos Reales) -->
+    
+    <!-- SMTP External Group -->
+    <mxCell id="grp_smtp" value="" style="group;container=1;pointerEvents=0;dashed=1;" vertex="1" parent="1">
+      <mxGeometry x="720" y="100" width="220" height="110" as="geometry"/>
+    </mxCell>
+    <mxCell id="box_smtp" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f9fafb;strokeColor=#9ca3af;strokeWidth=1.5;dashed=1;" vertex="1" parent="grp_smtp">
+      <mxGeometry width="220" height="110" as="geometry"/>
+    </mxCell>
+    <mxCell id="img_smtp" value="" style="shape=image;image=https://raw.githubusercontent.com/simple-icons/simple-icons/develop/icons/gmail.svg;fillColor=#EA4335;" vertex="1" parent="grp_smtp">
+      <mxGeometry x="15" y="25" width="60" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="lbl_smtp" value="&lt;b&gt;Servidor SMTP Externo&lt;/b&gt;&lt;br&gt;&lt;font color='#6b7280'&gt;Google SMTP / Mailer. Despacha correos automáticos sobre hitos del flujo.&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="grp_smtp">
+      <mxGeometry x="85" y="10" width="125" height="90" as="geometry"/>
+    </mxCell>
+
+    <!-- OAI-PMH External Group -->
+    <mxCell id="grp_oai" value="" style="group;container=1;pointerEvents=0;dashed=1;" vertex="1" parent="1">
+      <mxGeometry x="720" y="320" width="220" height="110" as="geometry"/>
+    </mxCell>
+    <mxCell id="box_oai" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f9fafb;strokeColor=#9ca3af;strokeWidth=1.5;dashed=1;" vertex="1" parent="grp_oai">
+      <mxGeometry width="220" height="110" as="geometry"/>
+    </mxCell>
+    <mxCell id="img_google" value="" style="shape=image;image=https://raw.githubusercontent.com/simple-icons/simple-icons/develop/icons/google.svg;fillColor=#4285F4;" vertex="1" parent="grp_oai">
+      <mxGeometry x="15" y="25" width="60" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="lbl_oai" value="&lt;b&gt;Repositorios Externos&lt;/b&gt;&lt;br&gt;&lt;font color='#6b7280'&gt;Google Scholar, Latindex. Cosechan los metadatos expuestos vía endpoint.&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="grp_oai">
+      <mxGeometry x="85" y="10" width="125" height="90" as="geometry"/>
+    </mxCell>
+
+    <!-- Conectores (Edges) -->
+    <mxCell id="e_student" value="Carga documentos y corrige" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#0284c7;strokeWidth=2;endArrow=classic;" edge="1" source="act_student" target="sys_skms" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="e_tutor" value="Evalúa y deja comentarios" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#16a34a;strokeWidth=2;endArrow=classic;" edge="1" source="act_tutor" target="sys_skms" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="e_coord" value="Valida, publica y genera reportes" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#dc2626;strokeWidth=2;endArrow=classic;" edge="1" source="act_coord" target="sys_skms" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="e_smtp" value="Notificaciones de eventos" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#4b5563;strokeWidth=1.5;endArrow=classic;exitX=1;exitY=0.25;" edge="1" source="sys_skms" target="box_smtp" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="e_oai" value="Cosecha Dublín Core XML" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#4b5563;strokeWidth=1.5;endArrow=classic;exitX=1;exitY=0.75;" edge="1" source="sys_skms" target="box_oai" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+  </root>
+</mxGraphModel>

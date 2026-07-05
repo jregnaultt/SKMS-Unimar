@@ -12,7 +12,7 @@ class UpdateAcademicProgramRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return auth()->check() && auth()->user()->hasRole(['Coordinador', 'Super Admin']);
+        return auth()->check() && auth()->user()->hasRole(['Coordinador', 'Super Admin', 'Decano']);
     }
 
     /**

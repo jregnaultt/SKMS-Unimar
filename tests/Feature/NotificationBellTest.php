@@ -59,7 +59,7 @@ class NotificationBellTest extends TestCase
         $this->student->notify(new ProductionStateChangedNotification(
             $this->production,
             'draft',
-            'under_review',
+            'under_tutor_review',
             'Nueva revisión',
             'Tu trabajo ha sido enviado a revisión.'
         ));
@@ -83,7 +83,7 @@ class NotificationBellTest extends TestCase
         $this->student->notify(new ProductionStateChangedNotification(
             $this->production,
             'draft',
-            'under_review',
+            'under_tutor_review',
             'Correcciones requeridas',
             'Por favor corrige el capítulo I.'
         ));
@@ -119,7 +119,7 @@ class NotificationBellTest extends TestCase
             $this->student->notify(new ProductionStateChangedNotification(
                 $this->production,
                 'draft',
-                'under_review',
+                'under_tutor_review',
                 "Alerta {$i}",
                 "Detalle de la alerta {$i}"
             ));

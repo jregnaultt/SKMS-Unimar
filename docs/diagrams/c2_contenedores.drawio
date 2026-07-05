@@ -1,0 +1,196 @@
+<mxGraphModel adaptiveColors="auto">
+  <root>
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
+    
+    <!-- Límite Institucional UNIMAR (Contenedor Mayor) -->
+    <mxCell id="c_unimar_boundary" value="&lt;b&gt;Límite de Infraestructura de SKMS-Unimar&lt;/b&gt;" style="swimlane;startSize=30;fillColor=#f8fafc;strokeColor=#cbd5e1;strokeWidth=25;html=1;rounded=1;arcSize=6;" vertex="1" parent="1">
+      <mxGeometry x="200" y="40" width="880" height="600" as="geometry"/>
+    </mxCell>
+
+    <!-- CLIENTE WEB (NAVEGADOR) - Contenedor Mediano -->
+    <mxCell id="c_browser" value="&lt;b&gt;CLIENTE WEB (NAVEGADOR)&lt;/b&gt;" style="swimlane;startSize=30;fillColor=#f0fdfa;strokeColor=#99f6e4;strokeWidth=2;html=1;rounded=1;arcSize=8;" vertex="1" parent="c_unimar_boundary">
+      <mxGeometry x="40" y="60" width="360" height="490" as="geometry"/>
+    </mxCell>
+
+    <!-- BACKEND MONOLÍTICO - Contenedor Mediano -->
+    <mxCell id="c_laravel" value="&lt;b&gt;BACKEND APLICACIÓN (MONOLITO)&lt;/b&gt;" style="swimlane;startSize=30;fillColor=#faf5ff;strokeColor=#e9d5ff;strokeWidth=2;html=1;rounded=1;arcSize=8;" vertex="1" parent="c_unimar_boundary">
+      <mxGeometry x="480" y="60" width="360" height="490" as="geometry"/>
+    </mxCell>
+
+    <!-- Actores (Lado Izquierdo, Fuera de UNIMAR) -->
+    <mxCell id="act_estudiante" value="&lt;b&gt;Estudiante /&lt;br&gt;Investigador&lt;/b&gt;" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#e0f2fe;strokeColor=#0284c7;strokeWidth=2;" vertex="1" parent="1">
+      <mxGeometry x="50" y="120" width="60" height="100" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="act_tutor" value="&lt;b&gt;Tutor / Jurado&lt;/b&gt;" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#f0fdf4;strokeColor=#16a34a;strokeWidth=2;" vertex="1" parent="1">
+      <mxGeometry x="50" y="280" width="60" height="100" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="act_coordinador" value="&lt;b&gt;Coordinador de&lt;br&gt;Investigación&lt;/b&gt;" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#fef2f2;strokeColor=#dc2626;strokeWidth=2;" vertex="1" parent="1">
+      <mxGeometry x="50" y="440" width="60" height="100" as="geometry"/>
+    </mxCell>
+
+    <!-- ==================== FRONTEND COMPONENTS (c_browser) ==================== -->
+    
+    <!-- Blade SSR Component Group -->
+    <mxCell id="grp_blade" value="" style="group;container=1;pointerEvents=0;" vertex="1" parent="c_browser">
+      <mxGeometry x="30" y="60" width="300" height="100" as="geometry"/>
+    </mxCell>
+    <mxCell id="box_blade" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#94a3b8;strokeWidth=1.5;" vertex="1" parent="grp_blade">
+      <mxGeometry width="300" height="100" as="geometry"/>
+    </mxCell>
+    <mxCell id="img_html" value="" style="shape=image;image=https://raw.githubusercontent.com/simple-icons/simple-icons/develop/icons/html5.svg;fillColor=#E34F26;" vertex="1" parent="grp_blade">
+      <mxGeometry x="20" y="20" width="60" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="lbl_blade" value="&lt;b&gt;Vistas Blade (SSR)&lt;/b&gt;&lt;br&gt;HTML5 &amp;amp; Tailwind CSS v3&lt;br&gt;&lt;font color='#64748b'&gt;Renderizado de la interfaz monolítica en el servidor con estilos optimizados.&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="grp_blade">
+      <mxGeometry x="90" y="10" width="200" height="80" as="geometry"/>
+    </mxCell>
+
+    <!-- Alpine.js Component Group -->
+    <mxCell id="grp_alpine" value="" style="group;container=1;pointerEvents=0;" vertex="1" parent="c_browser">
+      <mxGeometry x="30" y="190" width="300" height="100" as="geometry"/>
+    </mxCell>
+    <mxCell id="box_alpine" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8fafc;strokeColor=#77caad;strokeWidth=1.5;" vertex="1" parent="grp_alpine">
+      <mxGeometry width="300" height="100" as="geometry"/>
+    </mxCell>
+    <mxCell id="img_alpine" value="" style="shape=image;image=https://raw.githubusercontent.com/simple-icons/simple-icons/develop/icons/alpinedotjs.svg;fillColor=#77C1D2;" vertex="1" parent="grp_alpine">
+      <mxGeometry x="20" y="20" width="60" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="lbl_alpine" value="&lt;b&gt;Alpine.js (Interactividad)&lt;/b&gt;&lt;br&gt;JavaScript v3&lt;br&gt;&lt;font color='#64748b'&gt;Maneja micro-interacciones como autocompletado del catálogo y la campana.&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="grp_alpine">
+      <mxGeometry x="90" y="10" width="200" height="80" as="geometry"/>
+    </mxCell>
+
+    <!-- Axios Client Component Group -->
+    <mxCell id="grp_axios" value="" style="group;container=1;pointerEvents=0;" vertex="1" parent="c_browser">
+      <mxGeometry x="30" y="320" width="300" height="100" as="geometry"/>
+    </mxCell>
+    <mxCell id="box_axios" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eff6ff;strokeColor=#3b82f6;strokeWidth=2;" vertex="1" parent="grp_axios">
+      <mxGeometry width="300" height="100" as="geometry"/>
+    </mxCell>
+    <mxCell id="img_axios" value="" style="shape=image;image=https://raw.githubusercontent.com/simple-icons/simple-icons/develop/icons/axios.svg;fillColor=#5A29E4;" vertex="1" parent="grp_axios">
+      <mxGeometry x="20" y="25" width="60" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="lbl_axios" value="&lt;b&gt;Axios HTTP Client&lt;/b&gt;&lt;br&gt;AJAX / JSON Request Handler&lt;br&gt;&lt;font color='#1e3a8a'&gt;Implementa peticiones del método HTTP QUERY con fallback automático.&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="grp_axios">
+      <mxGeometry x="90" y="10" width="200" height="80" as="geometry"/>
+    </mxCell>
+
+
+    <!-- ==================== BACKEND COMPONENTS (c_laravel) ==================== -->
+    
+    <!-- Laravel Core Component Group -->
+    <mxCell id="grp_laravel" value="" style="group;container=1;pointerEvents=0;" vertex="1" parent="c_laravel">
+      <mxGeometry x="30" y="60" width="300" height="100" as="geometry"/>
+    </mxCell>
+    <mxCell id="box_laravel" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff5f5;strokeColor=#f87171;strokeWidth=2;" vertex="1" parent="grp_laravel">
+      <mxGeometry width="300" height="100" as="geometry"/>
+    </mxCell>
+    <mxCell id="img_laravel" value="" style="shape=image;image=https://raw.githubusercontent.com/simple-icons/simple-icons/develop/icons/laravel.svg;fillColor=#FF2D20;" vertex="1" parent="grp_laravel">
+      <mxGeometry x="20" y="20" width="60" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="lbl_laravel" value="&lt;b&gt;Laravel Monolith Core&lt;/b&gt;&lt;br&gt;Enrutador y Controllers&lt;br&gt;&lt;font color='#7f1d1d'&gt;Procesa peticiones, sesiones Breeze, validaciones y expone /oai.&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="grp_laravel">
+      <mxGeometry x="90" y="10" width="200" height="80" as="geometry"/>
+    </mxCell>
+
+    <!-- Workflow Engine Component Group -->
+    <mxCell id="grp_workflow" value="" style="group;container=1;pointerEvents=0;" vertex="1" parent="c_laravel">
+      <mxGeometry x="30" y="190" width="300" height="100" as="geometry"/>
+    </mxCell>
+    <mxCell id="box_workflow" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#c084fc;strokeWidth=1.5;" vertex="1" parent="grp_workflow">
+      <mxGeometry width="300" height="100" as="geometry"/>
+    </mxCell>
+    <mxCell id="img_php" value="" style="shape=image;image=https://raw.githubusercontent.com/simple-icons/simple-icons/develop/icons/php.svg;fillColor=#777BB4;" vertex="1" parent="grp_workflow">
+      <mxGeometry x="20" y="25" width="60" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="lbl_workflow" value="&lt;b&gt;WorkflowService (Motor)&lt;/b&gt;&lt;br&gt;Matriz de Transiciones&lt;br&gt;&lt;font color='#6b7280'&gt;Valida cambios de estado de tesis (Tutor, Jurado y Estudiante).&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="grp_workflow">
+      <mxGeometry x="90" y="10" width="200" height="80" as="geometry"/>
+    </mxCell>
+
+    <!-- Event Notification Component Group -->
+    <mxCell id="grp_event" value="" style="group;container=1;pointerEvents=0;" vertex="1" parent="c_laravel">
+      <mxGeometry x="30" y="320" width="300" height="100" as="geometry"/>
+    </mxCell>
+    <mxCell id="box_event" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#cbd5e1;strokeWidth=1.5;" vertex="1" parent="grp_event">
+      <mxGeometry width="300" height="100" as="geometry"/>
+    </mxCell>
+    <mxCell id="img_events" value="" style="shape=image;image=https://raw.githubusercontent.com/simple-icons/simple-icons/develop/icons/postmark.svg;fillColor=#FFC80A;" vertex="1" parent="grp_event">
+      <mxGeometry x="20" y="20" width="60" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="lbl_event" value="&lt;b&gt;Event System &amp;amp; Queues&lt;/b&gt;&lt;br&gt;Procesamiento Asíncrono&lt;br&gt;&lt;font color='#475569'&gt;Notificaciones de comentarios e hitos de progreso académico.&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="grp_event">
+      <mxGeometry x="90" y="10" width="200" height="80" as="geometry"/>
+    </mxCell>
+
+    <!-- ==================== PERSISTENCIA Y EXTERNOS ==================== -->
+    
+    <!-- Base de Datos MySQL (Lado Derecho) -->
+    <mxCell id="db_mysql" value="&lt;b&gt;BASE DE DATOS RELACIONAL&lt;/b&gt;&lt;br&gt;MySQL 8.0+&lt;br&gt;&lt;font color='#065f46'&gt;Guarda usuarios, roles Spatie, tablas de Dublin Core, hitos e historial.&lt;/font&gt;" style="shape=cylinder3;boundedLbl=1;backgroundOutline=1;size=15;html=1;fillColor=#ecfdf5;strokeColor=#059669;strokeWidth=2;align=center;whiteSpace=wrap;" vertex="1" parent="1">
+      <mxGeometry x="1140" y="120" width="160" height="120" as="geometry"/>
+    </mxCell>
+
+    <!-- Almacenamiento Local -->
+    <mxCell id="storage_files" value="&lt;b&gt;ALMACENAMIENTO DE ARCHIVOS&lt;/b&gt;&lt;br&gt;Local File System&lt;br&gt;&lt;font color='#9a3412'&gt;PDFs de obras académicas indexadas por Spatie MediaLibrary.&lt;/font&gt;" style="shape=folder;html=1;tabWidth=40;tabHeight=14;tabPosition=left;fillColor=#fffbeb;strokeColor=#d97706;strokeWidth=2;align=center;whiteSpace=wrap;" vertex="1" parent="1">
+      <mxGeometry x="1140" y="280" width="160" height="110" as="geometry"/>
+    </mxCell>
+
+    <!-- SMTP Server -->
+    <mxCell id="ext_smtp" value="&lt;b&gt;Servidor de Correo&lt;/b&gt;&lt;br&gt;SMTP / SMTP/TLS&lt;br&gt;&lt;font color='#374151'&gt;Envía correos informativos sobre transiciones de flujo.&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f3f4f6;strokeColor=#9ca3af;strokeWidth=1.5;dashed=1;" vertex="1" parent="1">
+      <mxGeometry x="1140" y="440" width="160" height="80" as="geometry"/>
+    </mxCell>
+
+    <!-- ==================== CONECTORES (EDGES) ==================== -->
+    
+    <!-- Actores a Browser -->
+    <mxCell id="e_estudiante" value="Usa" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#0284c7;strokeWidth=2;endArrow=classic;" edge="1" source="act_estudiante" target="box_blade" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="e_tutor" value="Revisa" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#16a34a;strokeWidth=2;endArrow=classic;" edge="1" source="act_tutor" target="box_blade" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="e_coordinador" value="Gestiona" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#dc2626;strokeWidth=2;endArrow=classic;" edge="1" source="act_coordinador" target="box_blade" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- Browser Internos -->
+    <mxCell id="e_blade_alpine" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#64748b;strokeWidth=1;dashed=1;endArrow=classic;startArrow=classic;" edge="1" source="box_blade" target="box_alpine" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="e_alpine_axios" value="Llamadas asíncronas" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#16a34a;strokeWidth=1;endArrow=classic;" edge="1" source="box_alpine" target="box_axios" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- Frontend a Laravel Backend -->
+    <mxCell id="e_axios_routes" value="HTTP QUERY (Filtros complejos)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#10b981;strokeWidth=2.5;endArrow=classic;" edge="1" source="box_axios" target="box_laravel" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="e_blade_routes" value="POST Form / GET Navigation" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#94a3b8;strokeWidth=1.5;endArrow=classic;exitX=1;exitY=0.75;" edge="1" source="box_blade" target="box_laravel" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- Backend Internos -->
+    <mxCell id="e_laravel_wf" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#a78bfa;strokeWidth=1.5;endArrow=classic;" edge="1" source="box_laravel" target="box_workflow" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="e_laravel_event" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#a78bfa;strokeWidth=1.5;endArrow=classic;" edge="1" source="box_workflow" target="box_event" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- Backend a Persistencia / SMTP -->
+    <mxCell id="e_db" value="Eloquent Model" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#059669;strokeWidth=2;endArrow=classic;exitX=1;exitY=0.5;" edge="1" source="box_laravel" target="db_mysql" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="e_storage" value="Guarda archivos" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#d97706;strokeWidth=1.5;endArrow=classic;exitX=1;exitY=0.75;" edge="1" source="box_laravel" target="storage_files" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="e_smtp" value="Notificaciones SMTP" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#4b5563;strokeWidth=1.5;endArrow=classic;" edge="1" source="box_event" target="ext_smtp" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+  </root>
+</mxGraphModel>

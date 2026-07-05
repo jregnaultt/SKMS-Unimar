@@ -64,7 +64,7 @@
         </a>
 
         @if($showPdf && $pdfLink && $pdfLink !== '#')
-            <a href="{{ $pdfLink }}" target="_blank" class="inline-flex items-center px-3 py-1.5 bg-slate-50 hover:bg-unimar-blue hover:text-white rounded-xl text-[10px] font-bold text-slate-700 border border-slate-200/60 shadow-sm transition">
+            <a href="{{ $pdfLink }}" target="_blank" class="inline-flex items-center px-3 py-1.5 bg-slate-50 hover:bg-unimar-blue hover:text-white rounded-xl text-xs font-bold text-slate-700 border border-slate-200/60 shadow-sm transition">
                 <svg class="w-3.5 h-3.5 mr-1 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
                 </svg>

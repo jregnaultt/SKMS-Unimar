@@ -29,12 +29,18 @@ class GoogleDocIntegrationTest extends TestCase
 
     protected AcademicPeriod $period;
 
+    protected User $tutor;
+
     protected function setUp(): void
     {
         parent::setUp();
 
         Role::firstOrCreate(['name' => 'Estudiante']);
         Role::firstOrCreate(['name' => 'Coordinador']);
+        Role::firstOrCreate(['name' => 'Tutor']);
+
+        $this->tutor = User::factory()->create();
+        $this->tutor->assignRole('Tutor');
 
         $this->program = AcademicProgram::create([
             'name' => 'Ingeniería de Sistemas',
@@ -94,7 +100,7 @@ class GoogleDocIntegrationTest extends TestCase
             'title' => 'Tesis con Google Docs',
             'abstract' => 'Resumen con Google Docs',
             'authors' => 'Autor de Prueba',
-            'tutor' => 'Tutor de Prueba',
+            'tutor_id' => $this->tutor->id,
             'keywords' => 'ia, tesis',
             'academic_program_id' => $this->program->id,
             'research_line_id' => $this->line->id,
@@ -113,7 +119,7 @@ class GoogleDocIntegrationTest extends TestCase
             'title' => 'Tesis con Google Docs',
             'google_drive_file_id' => 'google-file-123456',
             'google_document_title' => 'Mi Tesis de Grado',
-            'workflow_state' => 'under_review',
+            'workflow_state' => 'under_tutor_review',
         ]);
 
         Queue::assertPushed(ExportGoogleDocToPdfJob::class, function ($job) {
@@ -167,7 +173,7 @@ class GoogleDocIntegrationTest extends TestCase
             'research_line_id' => $this->line->id,
             'production_type_id' => $this->type->id,
             'academic_period_id' => $this->period->id,
-            'workflow_state' => 'under_review',
+            'workflow_state' => 'under_tutor_review',
             'google_drive_file_id' => 'google-file-999999',
         ]);
 

@@ -27,12 +27,41 @@ class SendStateChangeNotifications
         $tutors = $production->users()->wherePivot('role', 'tutor')->get();
         $juries = $production->users()->wherePivot('role', 'jury')->get();
 
-        if ($newState === 'under_review') {
-            $title = 'Nueva producción científica por revisar';
-            $message = "El trabajo \"{$production->title}\" ha sido enviado a revisión.";
+        if ($previousState === 'under_tutor_review' && $newState === 'under_tutor_review') {
+            $title = 'Solicitud de pase a Jurado';
+            $authorName = $production->users()->wherePivot('role', 'author')->first()?->name ?? 'El estudiante';
+            $message = "El estudiante \"{$authorName}\" ha solicitado el pase al jurado para su tesis.";
 
-            foreach ($tutors->merge($juries) as $evaluator) {
-                $evaluator->notify(new ProductionStateChangedNotification(
+            foreach ($tutors as $tutor) {
+                $tutor->notify(new ProductionStateChangedNotification(
+                    $production,
+                    $previousState,
+                    $newState,
+                    $title,
+                    $message,
+                    $comment
+                ));
+            }
+        } elseif ($newState === 'under_tutor_review') {
+            $title = 'Nueva producción científica por revisar (Tutor)';
+            $message = "El trabajo \"{$production->title}\" ha sido enviado a tu revisión como tutor.";
+
+            foreach ($tutors as $tutor) {
+                $tutor->notify(new ProductionStateChangedNotification(
+                    $production,
+                    $previousState,
+                    $newState,
+                    $title,
+                    $message,
+                    $comment
+                ));
+            }
+        } elseif ($newState === 'under_jury_review') {
+            $title = 'Nueva producción científica por revisar (Jurado)';
+            $message = "El trabajo \"{$production->title}\" ha sido enviado a tu revisión como jurado.";
+
+            foreach ($juries as $jury) {
+                $jury->notify(new ProductionStateChangedNotification(
                     $production,
                     $previousState,
                     $newState,
@@ -42,8 +71,14 @@ class SendStateChangeNotifications
                 ));
             }
         } elseif ($newState === 'needs_corrections') {
+            $actor = $event->user;
+            $actorName = $actor ? $actor->name : 'Un evaluador';
+            $isJury = $actor && $actor->hasRole('Jurado');
+
             $title = 'Se requieren correcciones';
-            $message = "Tu trabajo \"{$production->title}\" requiere correcciones por parte del tutor/jurado.";
+            $message = $isJury
+                ? "El jurado \"{$actorName}\" ha solicitado correcciones en tu trabajo \"{$production->title}\"."
+                : "Tu tutor \"{$actorName}\" ha solicitado correcciones en tu trabajo \"{$production->title}\".";
 
             foreach ($authors as $author) {
                 $author->notify(new ProductionStateChangedNotification(
@@ -54,6 +89,22 @@ class SendStateChangeNotifications
                     $message,
                     $comment
                 ));
+            }
+
+            if ($isJury) {
+                // Notify tutor
+                $tutorTitle = 'Jurado solicita correcciones a tu tutorado';
+                $tutorMessage = "El jurado \"{$actorName}\" ha solicitado correcciones a tu tutorado en la tesis \"{$production->title}\".";
+                foreach ($tutors as $tutor) {
+                    $tutor->notify(new ProductionStateChangedNotification(
+                        $production,
+                        $previousState,
+                        $newState,
+                        $tutorTitle,
+                        $tutorMessage,
+                        $comment
+                    ));
+                }
             }
         } elseif ($newState === 'approved') {
             $title = '¡Trabajo Aprobado!';

@@ -8,6 +8,7 @@
             @include('dashboard.tutor', ['data' => $data])
             @break
         @case('Coordinador')
+        @case('Decano')
             @include('dashboard.coordinator', ['data' => $data])
             @break
         @case('Super Admin')

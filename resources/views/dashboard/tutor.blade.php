@@ -4,76 +4,87 @@
     $roleLabel = $data['roleLabel'] ?? 'Evaluador';
 @endphp
 
-<div class="space-y-6">
+<div class="space-y-5">
     <!-- Header Summary Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-[0_10px_30px_rgba(13,77,152,0.03)] flex items-center space-x-4">
-            <div class="p-3 bg-[#0d4d98]/10 text-[#0d4d98] rounded-xl">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- Total Assigned -->
+        <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-[0_10px_30px_rgba(13,77,152,0.03)] flex items-center space-x-4 hover:shadow-md transition-shadow duration-200">
+            <div class="p-3.5 bg-[#0d4d98]/10 text-[#0d4d98] rounded-2xl">
+                <svg aria-hidden="true" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                 </svg>
             </div>
             <div>
-                <span class="block text-2xl font-extrabold text-slate-800">{{ $productions->count() }}</span>
-                <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Trabajos Asignados</span>
+                <span class="block text-3xl font-extrabold text-slate-800 leading-none">{{ $productions->count() }}</span>
+                <span class="text-xs text-slate-500 font-bold uppercase tracking-wider block mt-1.5">Trabajos Asignados</span>
             </div>
         </div>
 
-        <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-[0_10px_30px_rgba(13,77,152,0.03)] flex items-center space-x-4">
-            <div class="p-3 bg-amber-50 text-amber-600 rounded-xl">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <!-- Pending Review -->
+        <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-[0_10px_30px_rgba(13,77,152,0.03)] flex items-center space-x-4 hover:shadow-md transition-shadow duration-200">
+            <div class="p-3.5 bg-amber-50 text-amber-600 rounded-2xl border border-amber-100/50">
+                <svg aria-hidden="true" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
             </div>
             <div>
-                <span class="block text-2xl font-extrabold text-slate-800">
+                <span class="block text-3xl font-extrabold text-slate-800 leading-none">
                     {{ $productions->where('workflow_state', 'under_review')->count() }}
                 </span>
-                <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Pendientes de Revisión</span>
+                <span class="text-xs text-slate-500 font-bold uppercase tracking-wider block mt-1.5">Pendientes de Revisión</span>
             </div>
         </div>
 
-        <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-[0_10px_30px_rgba(13,77,152,0.03)] flex items-center space-x-4">
-            <div class="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <!-- Scheduled Defenses -->
+        <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-[0_10px_30px_rgba(13,77,152,0.03)] flex items-center space-x-4 hover:shadow-md transition-shadow duration-200">
+            <div class="p-3.5 bg-emerald-50 text-emerald-600 rounded-2xl border border-emerald-100/50">
+                <svg aria-hidden="true" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                 </svg>
             </div>
             <div>
-                <span class="block text-2xl font-extrabold text-slate-800">{{ $defensas->count() }}</span>
-                <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Defensas Programadas</span>
+                <span class="block text-3xl font-extrabold text-slate-800 leading-none">{{ $defensas->count() }}</span>
+                <span class="text-xs text-slate-500 font-bold uppercase tracking-wider block mt-1.5">Defensas Programadas</span>
             </div>
         </div>
     </div>
 
     <!-- Main Section Split -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
         
         <!-- Left: Bandeja de Evaluaciones Activas (2/3 width) -->
         <div class="lg:col-span-2 space-y-6">
-            <div class="bg-white border border-slate-100 rounded-2xl p-6 shadow-[0_10px_30px_rgba(13,77,152,0.03)]">
-                <div class="mb-6">
-                    <h3 class="text-sm font-extrabold text-slate-800">Bandeja de Evaluaciones Activas</h3>
-                    <p class="text-[10px] text-slate-400 font-semibold mt-0.5 uppercase tracking-wider">Lista de tesis y proyectos científicos bajo tu supervisión</p>
+            <div class="bg-white border border-slate-100 rounded-2xl p-5 md:p-6 shadow-[0_10px_30px_rgba(13,77,152,0.03)]">
+                <div class="mb-5">
+                    <h3 class="text-lg font-extrabold text-slate-800">
+                        {{ $roleLabel === 'Tutor' ? 'Bandeja de Tutorías Activas' : 'Bandeja de Evaluaciones (Jurado)' }}
+                    </h3>
+                    <p class="text-xs text-slate-500 font-semibold mt-0.5 uppercase tracking-wider">
+                        {{ $roleLabel === 'Tutor' ? 'Lista de tesis y proyectos científicos bajo tu supervisión y tutoría' : 'Lista de trabajos científicos asignados para tu evaluación final como jurado' }}
+                    </p>
                 </div>
 
                 @if ($productions->isEmpty())
-                    <div class="text-center py-16 border-2 border-dashed border-slate-100 rounded-xl">
-                        <svg class="mx-auto h-12 w-12 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
-                        </svg>
-                        <h4 class="mt-2 text-xs font-bold text-slate-700">No tienes asignaciones de evaluación</h4>
-                        <p class="mt-1 text-[11px] text-slate-400">Actualmente no estás registrado como tutor o jurado en ningún trabajo científico activo.</p>
+                    <div class="text-center py-12 border-2 border-dashed border-slate-100 rounded-2xl max-w-lg mx-auto my-6 p-6">
+                        <div class="w-12 h-12 bg-slate-50 rounded-xl flex items-center justify-center mx-auto text-slate-400 mb-4 border border-slate-100">
+                            <svg aria-hidden="true" class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+                            </svg>
+                        </div>
+                        <h4 class="text-sm font-bold text-slate-700">Sin asignaciones registradas</h4>
+                        <p class="mt-1.5 text-xs text-slate-500 leading-relaxed">
+                            Actualmente no estás registrado como {{ $roleLabel === 'Tutor' ? 'tutor' : 'jurado' }} en ningún trabajo científico activo en este periodo.
+                        </p>
                     </div>
                 @else
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-slate-200">
-                            <thead>
-                                <tr class="bg-slate-50">
-                                    <th class="px-5 py-3 text-left text-[10px] font-bold text-slate-500 uppercase tracking-wider">Título de la Obra</th>
-                                    <th class="px-5 py-3 text-left text-[10px] font-bold text-slate-500 uppercase tracking-wider">Estudiante</th>
-                                    <th class="px-5 py-3 text-left text-[10px] font-bold text-slate-500 uppercase tracking-wider">Estado</th>
-                                    <th class="px-5 py-3 text-right text-[10px] font-bold text-slate-500 uppercase tracking-wider">Acciones</th>
+                    <div class="overflow-x-auto border border-slate-100 rounded-xl">
+                        <table class="min-w-full divide-y divide-slate-150 min-w-[650px]">
+                            <thead class="bg-slate-50/75">
+                                <tr>
+                                    <th class="px-4 py-3.5 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Título de la Obra</th>
+                                    <th class="px-4 py-3.5 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Estudiante</th>
+                                    <th class="px-4 py-3.5 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Estado</th>
+                                    <th class="px-4 py-3.5 text-right text-xs font-bold text-slate-500 uppercase tracking-wider">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-slate-100">
@@ -89,9 +100,9 @@
                                         }
                                         
                                         $stateColors = [
-                                            'draft' => 'bg-slate-100 text-slate-700',
+                                            'draft' => 'bg-slate-50 text-slate-700 border-slate-200',
                                             'under_review' => 'bg-amber-50 text-amber-800 border-amber-200/60',
-                                            'needs_corrections' => 'bg-orange-50 text-orange-800 border-orange-200/60',
+                                            'needs_corrections' => 'bg-orange-50 text-orange-850 border-orange-200/60',
                                             'approved' => 'bg-emerald-50 text-emerald-800 border-emerald-200/60',
                                             'published' => 'bg-blue-50 text-blue-800 border-blue-200/60',
                                             'rejected' => 'bg-rose-50 text-rose-800 border-rose-200/60',
@@ -104,27 +115,54 @@
                                             'published' => 'Publicado',
                                             'rejected' => 'Rechazado',
                                         ];
+
+                                        // Initials for avatar
+                                        $initials = '';
+                                        $words = explode(' ', $studentName);
+                                        foreach ($words as $w) {
+                                            if (!empty($w)) {
+                                                $initials .= mb_substr($w, 0, 1);
+                                            }
+                                            if (mb_strlen($initials) >= 2) break;
+                                        }
+                                        $initials = strtoupper($initials);
                                     @endphp
-                                    <tr class="hover:bg-slate-50/50 transition">
-                                        <td class="px-5 py-4">
-                                            <div class="text-xs font-bold text-slate-800 max-w-xs truncate" title="{{ $prod->title }}">
+                                    <tr class="hover:bg-slate-50/30 transition duration-150">
+                                        <td class="px-4 py-4">
+                                            <div class="text-sm font-bold text-slate-800 max-w-sm truncate" title="{{ $prod->title }}">
                                                 {{ $prod->title }}
                                             </div>
-                                            <div class="text-[10px] text-slate-400 mt-1">
-                                                {{ $prod->productionType->name ?? 'Tesis' }} • {{ $prod->academicPeriod->name ?? '' }}
+                                            <div class="flex items-center space-x-1.5 mt-1.5">
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded-md bg-slate-50 border border-slate-200/60 text-[10px] font-bold text-slate-500 uppercase tracking-wide">
+                                                    {{ $prod->productionType->name ?? 'Tesis' }}
+                                                </span>
+                                                <span class="text-slate-300 text-xs">•</span>
+                                                <span class="text-[11px] text-slate-505 font-medium text-slate-500">
+                                                    {{ $prod->academicPeriod->name ?? '' }}
+                                                </span>
                                             </div>
                                         </td>
-                                        <td class="px-5 py-4 whitespace-nowrap text-xs text-slate-600 font-medium">
-                                            {{ $studentName }}
+                                        <td class="px-4 py-4 whitespace-nowrap">
+                                            <div class="flex items-center space-x-2.5">
+                                                <div class="w-8 h-8 rounded-full bg-[#0d4d98]/10 text-[#0d4d98] flex items-center justify-center text-xs font-bold shrink-0 border border-[#0d4d98]/5">
+                                                    {{ $initials }}
+                                                </div>
+                                                <span class="text-sm font-semibold text-slate-700">{{ $studentName }}</span>
+                                            </div>
                                         </td>
-                                        <td class="px-5 py-4 whitespace-nowrap">
-                                            <span class="px-2 py-0.5 inline-flex text-[10px] leading-5 font-bold rounded-full border {{ $stateColors[$prod->workflow_state] ?? 'bg-slate-100 text-slate-700' }}">
+                                        <td class="px-4 py-4 whitespace-nowrap">
+                                            <span class="inline-flex items-center px-2.5 py-1 text-xs font-bold rounded-full border {{ $stateColors[$prod->workflow_state] ?? 'bg-slate-50 text-slate-700 border-slate-200' }}">
+                                                <span class="w-1.5 h-1.5 rounded-full mr-1.5 {{ 
+                                                    $prod->workflow_state === 'approved' || $prod->workflow_state === 'published' ? 'bg-emerald-500' : (
+                                                    $prod->workflow_state === 'under_review' || $prod->workflow_state === 'needs_corrections' ? 'bg-amber-500' : (
+                                                    $prod->workflow_state === 'rejected' ? 'bg-rose-500' : 'bg-slate-400'))
+                                                }}"></span>
                                                 {{ $stateLabels[$prod->workflow_state] ?? $prod->workflow_state }}
                                             </span>
                                         </td>
-                                        <td class="px-5 py-4 whitespace-nowrap text-right text-xs font-medium">
-                                            <a href="{{ route('productions.show', $prod) }}" class="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-[#0d4d98] hover:bg-[#0b3d78] text-white rounded-lg font-bold transition shadow-sm hover:shadow">
-                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <td class="px-4 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                            <a href="{{ route('productions.show', $prod) }}" class="inline-flex items-center space-x-1.5 px-3.5 py-2 bg-[#0d4d98] hover:bg-[#0b3d78] text-white rounded-xl text-xs font-bold transition shadow-sm hover:shadow hover:-translate-y-0.5 duration-150">
+                                                <svg aria-hidden="true" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
                                                 </svg>
@@ -141,7 +179,7 @@
         </div>
 
         <!-- Right: Agenda de Defensas y Calendario (1/3 width) -->
-        <div class="space-y-6"
+        <div class="space-y-4"
              x-data="{
                  currentDate: new Date(),
                  days: [],
@@ -206,79 +244,98 @@
                      }
                  }
              }">
-            
+             
             <!-- Calendario Component -->
             <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-[0_10px_30px_rgba(13,77,152,0.03)] space-y-4">
                 <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                    <h4 class="text-xs font-extrabold text-slate-500 uppercase tracking-wider">Defensas de Grado</h4>
+                    <div>
+                        <h4 class="text-sm font-extrabold text-slate-800">Calendario de Defensas</h4>
+                        <p class="text-[11px] text-slate-500 font-medium tracking-wide">Cronograma mensual de sustentaciones</p>
+                    </div>
                     
                     <!-- Navigation -->
-                    <div class="flex items-center space-x-1">
-                        <button @click="prevMonth()" class="p-1 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg text-slate-600 transition">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                    <div class="flex items-center space-x-1.5">
+                        <button @click="prevMonth()" aria-label="Mes anterior" class="p-1.5 hover:bg-slate-150 hover:bg-slate-100 border border-slate-200/60 rounded-xl text-slate-650 hover:text-slate-800 transition shadow-sm bg-white cursor-pointer">
+                            <svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path>
                             </svg>
                         </button>
-                        <button @click="nextMonth()" class="p-1 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg text-slate-600 transition">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        <button @click="nextMonth()" aria-label="Mes siguiente" class="p-1.5 hover:bg-slate-150 hover:bg-slate-100 border border-slate-200/60 rounded-xl text-slate-655 hover:text-slate-800 transition shadow-sm bg-white cursor-pointer">
+                            <svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path>
                             </svg>
                         </button>
                     </div>
                 </div>
 
                 <!-- Month header -->
-                <div class="text-center">
-                    <span class="text-xs font-bold text-slate-700 capitalize" x-text="getMonthName()"></span>
+                <div class="text-center font-bold text-slate-700 capitalize text-sm bg-slate-50/50 py-1.5 rounded-lg border border-slate-100">
+                    <span x-text="getMonthName()"></span>
                 </div>
 
                 <!-- Calendar grid -->
-                <div class="grid grid-cols-7 gap-1 text-center text-[10px]">
+                <div class="grid grid-cols-7 gap-1 text-center text-xs">
                     <!-- Weekdays -->
                     <template x-for="day in ['D', 'L', 'M', 'M', 'J', 'V', 'S']">
-                        <div class="font-bold text-slate-400 py-1" x-text="day"></div>
+                        <div class="font-extrabold text-slate-400 py-1 uppercase tracking-wider" x-text="day"></div>
                     </template>
 
                     <!-- Month Days -->
                     <template x-for="d in days">
-                        <div class="relative py-2 flex items-center justify-center">
+                        <div class="relative py-1 flex items-center justify-center">
                             <button 
                                 @click="selectDay(d)"
                                 :disabled="!d.day"
                                 :class="{
-                                    'w-7 h-7 rounded-full text-xs font-bold flex items-center justify-center transition-all': true,
-                                    'hover:bg-slate-100 text-slate-700': d.day && !d.hasDefense,
-                                    'bg-amber-100 text-[#0d4d98] border border-[#F5B800] ring-2 ring-amber-100/50 hover:bg-amber-250': d.hasDefense,
+                                    'w-9 h-9 rounded-xl text-xs font-bold flex items-center justify-center transition-all focus:outline-none focus:ring-2 focus:ring-[#0d4d98]/40': true,
+                                    'hover:bg-slate-100 text-slate-700 cursor-pointer': d.day && !d.hasDefense,
+                                    'bg-amber-50 text-amber-800 border border-amber-300/80 ring-2 ring-amber-500/10 hover:bg-amber-100 cursor-pointer': d.hasDefense,
                                     'text-slate-300 pointer-events-none': !d.day
                                 }"
                                 x-text="d.day"
                             ></button>
+                            <!-- Visual indicator dot on event days -->
+                            <template x-if="d.hasDefense">
+                                <span class="absolute bottom-1 w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                            </template>
                         </div>
                     </template>
                 </div>
             </div>
 
             <!-- Defense Details Card (displayed when highlighted day clicked) -->
-            <div x-show="selectedDefenses.length > 0" class="bg-white border border-slate-100 rounded-2xl p-5 shadow-[0_10px_30px_rgba(13,77,152,0.03)] space-y-4" x-transition style="display: none;">
+            <div x-show="selectedDefenses.length > 0" 
+                 class="bg-white border border-slate-100 rounded-2xl p-5 shadow-[0_10px_30px_rgba(13,77,152,0.03)] space-y-4" 
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0 translate-y-2"
+                 x-transition:enter-end="opacity-100 translate-y-0"
+                 x-transition:leave="transition ease-in duration-150"
+                 x-transition:leave-start="opacity-100 translate-y-0"
+                 x-transition:leave-end="opacity-0 translate-y-2"
+                 style="display: none;">
                 <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                    <h5 class="text-xs font-bold text-slate-800">Detalles de la Defensa</h5>
-                    <button @click="selectedDefenses = []" class="text-slate-400 hover:text-slate-600">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div>
+                        <h5 class="text-sm font-extrabold text-slate-800">Detalles de la Defensa</h5>
+                        <p class="text-[11px] text-slate-500 font-medium">Información sobre la evaluación fijada</p>
+                    </div>
+                    <button @click="selectedDefenses = []" aria-label="Cerrar detalles" class="p-2 -m-2 text-slate-400 hover:text-slate-600 rounded-xl cursor-pointer hover:bg-slate-50 transition">
+                        <svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path>
                         </svg>
                     </button>
                 </div>
 
-                <div class="space-y-4">
+                <div class="space-y-3">
                     <template x-for="def in selectedDefenses">
-                        <div class="space-y-2 p-3 bg-slate-50 border border-slate-100 rounded-xl">
+                        <div class="p-3.5 bg-slate-50 border border-slate-100 rounded-xl space-y-2.5">
                             <div class="flex items-center justify-between">
-                                <span class="px-2.5 py-0.5 text-[9px] font-bold rounded bg-amber-50 text-amber-700 uppercase tracking-wider" x-text="def.title"></span>
-                                <span class="text-[9px] text-slate-400 font-bold" x-text="def.time"></span>
+                                <span class="px-2 py-0.5 text-[10px] font-bold rounded-md bg-amber-50 text-amber-700 border border-amber-200/50 uppercase tracking-wider" x-text="def.title"></span>
+                                <span class="text-xs text-slate-600 font-bold bg-white border border-slate-100 px-2 py-0.5 rounded-md shadow-sm" x-text="def.time"></span>
                             </div>
-                            <h6 class="text-xs font-bold text-slate-800 leading-normal" x-text="def.production_title"></h6>
-                            <div class="text-[10px] text-slate-500">
-                                Estudiante: <strong class="text-slate-700" x-text="def.student"></strong>
+                            <h6 class="text-sm font-bold text-slate-800 leading-normal" x-text="def.production_title"></h6>
+                            <div class="text-xs text-slate-500 border-t border-slate-200/50 pt-2 flex items-center space-x-1">
+                                <span>Estudiante:</span>
+                                <strong class="text-slate-750 font-extrabold" x-text="def.student"></strong>
                             </div>
                         </div>
                     </template>
@@ -287,21 +344,49 @@
 
             <!-- Static information list if no day selected -->
             <div x-show="selectedDefenses.length === 0" class="bg-white border border-slate-100 rounded-2xl p-5 shadow-[0_10px_30px_rgba(13,77,152,0.03)] space-y-4">
-                <h5 class="text-xs font-extrabold text-slate-500 uppercase tracking-wider">Próximas Defensas</h5>
+                <div class="border-b border-slate-150 pb-3">
+                    <h5 class="text-sm font-extrabold text-slate-800">Próximas Defensas</h5>
+                    <p class="text-[11px] text-slate-500 font-medium">Cronograma de eventos más cercanos</p>
+                </div>
                 
                 @if ($defensas->isEmpty())
-                    <p class="text-[10px] text-slate-400 text-center py-4">No hay defensas programadas para este periodo.</p>
+                    <p class="text-xs text-slate-500 text-center py-6">No hay defensas programadas para este periodo.</p>
                 @else
                     <div class="space-y-3">
                         @foreach ($defensas->take(3) as $def)
-                            <div class="p-3 bg-slate-50/50 border border-slate-100 rounded-xl flex items-start justify-between gap-3">
-                                <div class="space-y-1">
-                                    <h6 class="text-xs font-bold text-slate-800 line-clamp-1">{{ $def->production->title }}</h6>
-                                    <p class="text-[10px] text-slate-500">Estudiante: <strong class="text-slate-700">{{ $def->production->authors }}</strong></p>
+                            @php
+                                $months = [
+                                    '01' => 'Ene', '02' => 'Feb', '03' => 'Mar', '04' => 'Abr',
+                                    '05' => 'May', '06' => 'Jun', '07' => 'Jul', '08' => 'Ago',
+                                    '09' => 'Sep', '10' => 'Oct', '11' => 'Nov', '12' => 'Dic'
+                                ];
+                                $dateMonth = $months[$def->scheduled_date->format('m')] ?? $def->scheduled_date->format('M');
+                                $dateDay = $def->scheduled_date->format('d');
+                            @endphp
+                            <div class="p-3.5 bg-slate-50/50 border border-slate-100 rounded-2xl flex items-center justify-between gap-4 hover:bg-slate-50 hover:shadow-sm transition duration-200">
+                                <div class="flex items-center space-x-3.5">
+                                    <!-- Mini calendar sheet -->
+                                    <div class="w-11 h-12 bg-white border border-slate-200 rounded-xl flex flex-col items-center justify-center overflow-hidden shrink-0 shadow-sm">
+                                        <div class="w-full bg-[#0d4d98] text-[9px] text-white font-bold uppercase py-0.5 text-center tracking-wider">
+                                            {{ $dateMonth }}
+                                        </div>
+                                        <div class="text-slate-800 text-base font-extrabold leading-none py-1">
+                                            {{ $dateDay }}
+                                        </div>
+                                    </div>
+                                    <div class="space-y-0.5">
+                                        <h6 class="text-xs font-bold text-slate-800 line-clamp-1" title="{{ $def->production->title }}">
+                                            {{ $def->production->title }}
+                                        </h6>
+                                        <p class="text-[11px] text-slate-500">
+                                            Estudiante: <strong class="text-slate-700 font-semibold">{{ $def->production->authors }}</strong>
+                                        </p>
+                                    </div>
                                 </div>
                                 <div class="text-right shrink-0">
-                                    <span class="block text-[10px] font-bold text-[#0d4d98]">{{ $def->scheduled_date->format('d \d\e M') }}</span>
-                                    <span class="text-[9px] text-slate-400">{{ $def->scheduled_date->format('h:i A') }}</span>
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-lg bg-blue-50 text-[#0d4d98] text-xs font-bold border border-blue-100">
+                                        {{ $def->scheduled_date->format('h:i A') }}
+                                    </span>
                                 </div>
                             </div>
                         @endforeach
