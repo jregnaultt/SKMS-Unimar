@@ -13,33 +13,30 @@
             <meta name="citation_keywords" content="{{ $production->keywords->pluck('name')->implode(', ') }}">
         @endif
 
-        <!-- Schema.org Structured Data (JSON-LD) for Google Rich Results -->
         <script type="application/ld+json">
-        {
-          "@@context": "https://schema.org",
-          "@@type": "ScholarlyArticle",
-          "mainEntityOfPage": {
-            "@@type": "WebPage",
-            "@@id": "{{ route('catalog.show-public', $production->uuid) }}"
-          },
-          "headline": {{ json_encode($production->title) }},
-          "description": {{ json_encode($production->abstract) }},
-          "datePublished": "{{ $production->published_at ? $production->published_at->toIso8601String() : '' }}",
-          "inLanguage": "es",
-          "author": [
-            @foreach(explode(',', $production->authors) as $index => $author)
-              {
-                "@@type": "Person",
-                "name": "{{ trim($author) }}"
-              }{{ $loop->last ? '' : ',' }}
-            @endforeach
-          ],
-          "publisher": {
-            "@@type": "Organization",
-            "name": "Universidad de Margarita",
-            "url": "https://unimar.edu.ve"
-          }
-        }
+        {!! json_encode([
+            '@context' => 'https://schema.org',
+            '@type' => 'ScholarlyArticle',
+            'mainEntityOfPage' => [
+                '@type' => 'WebPage',
+                '@id' => route('catalog.show-public', $production->uuid),
+            ],
+            'headline' => $production->title,
+            'description' => $production->abstract,
+            'datePublished' => $production->published_at ? $production->published_at->toIso8601String() : null,
+            'inLanguage' => 'es',
+            'author' => array_map(function($author) {
+                return [
+                    '@type' => 'Person',
+                    'name' => trim($author),
+                ];
+            }, explode(',', $production->authors)),
+            'publisher' => [
+                '@type' => 'Organization',
+                'name' => 'Universidad de Margarita',
+                'url' => 'https://unimar.edu.ve',
+            ],
+        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) !!}
         </script>
     </x-slot>
 
