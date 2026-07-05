@@ -56,4 +56,8 @@ services:
         value: redis
       - key: SESSION_DRIVER
         value: redis
+      - key: SUPER_ADMIN_EMAIL
+        value: god@unimar.edu.ve
+      - key: SUPER_ADMIN_PASSWORD
+        value: --god--
 
