@@ -6,6 +6,7 @@ use App\Events\MetadataExtracted;
 use App\Services\MetadataExtractorService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 class ExtractMetadataJob implements ShouldQueue
@@ -37,6 +38,9 @@ class ExtractMetadataJob implements ShouldQueue
     {
         try {
             $metadata = $extractorService->extractMetadata($this->pdfPath);
+
+            // Cache the extracted metadata for 2 hours to support the bulk import hybrid state recovery
+            Cache::put("metadata_{$this->fileId}", $metadata, now()->addHours(2));
 
             event(new MetadataExtracted($this->userId, $this->fileId, $metadata));
         } catch (\Exception $e) {

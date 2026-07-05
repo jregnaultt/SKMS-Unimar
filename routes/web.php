@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AssignedProductionController;
 use App\Http\Controllers\BibliometricController;
 use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\CommentController;
@@ -18,13 +19,10 @@ Route::get('/bibliometrics', [BibliometricController::class, 'index'])
     ->middleware(['auth', 'verified'])
     ->name('bibliometrics.index');
 
-Route::get('/catalog', [CatalogController::class, 'index'])
-    ->middleware(['auth', 'verified'])
-    ->name('catalog.index');
-
-Route::match(['QUERY', 'POST'], '/catalog/query', [CatalogController::class, 'search'])
-    ->middleware(['auth', 'verified'])
-    ->name('catalog.query');
+Route::get('/catalog', [CatalogController::class, 'index'])->name('catalog.index');
+Route::match(['QUERY', 'POST'], '/catalog/query', [CatalogController::class, 'search'])->name('catalog.query');
+Route::get('/catalog/{uuid}', [CatalogController::class, 'showPublic'])->name('catalog.show-public');
+Route::get('/catalog/{uuid}/pdf', [CatalogController::class, 'downloadPublicPdf'])->name('catalog.download-public-pdf');
 
 use App\Http\Controllers\DashboardController;
 
@@ -35,6 +33,9 @@ Route::get('/', function () {
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::post('/dashboard/switch-role', [DashboardController::class, 'switchRole'])->name('dashboard.switch-role');
+    Route::get('/assigned-productions', [AssignedProductionController::class, 'index'])
+        ->name('assigned-productions.index')
+        ->middleware('role:Tutor|Jurado|Coordinador|Decano');
 });
 
 use App\Http\Controllers\Admin\AdminAcademicPeriodController;
@@ -42,6 +43,8 @@ use App\Http\Controllers\Admin\AdminAcademicProgramController;
 use App\Http\Controllers\Admin\AdminAuditLogController;
 use App\Http\Controllers\Admin\AdminResearchLineController;
 use App\Http\Controllers\Admin\AdminUserController;
+use App\Http\Controllers\Admin\BulkProductionController;
+use App\Http\Controllers\GoogleAuthController;
 use App\Http\Controllers\ProductionClaimController;
 
 Route::middleware('auth')->group(function () {
@@ -53,10 +56,13 @@ Route::middleware('auth')->group(function () {
     Route::post('/productions/extract', [ProductionController::class, 'extractMetadata'])->name('productions.extract');
     Route::post('/productions', [ProductionController::class, 'store'])->name('productions.store');
     Route::get('/productions/{production}', [ProductionController::class, 'show'])->name('productions.show');
+    Route::get('/productions/{production}/edit', [ProductionController::class, 'edit'])->name('productions.edit');
+    Route::post('/productions/{production}/assign-users', [ProductionController::class, 'assignUsers'])->name('productions.assign-users');
     Route::get('/productions/{production}/documento', [ProductionController::class, 'downloadDocument'])->name('productions.document');
     Route::get('/versions/{version}/documento', [ProductionController::class, 'downloadVersionDocument'])->name('versions.document');
     Route::post('/productions/{production}/submit', [ProductionController::class, 'submitDraft'])->name('productions.submit-draft');
     Route::post('/productions/{production}/sync', [ProductionController::class, 'syncGoogleDoc'])->name('productions.sync');
+    Route::post('/productions/{production}/request-jury-review', [ProductionController::class, 'requestJuryReview'])->name('productions.request-jury-review');
     Route::delete('/productions/{production}', [ProductionController::class, 'destroy'])->name('productions.destroy');
     Route::post('/productions/{production}/transition', [WorkflowController::class, 'transition'])->name('productions.transition');
 
@@ -86,10 +92,24 @@ Route::middleware('auth')->group(function () {
     });
 
     // Admin panel routes (Module 10)
-    Route::middleware(['role:Coordinador|Super Admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::middleware(['role:Coordinador|Super Admin|Decano'])->prefix('admin')->name('admin.')->group(function () {
+        // Bulk import routes
+        Route::get('/productions/import', [BulkProductionController::class, 'index'])->name('productions.import');
+        Route::post('/productions/import/upload', [BulkProductionController::class, 'upload'])->name('productions.import.upload');
+        Route::get('/productions/import/status', [BulkProductionController::class, 'checkStatus'])->name('productions.import.status');
+        Route::post('/productions/import/store', [BulkProductionController::class, 'storeBatch'])->name('productions.import.store');
+
         Route::resource('programs', AdminAcademicProgramController::class);
         Route::resource('lines', AdminResearchLineController::class);
+        Route::get('students/search', [AdminAcademicPeriodController::class, 'searchStudents'])->name('students.search');
         Route::resource('periods', AdminAcademicPeriodController::class);
+        Route::post('periods/{period}/tutors', [AdminAcademicPeriodController::class, 'storeTutor'])->name('periods.tutors.store');
+        Route::delete('periods/{period}/tutors/{id}', [AdminAcademicPeriodController::class, 'destroyTutor'])->name('periods.tutors.destroy');
+        Route::post('periods/{period}/enrollments', [AdminAcademicPeriodController::class, 'storeEnrollment'])->name('periods.enrollments.store');
+        Route::delete('periods/{period}/enrollments/{enrollment}', [AdminAcademicPeriodController::class, 'destroyEnrollment'])->name('periods.enrollments.destroy');
+        Route::post('periods/{period}/milestones', [AdminAcademicPeriodController::class, 'storeMilestone'])->name('periods.milestones.store');
+        Route::delete('periods/{period}/milestones/{milestone}', [AdminAcademicPeriodController::class, 'destroyMilestone'])->name('periods.milestones.destroy');
+        Route::get('periods/{period}/students-under-tutor', [AdminAcademicPeriodController::class, 'getStudentsUnderTutor'])->name('periods.students-under-tutor');
         Route::resource('users', AdminUserController::class)->only(['index', 'edit', 'update']);
         Route::get('audit-logs', [AdminAuditLogController::class, 'index'])->name('audit-logs.index');
         Route::get('audit-logs/{auditLog}', [AdminAuditLogController::class, 'show'])->name('audit-logs.show');
@@ -99,6 +119,10 @@ Route::middleware('auth')->group(function () {
         Route::post('reports/generate', [ReportController::class, 'generate'])->name('reports.generate');
         Route::get('reports/download/{filename}', [ReportController::class, 'download'])->name('reports.download');
     });
+
+    // Google Auth routes
+    Route::get('/google/redirect', [GoogleAuthController::class, 'redirect'])->name('google.redirect');
+    Route::get('/google/callback', [GoogleAuthController::class, 'callback'])->name('google.callback');
 });
 
 require __DIR__.'/auth.php';
