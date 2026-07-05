@@ -39,8 +39,8 @@ RUN install-php-extensions \
     opcache \
     exif
 
-# Enable Apache mod_rewrite
-RUN a2enmod rewrite
+# Enable Apache modules including proxying for WebSockets (Reverb)
+RUN a2enmod rewrite proxy proxy_http proxy_wstunnel
 
 # Change Apache port to 8080 (non-privileged)
 RUN sed -i 's/80/8080/g' /etc/apache2/ports.conf /etc/apache2/sites-available/*.conf
@@ -58,7 +58,8 @@ WORKDIR /app
 COPY --from=composer-builder /app /app
 COPY --from=node-builder /app/public/build /app/public/build
 
-# Copy supervisor config and entrypoint script
+# Copy apache virtualhost config, supervisor config and entrypoint script
+COPY docker/apache-vhost.conf /etc/apache2/sites-available/000-default.conf
 COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY docker/entrypoint.sh /app/docker/entrypoint.sh
 RUN chmod +x /app/docker/entrypoint.sh

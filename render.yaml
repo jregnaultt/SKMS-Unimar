@@ -60,4 +60,26 @@ services:
         value: god@unimar.edu.ve
       - key: SUPER_ADMIN_PASSWORD
         value: --god--
+      - key: REVERB_APP_ID
+        value: "809000"
+      - key: REVERB_APP_KEY
+        value: "skmsunimarkey12345"
+      - key: REVERB_APP_SECRET
+        value: "skmsunimarsecret12345"
+      - key: REVERB_HOST
+        value: skms-unimar-web.onrender.com
+      - key: REVERB_PORT
+        value: "443"
+      - key: REVERB_SCHEME
+        value: https
+      - key: REVERB_SERVER_PORT
+        value: "8090"
+      - key: VITE_REVERB_APP_KEY
+        value: "skmsunimarkey12345"
+      - key: VITE_REVERB_HOST
+        value: skms-unimar-web.onrender.com
+      - key: VITE_REVERB_PORT
+        value: "443"
+      - key: VITE_REVERB_SCHEME
+        value: https
 
