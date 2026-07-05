@@ -19,9 +19,9 @@ services:
       - key: MYSQL_USER
         value: skms_user
       - key: MYSQL_PASSWORD
-        generate: true
+        generateValue: true
       - key: MYSQL_ROOT_PASSWORD
-        generate: true
+        generateValue: true
     disk:
       name: mysql-data
       mountPath: /var/lib/mysql
@@ -41,7 +41,7 @@ services:
       - key: APP_DEBUG
         value: "false"
       - key: APP_KEY
-        generate: true
+        generateValue: true
       - key: APP_URL
         value: https://skms-unimar-web.onrender.com # Replace with your custom domain if mapping one
       - key: DB_CONNECTION
