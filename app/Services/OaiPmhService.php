@@ -425,7 +425,7 @@ class OaiPmhService
         $dc = [
             'title' => [$production->title],
             'creator' => $this->splitValues($production->authors),
-            'subject' => $this->splitValues($production->keywords),
+            'subject' => $production->keywords->pluck('name')->all(),
             'description' => [$production->abstract],
             'publisher' => [$production->academicProgram?->name],
             'contributor' => $this->splitValues($production->tutor),
