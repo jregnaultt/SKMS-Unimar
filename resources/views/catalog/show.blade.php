@@ -9,9 +9,7 @@
         <meta name="citation_pdf_url" content="{{ route('catalog.download-public-pdf', $production->uuid) }}">
         <meta name="citation_publisher" content="Decanato de Ingeniería, Universidad de Margarita">
         <meta name="citation_language" content="es">
-        @if(($production->productionType?->name ?? '') === 'Tesis de Grado')
-            <meta name="citation_dissertation_institution" content="Universidad de Margarita">
-        @endif
+        <meta name="citation_dissertation_institution" content="Universidad de Margarita">
         @if($production->keywords->isNotEmpty())
             <meta name="citation_keywords" content="{{ $production->keywords->pluck('name')->implode(', ') }}">
         @endif
