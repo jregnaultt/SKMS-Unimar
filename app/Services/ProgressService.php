@@ -74,6 +74,7 @@ class ProgressService
     public function getCoordinatorDashboardData(array $filters = []): LengthAwarePaginator
     {
         $query = Production::query()
+            ->where('workflow_state', '!=', 'published')
             ->with(['users', 'academicProgram', 'researchLine', 'academicPeriod', 'milestones']);
 
         // Filter by Academic Program

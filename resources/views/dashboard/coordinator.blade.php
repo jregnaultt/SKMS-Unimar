@@ -188,20 +188,24 @@
                                 </div>
                                 
                                 <div class="flex items-center space-x-6 shrink-0">
-                                    <!-- Progress bar -->
-                                    <div class="w-24 space-y-1">
-                                        <div class="flex justify-between text-sm font-bold text-slate-600">
-                                            <span>Avance</span>
-                                            <span>{{ $p->progress_percentage }}%</span>
+                                    @can('viewProgress', $p)
+                                        <!-- Progress bar -->
+                                        <div class="w-24 space-y-1">
+                                            <div class="flex justify-between text-sm font-bold text-slate-600">
+                                                <span>Avance</span>
+                                                <span>{{ $p->progress_percentage }}%</span>
+                                            </div>
+                                            <div class="w-full bg-slate-100 rounded-full h-1.5">
+                                                <div class="bg-[#0d4d98] h-1.5 rounded-full transition-all duration-300" style="width: {{ $p->progress_percentage }}%"></div>
+                                            </div>
                                         </div>
-                                        <div class="w-full bg-slate-100 rounded-full h-1.5">
-                                            <div class="bg-[#0d4d98] h-1.5 rounded-full transition-all duration-300" style="width: {{ $p->progress_percentage }}%"></div>
-                                        </div>
-                                    </div>
 
-                                    <a href="{{ route('progress.student.show', $p) }}" class="px-3.5 py-2.5 bg-slate-50 border border-slate-200 hover:bg-[#0d4d98] hover:text-white rounded-lg text-sm font-bold transition text-slate-700">
-                                        Ver Progreso
-                                    </a>
+                                        <a href="{{ route('progress.student.show', $p) }}" class="px-3.5 py-2.5 bg-slate-50 border border-slate-200 hover:bg-[#0d4d98] hover:text-white rounded-lg text-sm font-bold transition text-slate-700">
+                                            Ver Progreso
+                                        </a>
+                                    @else
+                                        <span class="text-sm text-slate-450 italic font-semibold">Tesis Publicada</span>
+                                    @endcan
                                 </div>
                             </div>
                         @endforeach
@@ -253,7 +257,6 @@
                             <option value="under_review" {{ ($filters['workflow_state'] ?? '') == 'under_review' ? 'selected' : '' }}>En Revisión</option>
                             <option value="needs_corrections" {{ ($filters['workflow_state'] ?? '') == 'needs_corrections' ? 'selected' : '' }}>Requiere Correcciones</option>
                             <option value="approved" {{ ($filters['workflow_state'] ?? '') == 'approved' ? 'selected' : '' }}>Aprobado</option>
-                            <option value="published" {{ ($filters['workflow_state'] ?? '') == 'published' ? 'selected' : '' }}>Publicado</option>
                             <option value="rejected" {{ ($filters['workflow_state'] ?? '') == 'rejected' ? 'selected' : '' }}>Rechazado</option>
                         </select>
                     </div>

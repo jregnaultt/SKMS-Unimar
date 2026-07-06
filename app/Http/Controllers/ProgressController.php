@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Services\ProgressService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 
 class ProgressController extends Controller
@@ -23,8 +24,7 @@ class ProgressController extends Controller
      */
     public function studentShow(Production $production): View
     {
-        $user = auth()->user();
-        $this->authorizeProgressView($production, $user);
+        Gate::authorize('viewProgress', $production);
 
         $progressData = $this->progressService->getStudentProgress($production);
 
@@ -66,9 +66,7 @@ class ProgressController extends Controller
      */
     public function configureMilestones(Request $request, Production $production): RedirectResponse
     {
-        if (! auth()->user()->hasRole(['Coordinador', 'Super Admin', 'Decano'])) {
-            abort(403, 'Acceso denegado. Se requieren permisos de Coordinador o Decano.');
-        }
+        Gate::authorize('manageMilestones', $production);
 
         $request->validate([
             'milestones' => 'required|array',
@@ -85,21 +83,6 @@ class ProgressController extends Controller
             return back()->with('success', 'Hitos de la producción científica configurados correctamente.');
         } catch (\Exception $e) {
             return back()->with('error', 'Error al configurar hitos: '.$e->getMessage());
-        }
-    }
-
-    /**
-     * Helper to authorize viewing a specific production progress.
-     */
-    protected function authorizeProgressView(Production $production, User $user): void
-    {
-        if ($user->hasRole(['Coordinador', 'Super Admin', 'Decano'])) {
-            return;
-        }
-
-        $isAssociated = $production->users()->where('users.id', $user->id)->exists();
-        if (! $isAssociated) {
-            abort(403, 'No tienes permiso para ver el progreso de esta producción científica.');
         }
     }
 }

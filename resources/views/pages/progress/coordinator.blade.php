@@ -131,7 +131,6 @@
                         <option value="under_review" {{ ($filters['workflow_state'] ?? '') === 'under_review' ? 'selected' : '' }}>En Revisión</option>
                         <option value="needs_corrections" {{ ($filters['workflow_state'] ?? '') === 'needs_corrections' ? 'selected' : '' }}>Requiere Correcciones</option>
                         <option value="approved" {{ ($filters['workflow_state'] ?? '') === 'approved' ? 'selected' : '' }}>Aprobado</option>
-                        <option value="published" {{ ($filters['workflow_state'] ?? '') === 'published' ? 'selected' : '' }}>Publicado</option>
                         <option value="rejected" {{ ($filters['workflow_state'] ?? '') === 'rejected' ? 'selected' : '' }}>Rechazado</option>
                     </select>
                 </div>
@@ -280,16 +279,22 @@
 
                                     <!-- Acciones -->
                                     <td class="p-4 pr-6 text-right space-x-2 shrink-0 whitespace-nowrap">
-                                        <!-- Configurar Hitos -->
-                                        <button type="button" 
-                                                @click="initModal({{ json_encode($prod) }})" 
-                                                class="inline-flex items-center px-3.5 py-2.5 border border-slate-200 hover:bg-slate-50 hover:border-slate-300 text-slate-700 rounded-lg text-sm font-bold transition shadow-sm focus:outline-none h-11 cursor-pointer">
-                                            Configurar Hitos
-                                        </button>
-                                        <!-- Ver Progreso -->
-                                        <a href="{{ route('progress.student.show', $prod) }}" class="inline-flex items-center px-3.5 py-2.5 bg-unimar-blue hover:bg-unimar-blue/95 text-white rounded-lg text-sm font-bold transition shadow-sm hover:shadow-md h-11 cursor-pointer">
-                                            Ver Detalle
-                                        </a>
+                                        @can('manageMilestones', $prod)
+                                            <!-- Configurar Hitos -->
+                                            <button type="button" 
+                                                    @click="initModal({{ json_encode($prod) }})" 
+                                                    class="inline-flex items-center px-3.5 py-2.5 border border-slate-200 hover:bg-slate-50 hover:border-slate-300 text-slate-700 rounded-lg text-sm font-bold transition shadow-sm focus:outline-none h-11 cursor-pointer">
+                                                Configurar Hitos
+                                            </button>
+                                        @endcan
+                                        @can('viewProgress', $prod)
+                                            <!-- Ver Progreso -->
+                                            <a href="{{ route('progress.student.show', $prod) }}" class="inline-flex items-center px-3.5 py-2.5 bg-unimar-blue hover:bg-unimar-blue/95 text-white rounded-lg text-sm font-bold transition shadow-sm hover:shadow-md h-11 cursor-pointer">
+                                                Ver Detalle
+                                            </a>
+                                        @else
+                                            <span class="text-sm text-slate-450 italic font-semibold">Sin acciones (Publicado)</span>
+                                        @endcan
                                     </td>
 
                                 </tr>

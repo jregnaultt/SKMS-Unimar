@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Production;
 use App\Models\User;
+use App\Services\ProgressService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
@@ -177,11 +178,93 @@ class StudentProgressTrackingTest extends TestCase
                     ],
                 ],
             ]);
-
         $response->assertSessionHasErrors([
             'milestones.0.type',
             'milestones.0.title',
             'milestones.0.scheduled_date',
         ]);
+    }
+
+    /**
+     * Test student can view their own progress dashboard when published.
+     */
+    public function test_student_can_view_own_progress_dashboard_when_published(): void
+    {
+        $this->production->workflow_state = 'published';
+        $this->production->save();
+
+        $response = $this->actingAs($this->student)
+            ->get(route('progress.student.show', $this->production));
+
+        $response->assertStatus(200);
+    }
+
+    /**
+     * Test coordinator cannot view progress dashboard when published.
+     */
+    public function test_coordinator_cannot_view_progress_dashboard_when_published(): void
+    {
+        $this->production->workflow_state = 'published';
+        $this->production->save();
+
+        $response = $this->actingAs($this->coordinator)
+            ->get(route('progress.student.show', $this->production));
+
+        $response->assertStatus(403);
+    }
+
+    /**
+     * Test tutor cannot view progress dashboard when published.
+     */
+    public function test_tutor_cannot_view_progress_dashboard_when_published(): void
+    {
+        $tutor = User::factory()->create();
+        $tutor->assignRole('Tutor');
+        $this->production->users()->attach($tutor->id, ['role' => 'tutor']);
+
+        $this->production->workflow_state = 'published';
+        $this->production->save();
+
+        $response = $this->actingAs($tutor)
+            ->get(route('progress.student.show', $this->production));
+
+        $response->assertStatus(403);
+    }
+
+    /**
+     * Test coordinator cannot configure milestones when published.
+     */
+    public function test_coordinator_cannot_configure_milestones_when_published(): void
+    {
+        $this->production->workflow_state = 'published';
+        $this->production->save();
+
+        $response = $this->actingAs($this->coordinator)
+            ->post(route('progress.milestones.store', $this->production), [
+                'milestones' => [
+                    [
+                        'type' => 'delivery',
+                        'title' => 'Hito Posterior',
+                        'scheduled_date' => '2026-09-01 12:00:00',
+                    ],
+                ],
+            ]);
+
+        $response->assertStatus(403);
+    }
+
+    /**
+     * Test coordinator dashboard list excludes published productions.
+     */
+    public function test_coordinator_dashboard_list_excludes_published_productions(): void
+    {
+        $publishedProduction = Production::factory()->create(['workflow_state' => 'published']);
+        $draftProduction = Production::factory()->create(['workflow_state' => 'draft']);
+
+        $progressService = app(ProgressService::class);
+        $result = $progressService->getCoordinatorDashboardData();
+
+        $this->assertTrue($result->getCollection()->contains($draftProduction));
+        $this->assertFalse($result->getCollection()->contains($publishedProduction));
     }
 }
