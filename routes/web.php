@@ -22,7 +22,7 @@ Route::get('/bibliometrics', [BibliometricController::class, 'index'])
 Route::get('/catalog', [CatalogController::class, 'index'])->name('catalog.index');
 Route::match(['QUERY', 'POST'], '/catalog/query', [CatalogController::class, 'search'])->name('catalog.query');
 Route::get('/catalog/{uuid}', [CatalogController::class, 'showPublic'])->name('catalog.show-public');
-Route::get('/catalog/{uuid}/pdf', [CatalogController::class, 'downloadPublicPdf'])->name('catalog.download-public-pdf');
+Route::get('/catalog/{uuid}/document.pdf', [CatalogController::class, 'downloadPublicPdf'])->name('catalog.download-public-pdf');
 
 use App\Http\Controllers\DashboardController;
 

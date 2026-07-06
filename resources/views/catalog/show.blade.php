@@ -9,6 +9,9 @@
         <meta name="citation_pdf_url" content="{{ route('catalog.download-public-pdf', $production->uuid) }}">
         <meta name="citation_publisher" content="Decanato de Ingeniería, Universidad de Margarita">
         <meta name="citation_language" content="es">
+        @if(($production->productionType?->name ?? '') === 'Tesis de Grado')
+            <meta name="citation_dissertation_institution" content="Universidad de Margarita">
+        @endif
         @if($production->keywords->isNotEmpty())
             <meta name="citation_keywords" content="{{ $production->keywords->pluck('name')->implode(', ') }}">
         @endif
@@ -85,9 +88,13 @@
 
             <!-- Production Title -->
             <div class="space-y-3">
-                <h1 class="text-2xl md:text-3xl font-extrabold text-slate-900 leading-snug">
+                <h1 class="text-2xl md:text-3xl font-extrabold text-slate-900 leading-snug citation_title">
                     {{ $production->title }}
                 </h1>
+                
+                <h3 class="text-base md:text-lg font-bold text-slate-500 citation_author leading-relaxed block">
+                    Por: {{ $production->authors }}
+                </h3>
                 
                 <!-- DOI Identifier if exists -->
                 @if($production->doi)
@@ -102,7 +109,7 @@
             <section class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50 border border-slate-200/60 rounded-2xl p-5 md:p-6 text-sm">
                 <div class="space-y-1">
                     <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block">Autores</span>
-                    <strong class="text-slate-800 text-base font-extrabold leading-normal block">
+                    <strong class="text-slate-800 text-base font-extrabold leading-normal block citation_author">
                         {{ $production->authors }}
                     </strong>
                 </div>
