@@ -43,6 +43,7 @@ return [
     'google' => [
         'client_id' => env('GOOGLE_CLIENT_ID'),
         'api_key' => env('GOOGLE_API_KEY'),
+        'coordination_email' => env('GOOGLE_COORDINATION_EMAIL', 'repositorio@unimar.edu.ve'),
     ],
 
 ];

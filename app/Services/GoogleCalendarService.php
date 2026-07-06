@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Production;
 use App\Models\ProductionMilestone;
 use App\Models\User;
 use Google\Client;
@@ -13,13 +14,26 @@ use Illuminate\Support\Facades\Log;
 
 class GoogleCalendarService
 {
+    public function getHostForProduction(Production $production): ?User
+    {
+        // Priority: author > tutor > jury (represented as 'jury' in pivot table)
+        foreach (['author', 'tutor', 'jury'] as $role) {
+            $user = $production->users()->wherePivot('role', $role)->first();
+            if ($user && $user->google_refresh_token) {
+                return $user;
+            }
+        }
+
+        return null;
+    }
+
     protected function getClientForUser(User $user): ?Client
     {
         if (! $user->google_refresh_token) {
             return null;
         }
 
-        $client = new Client;
+        $client = app(Client::class);
         $client->setClientId(config('services.google.client_id') ?? env('GOOGLE_CLIENT_ID'));
         $client->setClientSecret(config('services.google.client_secret') ?? env('GOOGLE_CLIENT_SECRET'));
 
@@ -35,6 +49,12 @@ class GoogleCalendarService
                 if (isset($newToken['error'])) {
                     Log::error("Failed to refresh Google token for user {$user->id}: ".json_encode($newToken));
 
+                    // Autocuración: token invalidado o revocado en Google, lo limpiamos de la BD
+                    $user->google_access_token = null;
+                    $user->google_refresh_token = null;
+                    $user->google_token_expires_at = null;
+                    $user->save();
+
                     return null;
                 }
                 $user->google_access_token = $newToken['access_token'];
@@ -42,6 +62,12 @@ class GoogleCalendarService
                 $user->save();
             } catch (\Exception $e) {
                 Log::error("Exception refreshing Google token for user {$user->id}: ".$e->getMessage());
+
+                // Autocuración: error al conectar, limpiamos credenciales para forzar nueva sincronización
+                $user->google_access_token = null;
+                $user->google_refresh_token = null;
+                $user->google_token_expires_at = null;
+                $user->save();
 
                 return null;
             }
@@ -57,22 +83,18 @@ class GoogleCalendarService
             return false;
         }
 
-        // Get the student (author)
-        $student = $production->users()->wherePivot('role', 'author')->first();
-        if (! $student) {
+        $host = $this->getHostForProduction($production);
+        if (! $host) {
+            // Nadie ha sincronizado su cuenta de Google Calendar
             return false;
         }
 
-        $client = $this->getClientForUser($student);
+        $client = $this->getClientForUser($host);
         if (! $client) {
-            // Student has not connected Google Calendar
             return false;
         }
 
         $service = new Calendar($client);
-
-        // Get the tutor to invite him
-        $tutor = $production->users()->wherePivot('role', 'tutor')->first();
 
         // Build Event
         $event = new Event;
@@ -96,11 +118,22 @@ class GoogleCalendarService
         $end->setTimeZone('America/Caracas');
         $event->setEnd($end);
 
-        // Attendees
+        // Attendees: invitamos a todos los participantes de la producción excepto al hospedador
         $attendees = [];
-        if ($tutor) {
+        $otherUsers = $production->users()->where('users.id', '!=', $host->id)->get();
+        foreach ($otherUsers as $user) {
+            if ($user->email) {
+                $attendee = new EventAttendee;
+                $attendee->setEmail($user->email);
+                $attendees[] = $attendee;
+            }
+        }
+
+        // Siempre invitar al correo de coordinación configurado
+        $coordinationEmail = config('services.google.coordination_email');
+        if ($coordinationEmail) {
             $attendee = new EventAttendee;
-            $attendee->setEmail($tutor->email);
+            $attendee->setEmail($coordinationEmail);
             $attendees[] = $attendee;
         }
         $event->setAttendees($attendees);
@@ -135,12 +168,12 @@ class GoogleCalendarService
             return false;
         }
 
-        $student = $production->users()->wherePivot('role', 'author')->first();
-        if (! $student) {
+        $host = $this->getHostForProduction($production);
+        if (! $host) {
             return false;
         }
 
-        $client = $this->getClientForUser($student);
+        $client = $this->getClientForUser($host);
         if (! $client) {
             return false;
         }

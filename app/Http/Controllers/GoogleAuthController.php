@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\SyncMilestoneToGoogleCalendarJob;
 use Google\Client;
 use Google\Service\Calendar;
 use Illuminate\Http\Request;
@@ -11,7 +12,7 @@ class GoogleAuthController extends Controller
 {
     protected function getGoogleClient(): Client
     {
-        $client = new Client;
+        $client = app(Client::class);
         $client->setClientId(config('services.google.client_id') ?? env('GOOGLE_CLIENT_ID'));
         $client->setClientSecret(config('services.google.client_secret') ?? env('GOOGLE_CLIENT_SECRET'));
         $client->setRedirectUri(route('google.callback'));
@@ -51,6 +52,17 @@ class GoogleAuthController extends Controller
             }
             $user->google_token_expires_at = now()->addSeconds($token['expires_in'] ?? 3600);
             $user->save();
+
+            // Sincronización retroactiva de hitos futuros de todas las producciones asociadas a este usuario
+            $productions = $user->productions;
+            foreach ($productions as $production) {
+                $milestones = $production->milestones()
+                    ->where('scheduled_date', '>=', now()->startOfDay())
+                    ->get();
+                foreach ($milestones as $milestone) {
+                    dispatch(new SyncMilestoneToGoogleCalendarJob($milestone, 'sync'));
+                }
+            }
 
             return redirect()->route('dashboard')->with('success', '¡Cuenta de Google conectada con éxito! Calendario sincronizado.');
         } catch (\Exception $e) {

@@ -210,5 +210,7 @@
     </div>
 </div>
 
+<x-google-calendar-tutorial />
+
 </body>
 </html>
