@@ -27,7 +27,7 @@
     <!-- Área de Contenido Principal -->
     <div class="flex-1 flex flex-col min-w-0">
         <!-- Navbar Superior Interno -->
-        <header class="h-16 bg-unimar-matte/90 backdrop-blur-md border-b border-slate-200/50 flex items-center justify-between px-4 md:px-8 sticky top-0 z-10 transition-all duration-200">
+        <header class="h-16 bg-unimar-matte/90 backdrop-blur-md border-b border-slate-200/50 flex items-center justify-between px-4 md:px-8 sticky top-0 z-40 transition-all duration-200">
             <div class="flex items-center space-x-3">
                 <!-- Hamburger Menu Button (Mobile/Tablet) -->
                 <button @click="sidebarOpen = true" class="lg:hidden p-2 rounded-lg hover:bg-slate-100 text-slate-550 hover:text-slate-700 transition focus:outline-none focus:ring-2 focus:ring-[#0d4d98]/20 mr-0.5">
@@ -46,23 +46,23 @@
 
             <!-- Interacciones Navbar -->
             <div class="flex items-center space-x-4 md:space-x-6">
-                <!-- Google Calendar Sync Status -->
+                <!-- Status de Conexión de Cuenta de Google -->
                 <div class="relative shrink-0">
                     @if(auth()->user()->google_refresh_token)
-                        <span class="inline-flex items-center px-2.5 py-1.5 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-100 whitespace-nowrap" title="Sincronizado con Google Calendar">
+                        <span class="inline-flex items-center px-2.5 py-1.5 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-100 whitespace-nowrap" title="Sincronizado con tu Cuenta de Google (Calendario y Google Docs)">
                             <svg class="w-3.5 h-3.5 mr-1 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                             </svg>
-                            Calendario Conectado
+                            Cuenta de Google Conectada
                         </span>
                     @else
                         <a href="{{ route('google.redirect') }}" 
                            class="inline-flex items-center px-2.5 py-1.5 rounded-lg text-xs font-bold bg-unimar-blue text-white hover:bg-unimar-blue/95 border border-transparent whitespace-nowrap shadow-sm hover:shadow transition-all cursor-pointer" 
-                           title="Sincronizar tus entregas con tu Google Calendar">
+                           title="Sincronizar tus entregas y comentarios con tu Cuenta de Google">
                             <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                             </svg>
-                            Conectar Google Calendar
+                            Conectar Cuenta de Google
                         </a>
                     @endif
                 </div>
@@ -141,7 +141,7 @@
                     </button>
 
                     <!-- Dropdown de Notificaciones -->
-                    <div x-show="open" x-transition:enter="transition ease-out duration-100" x-transition:enter-start="transform opacity-0 scale-95" x-transition:enter-end="transform opacity-100 scale-100" x-transition:leave="transition ease-in duration-75" x-transition:leave-start="transform opacity-100 scale-100" x-transition:leave-end="transform opacity-0 scale-95" class="absolute right-0 mt-2.5 w-80 bg-white rounded-xl border border-slate-200 shadow-xl overflow-hidden z-30" style="display: none;">
+                    <div x-show="open" x-transition:enter="transition ease-out duration-100" x-transition:enter-start="transform opacity-0 scale-95" x-transition:enter-end="transform opacity-100 scale-100" x-transition:leave="transition ease-in duration-75" x-transition:leave-start="transform opacity-100 scale-100" x-transition:leave-end="transform opacity-0 scale-95" class="absolute right-0 mt-2.5 w-80 bg-white rounded-xl border border-slate-200 shadow-xl overflow-hidden z-50" style="display: none;">
                         <div class="p-4 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
                             <span class="text-sm font-bold text-slate-800">Notificaciones</span>
                             <button @click="markAllRead()" x-show="unreadCount > 0" class="text-xs text-[#0d4d98] hover:underline font-bold">Marcar todo como leído</button>
@@ -155,8 +155,8 @@
                                         <span class="w-2 h-2 rounded-full" :class="n.read_at ? 'bg-slate-300' : 'bg-blue-500'"></span>
                                         <span class="text-[9px] text-slate-400 font-semibold" x-text="new Date(n.created_at).toLocaleDateString('es-ES', {month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'})"></span>
                                     </div>
-                                    <h4 class="text-sm font-bold text-slate-800" x-text="JSON.parse(n.data).title || 'Actualización de obra'"></h4>
-                                    <p class="text-[11px] text-slate-500 leading-tight" x-text="JSON.parse(n.data).message || 'Hay una nueva actividad en tu producción científica.'"></p>
+                                    <h4 class="text-sm font-bold text-slate-800" x-text="n.data.title || 'Actualización de obra'"></h4>
+                                    <p class="text-[11px] text-slate-550 leading-tight" x-text="n.data.message || 'Hay una nueva actividad en tu producción científica.'"></p>
                                 </div>
                             </template>
                             <div x-show="notifications.length === 0" class="p-6 text-center text-sm text-slate-400">

@@ -53,4 +53,32 @@ TOON;
         $this->assertNull($result['abstract']);
         $this->assertNull($result['keywords']);
     }
+
+    /**
+     * Test parsing TOON text with reasoning <think> tags.
+     */
+    public function test_it_strips_think_tags_before_parsing(): void
+    {
+        $toonText = <<<'TOON'
+<think>
+We need to extract the title, authors, tutor, abstract, and keywords.
+Let's check the text.
+The title is "SISTEMA DE CONTROL DE ACCESO".
+Authors: ? No encontrado.
+Tutor: Rafael Millán.
+</think>
+title: SISTEMA DE CONTROL DE ACCESO
+authors: ? No encontrado
+tutor: Rafael Millán
+TOON;
+
+        $parser = new ToonParser;
+        $result = $parser->parse($toonText);
+
+        $this->assertEquals('SISTEMA DE CONTROL DE ACCESO', $result['title']);
+        $this->assertEquals('? No encontrado', $result['authors']);
+        $this->assertEquals('Rafael Millán', $result['tutor']);
+        $this->assertNull($result['abstract']);
+        $this->assertNull($result['keywords']);
+    }
 }

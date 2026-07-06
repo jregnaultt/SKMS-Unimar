@@ -27,6 +27,15 @@ class ProductionClaimController extends Controller
         $productionId = $request->input('production_id');
         $role = $request->input('role');
 
+        // Validation for role/user type mismatches
+        if ($role === 'author' && ! $user->hasRole('Estudiante')) {
+            return back()->with('error', 'Solo los estudiantes pueden reclamar la autoría de un trabajo.');
+        }
+
+        if ($role === 'tutor' && ! $user->hasRole('Tutor')) {
+            return back()->with('error', 'Solo los tutores pueden reclamar la tutoría de un trabajo.');
+        }
+
         // Check if user is already linked with this role
         $alreadyLinked = $user->productions()
             ->where('production_id', $productionId)

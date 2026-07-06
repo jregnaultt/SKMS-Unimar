@@ -9,6 +9,7 @@ use App\Models\User;
 use Google\Client;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 /**
  * Class GoogleDriveService
@@ -87,6 +88,20 @@ class GoogleDriveService
             $contentWithAuthor = $user ? $content : "[Escrito por {$authorName}]: {$content}";
 
             // Find or create comment in SKMS
+            $referenceSection = isset($gComment['quotedFileContent']['value'])
+                ? Str::limit($gComment['quotedFileContent']['value'], 250)
+                : null;
+
+            // Preserve local workflow status: only sync to 'addressed' when Google resolves it.
+            // Do NOT reset to 'pending' if the student has already marked it in_progress/addressed locally.
+            $existingComment = Comment::where('production_id', $production->id)
+                ->where('google_comment_id', $googleCommentId)
+                ->first();
+
+            $localStatus = $isResolved
+                ? CommentStatus::Addressed->value
+                : ($existingComment?->status->value ?? CommentStatus::Pending->value);
+
             $comment = Comment::updateOrCreate(
                 [
                     'production_id' => $production->id,
@@ -95,8 +110,9 @@ class GoogleDriveService
                 [
                     'user_id' => $userId ?? 1,
                     'content' => $contentWithAuthor,
+                    'reference_section' => $referenceSection,
                     'resolved_in_google' => $isResolved,
-                    'status' => $isResolved ? CommentStatus::Addressed->value : CommentStatus::Pending->value,
+                    'status' => $localStatus,
                     'created_at' => $createdAt,
                 ]
             );
@@ -146,13 +162,14 @@ class GoogleDriveService
         }
 
         $client = new Client;
-        $client->setClientId(config('services.google.client_id') ?? env('GOOGLE_CLIENT_ID'));
-        $client->setClientSecret(config('services.google.client_secret') ?? env('GOOGLE_CLIENT_SECRET'));
+        $client->setClientId(config('services.google.client_id'));
+        $client->setClientSecret(config('services.google.client_secret'));
 
         $client->setAccessToken([
             'access_token' => $user->google_access_token,
             'refresh_token' => $user->google_refresh_token,
-            'expires_in' => $user->google_token_expires_at ? $user->google_token_expires_at->diffInSeconds(now(), false) : 0,
+            'expires_in' => $user->google_token_expires_at ? now()->diffInSeconds($user->google_token_expires_at, false) : 0,
+            'created' => time(),
         ]);
 
         if ($client->isAccessTokenExpired()) {
@@ -199,5 +216,84 @@ class GoogleDriveService
         if ($accessToken) {
             $this->syncComments($production, $production->google_drive_file_id, $accessToken);
         }
+    }
+
+    /**
+     * Resolves a comment on Google Docs by posting a reply with action = resolve.
+     */
+    public function resolveComment(Production $production, string $googleCommentId): bool
+    {
+        if (! $production->google_drive_file_id) {
+            return false;
+        }
+
+        $student = $production->users()->wherePivot('role', 'author')->first();
+        if (! $student) {
+            return false;
+        }
+
+        $client = $this->getClientForUser($student);
+        if (! $client) {
+            return false;
+        }
+
+        $accessToken = $client->getAccessToken()['access_token'] ?? null;
+        if (! $accessToken) {
+            return false;
+        }
+
+        $response = Http::withToken($accessToken)
+            ->post("https://www.googleapis.com/drive/v3/files/{$production->google_drive_file_id}/comments/{$googleCommentId}/replies?fields=id", [
+                'content' => 'Marcado como resuelto (atendido) desde el SKMS.',
+                'action' => 'resolve',
+            ]);
+
+        if (! $response->successful()) {
+            Log::error('Falla al resolver comentario en Google Drive: '.$response->body());
+
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Posts a reply to a comment on Google Docs.
+     *
+     * @return string|null The Google reply ID if successful, null otherwise.
+     */
+    public function replyToComment(Production $production, string $googleCommentId, string $content): ?string
+    {
+        if (! $production->google_drive_file_id) {
+            return null;
+        }
+
+        $student = $production->users()->wherePivot('role', 'author')->first();
+        if (! $student) {
+            return null;
+        }
+
+        $client = $this->getClientForUser($student);
+        if (! $client) {
+            return null;
+        }
+
+        $accessToken = $client->getAccessToken()['access_token'] ?? null;
+        if (! $accessToken) {
+            return null;
+        }
+
+        $response = Http::withToken($accessToken)
+            ->post("https://www.googleapis.com/drive/v3/files/{$production->google_drive_file_id}/comments/{$googleCommentId}/replies?fields=id", [
+                'content' => $content,
+            ]);
+
+        if (! $response->successful()) {
+            Log::error('Falla al responder comentario en Google Drive: '.$response->body());
+
+            return null;
+        }
+
+        return $response->json('id');
     }
 }

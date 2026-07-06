@@ -159,18 +159,34 @@ class ProductionUploadTest extends TestCase
             'action' => 'submit',
         ];
 
+        // 1. Submit should fail validation now
+        $response = $this->actingAs($this->student)->post(route('productions.store'), $payload);
+        $response->assertSessionHasErrors(['action']);
+
+        // 2. Draft action should succeed
+        $payload['action'] = 'draft';
         $response = $this->actingAs($this->student)->post(route('productions.store'), $payload);
 
         $response->assertRedirect(route('dashboard'));
-        $response->assertSessionHas('success', '¡Producción científica guardada y enviada a revisión con éxito!');
+        $response->assertSessionHas('success', '¡Producción científica guardada como borrador con éxito!');
 
         $this->assertDatabaseHas('productions', [
             'title' => 'Analisis de Sistemas Inteligentes',
-            'workflow_state' => 'under_tutor_review',
+            'workflow_state' => 'draft',
         ]);
 
         $production = Production::where('title', 'Analisis de Sistemas Inteligentes')->first();
-        $this->assertNotNull($production->submission_date);
+        $this->assertNull($production->submission_date);
+
+        // 3. Now submit the draft
+        $submitResponse = $this->actingAs($this->student)->post(route('productions.submit-draft', $production));
+        $submitResponse->assertRedirect();
+
+        $this->assertDatabaseHas('productions', [
+            'id' => $production->id,
+            'workflow_state' => 'under_tutor_review',
+        ]);
+        $this->assertNotNull($production->refresh()->submission_date);
 
         // Assert Spatie media document was associated
         $this->assertTrue($production->hasMedia('documento'));

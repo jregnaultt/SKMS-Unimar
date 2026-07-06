@@ -29,7 +29,10 @@ class AiExtractionTest extends TestCase
         ]);
 
         // Define env keys to bypass skip
-        config(['services.groq.key' => 'dummy-key']);
+        config([
+            'services.groq.key' => 'dummy-key',
+            'services.groq.model' => 'llama-3.1-8b-instant',
+        ]);
 
         $extractor = new GroqExtractor;
         $result = $extractor->extract('fragmento de tesis');
@@ -55,6 +58,10 @@ class AiExtractionTest extends TestCase
                     'content' => "title: TESIS OLLAMA\nauthors: Autor Ollama\ntutor: Tutor Ollama\nabstract: Resumen Ollama\nkeywords: k1, k2",
                 ],
             ], 200),
+        ]);
+
+        config([
+            'services.ollama.model' => 'qwen2.5:1.5b',
         ]);
 
         $extractor = new OllamaExtractor;

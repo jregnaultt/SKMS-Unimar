@@ -13,11 +13,11 @@ class GoogleAuthController extends Controller
     protected function getGoogleClient(): Client
     {
         $client = app(Client::class);
-        $client->setClientId(config('services.google.client_id') ?? env('GOOGLE_CLIENT_ID'));
-        $client->setClientSecret(config('services.google.client_secret') ?? env('GOOGLE_CLIENT_SECRET'));
+        $client->setClientId(config('services.google.client_id'));
+        $client->setClientSecret(config('services.google.client_secret'));
         $client->setRedirectUri(route('google.callback'));
         $client->addScope(Calendar::CALENDAR_EVENTS);
-        $client->addScope('https://www.googleapis.com/auth/drive.readonly');
+        $client->addScope('https://www.googleapis.com/auth/drive');
         $client->setAccessType('offline');
         $client->setPrompt('consent');
 

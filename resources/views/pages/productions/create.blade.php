@@ -7,22 +7,17 @@
 <x-dashboard-layout :roles="$userRoles" :activeRole="$activeRole">
     <!-- Load Google Picker and Google Identity Services scripts -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <script src="https://apis.google.com/js/api.js" async defer></script>
+    <script src="https://apis.google.com/js/api.js" onload="gapi.load('auth', () => {}); gapi.load('picker', () => {})" async defer></script>
 
     <div x-data="Object.assign(documentUpload({{ $researchLines->toJson() }}), {
-        sourceType: 'local',
+        sourceType: 'google',
         googleDriveFileId: '',
         googleDocumentTitle: '',
         googleAccessToken: '',
         developerKey: '{{ config('services.google.api_key') }}',
         clientId: '{{ config('services.google.client_id') }}',
-        scope: ['https://www.googleapis.com/auth/drive.readonly'],
+        scope: ['https://www.googleapis.com/auth/drive'],
         subjectId: '{{ $enrollment ? $enrollment->subject_id : '' }}',
-
-        initGoogleDocs() {
-            gapi.load('auth', () => {});
-            gapi.load('picker', () => {});
-        },
 
         handleGoogleAuth() {
             const tokenClient = google.accounts.oauth2.initTokenClient({
@@ -56,14 +51,34 @@
                         this.googleDriveFileId = doc.id;
                         this.googleDocumentTitle = doc.name;
 
-                        // Auto-fill title if empty
-                        if (!this.metadata.title) {
-                            this.metadata.title = doc.name;
-                        }
+                        // Trigger async extraction using IA
+                        this.extractGoogleDoc(doc.id, this.googleAccessToken);
                     }
                 })
                 .build();
             picker.setVisible(true);
+        },
+
+        extractGoogleDoc(fileId, token) {
+            this.isUploading = true;
+            this.statusMessage = 'Vinculando y procesando Google Doc con IA...';
+            this.uploadProgress = 0;
+
+            axios.post('{{ route('productions.extract-google') }}', {
+                google_drive_file_id: fileId,
+                google_access_token: token
+            })
+            .then(response => {
+                this.statusMessage = 'Procesando el documento con Inteligencia Artificial...';
+                if (response.data && response.data.file_id) {
+                    this.fileId = response.data.file_id;
+                }
+            })
+            .catch(error => {
+                this.isUploading = false;
+                this.statusMessage = 'Error al procesar Google Doc.';
+                console.error(error);
+            });
         },
 
         // Override original submitForm validation
@@ -199,10 +214,11 @@
                         Archivo Local (PDF / DOCX)
                     </button>
                     <button type="button" 
-                            @click="sourceType = 'google'; initGoogleDocs()" 
+                            @click="sourceType = 'google'" 
                             :class="sourceType === 'google' ? 'bg-white text-unimar-blue font-bold shadow-sm' : 'text-slate-600 hover:text-slate-800'" 
-                            class="py-2.5 px-4 rounded-lg text-sm font-bold transition duration-150 uppercase tracking-wider">
-                        Google Drive (Docs)
+                            class="py-2.5 px-4 rounded-lg text-sm font-bold transition duration-150 uppercase tracking-wider flex items-center space-x-2">
+                        <span>Google Drive (Docs)</span>
+                        <span class="px-2 py-0.5 text-[9px] font-extrabold tracking-normal text-white bg-green-500 uppercase rounded-md shadow-sm">Recomendado</span>
                     </button>
                 </div>
 
@@ -491,15 +507,8 @@
                 <!-- Guardar Borrador -->
                 <button type="submit" 
                         @click="action = 'draft'" 
-                        class="py-3 px-6 bg-white hover:bg-slate-50 text-slate-700 font-bold rounded-xl border border-slate-200 transition-all duration-150 text-base focus:outline-none h-11 flex items-center justify-center cursor-pointer">
-                    Guardar como Borrador
-                </button>
-
-                <!-- Enviar a Revisión -->
-                <button type="submit" 
-                        @click="action = 'submit'" 
                         class="py-3 px-6 bg-unimar-blue hover:bg-unimar-blue/95 text-white font-bold rounded-xl transition-all duration-150 shadow-sm hover:shadow-md text-base focus:outline-none h-11 flex items-center justify-center cursor-pointer">
-                    Guardar y Enviar a Revisión
+                    Guardar como Borrador
                 </button>
             </div>
         </form>

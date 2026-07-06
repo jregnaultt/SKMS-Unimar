@@ -6,21 +6,19 @@ use App\Services\AiExtraction\GroqExtractor;
 use App\Services\AiExtraction\OllamaExtractor;
 use App\Services\Parsers\ToonParser;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Spatie\PdfToText\Pdf;
 
 class MetadataExtractorService
 {
     /**
      * MetadataExtractorService constructor.
+     */
     public function __construct(
         protected ?ToonParser $toonParser = null,
         protected ?GroqExtractor $groqExtractor = null,
         protected ?OllamaExtractor $ollamaExtractor = null
-    ) {
-        $this->toonParser = $toonParser ?? new ToonParser();
-        $this->groqExtractor = $groqExtractor ?? new GroqExtractor();
-        $this->ollamaExtractor = $ollamaExtractor ?? new OllamaExtractor();
-    }
+    ) {}
 
     /**
      * Set the extractor services manually (useful for testing and mocks).
@@ -53,18 +51,26 @@ class MetadataExtractorService
             Log::info('El motor Regex no completó todos los metadatos. Activando refinamiento con IA para: '.basename($filePath));
             try {
                 $aiText = $this->extractTextForAi($filePath);
-                $toonResult = $this->groqExtractor->extract($aiText);
-                $refined = $this->toonParser->parse($toonResult);
+                $groqExtractor = $this->groqExtractor ?? new GroqExtractor;
+                $toonParser = $this->toonParser ?? new ToonParser;
+                $toonResult = $groqExtractor->extract($aiText);
+                $refined = $toonParser->parse($toonResult);
 
                 $metadata = $this->mergeMetadata($metadata, $refined);
+                $metadata['_prompt'] = Str::limit($aiText, 1500, ' ... [Texto truncado en la consola para evitar límites de tamaño en WebSocket]');
+                $metadata['_toon'] = $toonResult;
             } catch (\Exception $groqEx) {
                 Log::warning('La extracción con Groq falló, intentando fallback local con Ollama (Qwen2.5): '.$groqEx->getMessage());
                 try {
                     $aiText = $this->extractTextForAi($filePath);
-                    $toonResult = $this->ollamaExtractor->extract($aiText);
-                    $refined = $this->toonParser->parse($toonResult);
+                    $ollamaExtractor = $this->ollamaExtractor ?? new OllamaExtractor;
+                    $toonParser = $this->toonParser ?? new ToonParser;
+                    $toonResult = $ollamaExtractor->extract($aiText);
+                    $refined = $toonParser->parse($toonResult);
 
                     $metadata = $this->mergeMetadata($metadata, $refined);
+                    $metadata['_prompt'] = Str::limit($aiText, 1500, ' ... [Texto truncado en la consola para evitar límites de tamaño en WebSocket]');
+                    $metadata['_toon'] = $toonResult;
                 } catch (\Exception $ollamaEx) {
                     Log::error('Todos los métodos de extracción con IA fallaron para '.basename($filePath).': '.$ollamaEx->getMessage());
                 }

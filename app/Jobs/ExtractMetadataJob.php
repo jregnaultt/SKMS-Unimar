@@ -19,16 +19,19 @@ class ExtractMetadataJob implements ShouldQueue
 
     public $fileId;
 
+    public $deleteAfterExtraction;
+
     public $timeout = 180; // 3 minutos para dar tiempo a archivos pesados
 
     /**
      * Create a new job instance.
      */
-    public function __construct($userId, $pdfPath, $fileId)
+    public function __construct($userId, $pdfPath, $fileId, $deleteAfterExtraction = false)
     {
         $this->userId = $userId;
         $this->pdfPath = $pdfPath;
         $this->fileId = $fileId;
+        $this->deleteAfterExtraction = $deleteAfterExtraction;
     }
 
     /**
@@ -46,6 +49,10 @@ class ExtractMetadataJob implements ShouldQueue
         } catch (\Exception $e) {
             Log::error('Failed to extract metadata: '.$e->getMessage());
             throw $e;
+        } finally {
+            if ($this->deleteAfterExtraction && file_exists($this->pdfPath)) {
+                @unlink($this->pdfPath);
+            }
         }
     }
 }

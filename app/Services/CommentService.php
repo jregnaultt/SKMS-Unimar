@@ -9,6 +9,7 @@ use App\Models\Comment;
 use App\Models\Production;
 use App\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Support\Facades\Log;
 
 class CommentService
 {
@@ -148,6 +149,20 @@ class CommentService
             throw new AuthorizationException('Solo el estudiante propietario puede responder observaciones.');
         }
 
+        $googleReplyId = null;
+        if ($parent->google_comment_id) {
+            try {
+                $driveService = resolve(GoogleDriveService::class);
+                $googleReplyId = $driveService->replyToComment($production, $parent->google_comment_id, $content);
+                if (! $googleReplyId) {
+                    throw new \InvalidArgumentException('No se pudo enviar la respuesta a Google Docs. Por favor, reconecta tu cuenta de Google.');
+                }
+            } catch (\Exception $e) {
+                Log::error('Error replying to Google Doc comment: '.$e->getMessage());
+                throw new \InvalidArgumentException('No se pudo enviar la respuesta a Google Docs: '.$e->getMessage());
+            }
+        }
+
         return Comment::create([
             'production_id' => $parent->production_id,
             'user_id' => $student->id,
@@ -155,6 +170,7 @@ class CommentService
             'reference_section' => null,
             'status' => CommentStatus::Pending->value,
             'parent_id' => $parent->id,
+            'google_reply_id' => $googleReplyId,
         ]);
     }
 
@@ -174,6 +190,19 @@ class CommentService
 
         if (! $this->canChangeStatus($comment, $user, $newStatus)) {
             throw new AuthorizationException('No tienes permiso para cambiar el estado de esta observación.');
+        }
+
+        if ($newStatus === CommentStatus::Addressed && $comment->google_comment_id) {
+            try {
+                $driveService = resolve(GoogleDriveService::class);
+                $resolved = $driveService->resolveComment($comment->production, $comment->google_comment_id);
+                if (! $resolved) {
+                    throw new \InvalidArgumentException('No se pudo marcar como resuelto en Google Docs. Por favor, reconecta tu cuenta de Google.');
+                }
+            } catch (\Exception $e) {
+                Log::error('Error resolving Google Doc comment on transition to Addressed: '.$e->getMessage());
+                throw new \InvalidArgumentException('No se pudo marcar como resuelto en Google Docs: '.$e->getMessage());
+            }
         }
 
         $previousStatus = $comment->status;

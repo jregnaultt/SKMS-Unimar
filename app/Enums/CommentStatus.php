@@ -52,7 +52,7 @@ enum CommentStatus: string
     public function nextStatuses(): array
     {
         return match ($this) {
-            self::Pending => [self::InProgress],
+            self::Pending => [self::InProgress, self::Addressed],
             self::InProgress => [self::Addressed],
             self::Addressed => [],
         };

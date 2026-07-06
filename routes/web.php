@@ -54,6 +54,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/productions/create', [ProductionController::class, 'create'])->name('productions.create');
     Route::post('/productions/extract', [ProductionController::class, 'extractMetadata'])->name('productions.extract');
+    Route::post('/productions/extract-google', [ProductionController::class, 'extractGoogleMetadata'])->name('productions.extract-google');
     Route::post('/productions', [ProductionController::class, 'store'])->name('productions.store');
     Route::get('/productions/{production}', [ProductionController::class, 'show'])->name('productions.show');
     Route::get('/productions/{production}/edit', [ProductionController::class, 'edit'])->name('productions.edit');

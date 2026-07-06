@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\CommentStatus;
 use App\Models\AcademicProgram;
 use App\Models\AuditLog;
 use App\Models\Comment;
@@ -108,9 +109,10 @@ class DashboardController extends Controller
         if ($activeProduction) {
             $progressData = $this->progressService->getStudentProgress($activeProduction);
 
-            // Fetch top-level comments for active production with replies
+            // Fetch active top-level comments for active production with replies
             $progressData['comments'] = Comment::where('production_id', $activeProduction->id)
                 ->whereNull('parent_id')
+                ->whereIn('status', [CommentStatus::Pending->value, CommentStatus::InProgress->value])
                 ->with(['user', 'replies.user'])
                 ->orderBy('created_at', 'desc')
                 ->get();
@@ -144,10 +146,16 @@ class DashboardController extends Controller
             ->orderBy('scheduled_date', 'asc')
             ->get();
 
+        $suggestedProductions = collect();
+        if ($activeRole === 'Tutor') {
+            $suggestedProductions = $this->claimService->suggestHistoricalProductions($user);
+        }
+
         return [
             'productions' => $productions,
             'defensas' => $defensas,
             'roleLabel' => $activeRole,
+            'suggestedProductions' => $suggestedProductions,
         ];
     }
 

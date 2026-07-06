@@ -51,7 +51,7 @@ services:
             mysql:
                 condition: service_healthy
         restart: unless-stopped
-        command: 'php artisan queue:work --verbose --tries=3 --timeout=90'
+        command: 'php artisan queue:listen --verbose --tries=3 --timeout=90'
     laravel.reverb:
         image: 'sail-8.5/app'
         ports:

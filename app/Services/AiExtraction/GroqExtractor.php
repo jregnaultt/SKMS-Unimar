@@ -47,10 +47,14 @@ class GroqExtractor
             ."abstract: [El resumen de la tesis. Debe ser el resumen textual de la investigación. Excluye dedicatorias, agradecimientos, índices o introducciones]\n"
             ."keywords: [Palabras clave de la investigación separadas por coma]\n\n"
             ."Reglas críticas:\n"
+            ."- Evita incluir el membrete o encabezado institucional de la portada (como 'UNIVERSIDAD DE MARGARITA', 'VICERRECTORADO ACADÉMICO', 'DECANATO DE...', 'TRABAJO DE GRADO', etc.) al inicio del título. El título debe empezar directamente con el título de la investigación. Sin embargo, si el nombre de la universidad o del decanato forma parte del título natural del trabajo al final o en el medio, consérvalo tal cual.\n"
             ."- No uses llaves {}, ni comillas \"\", ni corchetes [] alrededor de las claves ni de los valores.\n"
             ."- No incluyas ningún texto explicativo, preámbulo ni postulado. Empieza directamente con 'title:'.\n"
             ."- No agregues bloques de código de markdown como ```toon o ```text.\n"
             .'- Si un campo no es encontrado, escribe "? No encontrado".';
+
+        Log::info("GroqExtractor: Iniciando extracción con IA usando el modelo: {$this->model}");
+        Log::debug("GroqExtractor: Fragmento de texto enviado a Groq:\n".substr($textFragment, 0, 1500).'...');
 
         try {
             $response = Http::withToken($this->apiKey)
@@ -75,7 +79,10 @@ class GroqExtractor
                 throw new \Exception('La respuesta de Groq no contiene contenido.');
             }
 
-            return trim($content);
+            $trimmedContent = trim($content);
+            Log::info("GroqExtractor: Respuesta TOON recibida de Groq:\n".$trimmedContent);
+
+            return $trimmedContent;
         } catch (\Exception $e) {
             Log::warning('Error en GroqExtractor: '.$e->getMessage());
             throw $e;

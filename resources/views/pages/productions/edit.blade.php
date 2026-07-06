@@ -14,7 +14,7 @@
         isSyncing: false,
         statusMessage: '',
         clientId: '{{ config('services.google.client_id') }}',
-        scope: ['https://www.googleapis.com/auth/drive.readonly'],
+        scope: ['https://www.googleapis.com/auth/drive'],
 
         openGoogleDocsEditor() {
             if (!this.googleDriveFileId) return;

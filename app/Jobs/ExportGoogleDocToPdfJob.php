@@ -41,6 +41,7 @@ class ExportGoogleDocToPdfJob implements ShouldQueue
     {
         try {
             $driveService->exportToPdf($this->production, $this->fileId, $this->accessToken);
+            $driveService->syncComments($this->production, $this->fileId, $this->accessToken);
         } catch (\Exception $e) {
             Log::error('Falla al exportar el documento de Google a PDF: '.$e->getMessage(), [
                 'production_id' => $this->production->id,

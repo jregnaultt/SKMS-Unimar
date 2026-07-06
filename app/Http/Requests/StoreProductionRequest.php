@@ -37,7 +37,7 @@ class StoreProductionRequest extends FormRequest
             'google_drive_file_id' => ['required_without:file_id', 'nullable', 'string'],
             'google_document_title' => ['nullable', 'string', 'max:255'],
             'google_access_token' => ['required_with:google_drive_file_id', 'nullable', 'string'],
-            'action' => ['required', 'in:draft,submit'],
+            'action' => ['required', 'in:draft'],
         ];
     }
 }

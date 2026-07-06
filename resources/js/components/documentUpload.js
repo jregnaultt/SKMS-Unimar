@@ -20,13 +20,23 @@ export default (allResearchLines = []) => ({
         authors: '',
         tutor_id: ''
     },
-    
+
     init() {
         const userId = document.head.querySelector('meta[name="user-id"]')?.content;
         
         if (userId && window.Echo) {
             window.Echo.private(`user.${userId}`)
                 .listen('MetadataExtracted', (e) => {
+                    // Log debug extraction data to the F12 console
+                    if (e.metadata && e.metadata._prompt) {
+                        console.log('%c[SKMS IA - TEXTO EXTRAÍDO ENVIADO A LA IA]', 'background: #2563eb; color: white; padding: 3px 6px; border-radius: 4px; font-weight: bold; font-size: 11px;');
+                        console.log(e.metadata._prompt);
+                    }
+                    if (e.metadata && e.metadata._toon) {
+                        console.log('%c[SKMS IA - RESPUESTA TOON GENERADA POR IA]', 'background: #059669; color: white; padding: 3px 6px; border-radius: 4px; font-weight: bold; font-size: 11px;');
+                        console.log(e.metadata._toon);
+                    }
+
                     this.isUploading = false;
                     this.statusMessage = '¡Metadatos extraídos con éxito!';
                     this.fileId = e.fileId || '';

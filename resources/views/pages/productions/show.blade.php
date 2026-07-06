@@ -61,7 +61,7 @@
         showCookieModal: false,
         pdfLoaded: false,
         clientId: '{{ config('services.google.client_id') }}',
-        scope: ['https://www.googleapis.com/auth/drive.readonly'],
+        scope: ['https://www.googleapis.com/auth/drive'],
         showNewObservation: false,
         compareMode: false,
         compareVersionNumber: '',
@@ -199,7 +199,8 @@
                         this.statusMessage = '';
                         if (response.data && response.data.document_url) {
                             this.activePdfUrl = response.data.document_url;
-                            alert('Sincronización exitosa. El visor de PDF se ha actualizado con tus últimos cambios.');
+                            alert('Sincronización exitosa. El visor y los comentarios se actualizarán con tus últimos cambios.');
+                            window.location.reload();
                         }
                     })
                     .catch(error => {
@@ -298,6 +299,31 @@
                         <li>{{ $error }}</li>
                     @endforeach
                 </ul>
+            </div>
+        @endif
+
+        <!-- Banner de alerta de Cuenta de Google para la sincronización automática -->
+        @if($production->google_drive_file_id && $isAuthor && !auth()->user()->google_refresh_token)
+            <div class="p-4 bg-blue-50 border-l-4 border-[#0d4d98] rounded-r-xl shadow-sm text-[#0d4d98] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div class="flex items-start">
+                    <span class="text-unimar-blue shrink-0 mt-0.5 mr-3">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                        </svg>
+                    </span>
+                    <div>
+                        <h4 class="font-extrabold text-xs uppercase tracking-wider">Sincronización automática de comentarios inactiva</h4>
+                        <p class="text-xs text-slate-600 mt-1 leading-normal font-medium">
+                            Para que los comentarios y correcciones de Google Docs se sincronicen automáticamente en segundo plano (y cuando tus tutores o jurados abran tu tesis), debes conectar tu Cuenta de Google en la barra superior.
+                        </p>
+                    </div>
+                </div>
+                <a href="{{ route('google.redirect') }}" class="inline-flex items-center px-3.5 py-2 bg-unimar-blue hover:bg-unimar-blue/95 text-white font-extrabold text-[10px] rounded-lg shadow-sm hover:shadow uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer shrink-0">
+                    <svg class="w-3.5 h-3.5 mr-1.5" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12.24 10.285V14.4h6.887c-.648 2.41-2.519 4.114-6.887 4.114-4.68 0-8.472-3.84-8.472-8.5s3.792-8.5 8.472-8.5c2.17 0 4.015.772 5.485 2.146l3.007-3.007C18.66.772 15.658 0 12.24 0 5.58 0 0 5.37 0 12s5.58 12 12.24 12c6.96 0 11.57-4.89 11.57-11.79 0-.795-.085-1.57-.24-2.285H12.24z"/>
+                    </svg>
+                    Conectar Cuenta
+                </a>
             </div>
         @endif
 
@@ -850,6 +876,24 @@
 
                     <!-- Observations List -->
                     <div class="p-6 space-y-4">
+                        @if ($errors->has('reply') || $errors->has('status') || $errors->has('comment'))
+                            <div class="p-4 bg-rose-50 border-l-4 border-rose-500 rounded-r-xl shadow-sm text-rose-800 space-y-1 mb-2">
+                                <div class="font-extrabold text-[10px] uppercase tracking-wider mb-2 flex items-center gap-1.5 text-rose-700">
+                                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                                    </svg>
+                                    Error en Acción de Revisión
+                                </div>
+                                <ul class="list-disc list-inside text-xs font-semibold">
+                                    @foreach (['reply', 'status', 'comment'] as $key)
+                                        @if ($errors->has($key))
+                                            <li>{{ $errors->first($key) }}</li>
+                                        @endif
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
+
                         @if ($isReadOnly && $rootComments->isEmpty())
                             <p class="text-xs text-slate-400 italic text-center py-4">
                                 No hay observaciones registradas para esta producción científica.
@@ -898,34 +942,47 @@
                                 @endif
 
                                 <!-- Action buttons inside observations -->
-                                @if (! $isReadOnly)
+                                @if ($isAuthor || $isTutorOrJury)
                                     <div class="px-4 pb-3 flex flex-wrap gap-2">
                                         <!-- Student actions -->
                                         @if ($isAuthor)
-                                            @if ($observation->status->value === 'pending')
-                                                <form action="{{ route('comments.update-status', $observation) }}" method="POST" class="inline">
-                                                    @csrf @method('PATCH')
-                                                    <input type="hidden" name="status" value="in_progress">
-                                                    <button type="submit" class="px-3 py-1 text-[10px] font-bold uppercase bg-amber-50 text-amber-700 border border-amber-350 hover:bg-amber-100 rounded-lg transition tracking-wider">
-                                                        Marcar En Progreso
-                                                    </button>
-                                                </form>
-                                            @elseif ($observation->status->value === 'in_progress')
-                                                <form action="{{ route('comments.update-status', $observation) }}" method="POST" class="inline">
-                                                    @csrf @method('PATCH')
-                                                    <input type="hidden" name="status" value="addressed">
-                                                    <button type="submit" class="px-3 py-1 text-[10px] font-bold uppercase bg-emerald-50 text-emerald-700 border border-emerald-350 hover:bg-emerald-100 rounded-lg transition tracking-wider">
-                                                        Marcar Atendido
-                                                    </button>
-                                                </form>
-                                            @endif
+                                            @if ($observation->google_comment_id && !auth()->user()->google_refresh_token)
+                                                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-200 rounded-lg shadow-sm">
+                                                    ⚠️ Conecta tu Cuenta de Google arriba para responder o resolver esta observación.
+                                                </span>
+                                            @else
+                                                @if ($observation->status->value === 'pending')
+                                                    <form action="{{ route('comments.update-status', $observation) }}" method="POST" class="inline">
+                                                        @csrf @method('PATCH')
+                                                        <input type="hidden" name="status" value="in_progress">
+                                                        <button type="submit" class="px-3 py-1 text-[10px] font-bold uppercase bg-amber-50 text-amber-700 border border-amber-350 hover:bg-amber-100 rounded-lg transition tracking-wider">
+                                                            Marcar En Progreso
+                                                        </button>
+                                                    </form>
+                                                    <form action="{{ route('comments.update-status', $observation) }}" method="POST" class="inline">
+                                                        @csrf @method('PATCH')
+                                                        <input type="hidden" name="status" value="addressed">
+                                                        <button type="submit" class="px-3 py-1 text-[10px] font-bold uppercase bg-emerald-50 text-emerald-700 border border-emerald-350 hover:bg-emerald-100 rounded-lg transition tracking-wider">
+                                                            Marcar Atendido
+                                                        </button>
+                                                    </form>
+                                                @elseif ($observation->status->value === 'in_progress')
+                                                    <form action="{{ route('comments.update-status', $observation) }}" method="POST" class="inline">
+                                                        @csrf @method('PATCH')
+                                                        <input type="hidden" name="status" value="addressed">
+                                                        <button type="submit" class="px-3 py-1 text-[10px] font-bold uppercase bg-emerald-50 text-emerald-700 border border-emerald-350 hover:bg-emerald-100 rounded-lg transition tracking-wider">
+                                                            Marcar Atendido
+                                                        </button>
+                                                    </form>
+                                                @endif
 
-                                            @if (! $reply && in_array($observation->status->value, ['pending', 'in_progress']))
-                                                <button type="button"
-                                                        @click="showReplyModal = true; replyToId = {{ $observation->id }}; replyToRef = '{{ addslashes($observation->reference_section ?? 'Observación') }}'"
-                                                        class="px-3 py-1 text-[10px] font-bold uppercase bg-blue-50 text-blue-700 border border-blue-200 rounded-lg hover:bg-blue-100 transition tracking-wider">
-                                                    Responder
-                                                </button>
+                                                @if (! $reply && in_array($observation->status->value, ['pending', 'in_progress']))
+                                                    <button type="button"
+                                                            @click="showReplyModal = true; replyToId = {{ $observation->id }}; replyToRef = '{{ addslashes($observation->reference_section ?? 'Observación') }}'"
+                                                            class="px-3 py-1 text-[10px] font-bold uppercase bg-blue-50 text-blue-700 border border-blue-200 rounded-lg hover:bg-blue-100 transition tracking-wider">
+                                                        Responder
+                                                    </button>
+                                                @endif
                                             @endif
                                         @endif
 
@@ -952,11 +1009,7 @@
                                     </div>
                                 @endif
 
-                                @if ($isReadOnly)
-                                    <div class="px-4 pb-3">
-                                        <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider italic">Solo lectura — producción {{ $production->workflow_state === 'published' ? 'publicada' : 'cerrada' }}</span>
-                                    </div>
-                                @endif
+
                             </div>
                         @endforeach
 

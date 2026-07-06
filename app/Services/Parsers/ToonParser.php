@@ -17,6 +17,9 @@ class ToonParser
      */
     public function parse(string $toonText): array
     {
+        // Strip <think>...</think> tags if present to support reasoning models safely
+        $toonText = preg_replace('/<think>.*?<\/think>/is', '', $toonText);
+
         $lines = explode("\n", $toonText);
         $result = [
             'title' => null,

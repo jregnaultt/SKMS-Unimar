@@ -256,4 +256,62 @@ class ProductionClaimTest extends TestCase
             'status' => 'pending',
         ]);
     }
+
+    public function test_student_cannot_claim_tutorship(): void
+    {
+        Role::firstOrCreate(['name' => 'Tutor']);
+
+        $student = User::factory()->create();
+        $student->assignRole('Estudiante');
+
+        $prod = Production::create([
+            'uuid' => (string) Str::uuid(),
+            'title' => 'Tesis Grado',
+            'tutor' => $student->name,
+            'workflow_state' => 'published',
+        ]);
+
+        $response = $this->actingAs($student)->post(route('claims.store'), [
+            'production_id' => $prod->id,
+            'role' => 'tutor',
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('error', 'Solo los tutores pueden reclamar la tutoría de un trabajo.');
+
+        $this->assertDatabaseMissing('production_claims', [
+            'production_id' => $prod->id,
+            'user_id' => $student->id,
+            'role' => 'tutor',
+        ]);
+    }
+
+    public function test_tutor_cannot_claim_authorship(): void
+    {
+        Role::firstOrCreate(['name' => 'Tutor']);
+
+        $tutor = User::factory()->create();
+        $tutor->assignRole('Tutor');
+
+        $prod = Production::create([
+            'uuid' => (string) Str::uuid(),
+            'title' => 'Tesis Grado',
+            'authors' => $tutor->name,
+            'workflow_state' => 'published',
+        ]);
+
+        $response = $this->actingAs($tutor)->post(route('claims.store'), [
+            'production_id' => $prod->id,
+            'role' => 'author',
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('error', 'Solo los estudiantes pueden reclamar la autoría de un trabajo.');
+
+        $this->assertDatabaseMissing('production_claims', [
+            'production_id' => $prod->id,
+            'user_id' => $tutor->id,
+            'role' => 'author',
+        ]);
+    }
 }

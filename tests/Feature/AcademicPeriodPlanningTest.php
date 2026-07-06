@@ -291,6 +291,39 @@ class AcademicPeriodPlanningTest extends TestCase
             'tutor_id' => $tutor->id,
         ]);
 
+        // Manually create productions for both students since they are no longer auto-created by Enrollment observer
+        $program = AcademicProgram::first();
+        $line = ResearchLine::first();
+        $type = ProductionType::first();
+
+        $productionA = Production::create([
+            'uuid' => (string) Str::uuid(),
+            'title' => 'Tesis A',
+            'abstract' => 'Resumen A',
+            'academic_program_id' => $program->id,
+            'research_line_id' => $line->id,
+            'production_type_id' => $type->id,
+            'academic_period_id' => $this->period->id,
+            'subject_id' => $this->subject->id,
+            'workflow_state' => 'draft',
+        ]);
+        $productionA->users()->attach($studentA->id, ['role' => 'author']);
+        $productionA->users()->attach($tutor->id, ['role' => 'tutor']);
+
+        $productionB = Production::create([
+            'uuid' => (string) Str::uuid(),
+            'title' => 'Tesis B',
+            'abstract' => 'Resumen B',
+            'academic_program_id' => $program->id,
+            'research_line_id' => $line->id,
+            'production_type_id' => $type->id,
+            'academic_period_id' => $this->period->id,
+            'subject_id' => $this->subject->id,
+            'workflow_state' => 'draft',
+        ]);
+        $productionB->users()->attach($studentB->id, ['role' => 'author']);
+        $productionB->users()->attach($tutor->id, ['role' => 'tutor']);
+
         // Create period milestone for the tutor group, excluding Student A
         $response = $this->actingAs($this->coordinator)
             ->post(route('admin.periods.milestones.store', $this->period), [

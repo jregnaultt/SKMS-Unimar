@@ -202,9 +202,9 @@ class FeedbackCommentsTest extends TestCase
             ->assertSessionHasErrors('status');
     }
 
-    // ─── Scenario 4: Invalid State Transitions ────────────────────────────────
+    // ─── Scenario 4: Direct State Transitions ─────────────────────────────────
 
-    public function test_cannot_skip_pending_directly_to_addressed(): void
+    public function test_can_transition_pending_directly_to_addressed(): void
     {
         $comment = Comment::factory()->pending()->create([
             'production_id' => $this->production->id,
@@ -214,9 +214,9 @@ class FeedbackCommentsTest extends TestCase
         $response = $this->actingAs($this->student)
             ->patch(route('comments.update-status', $comment), ['status' => 'addressed']);
 
-        // Should redirect with an error (invalid transition)
         $response->assertRedirect();
-        $response->assertSessionHasErrors();
+        $response->assertSessionHasNoErrors();
+        $this->assertEquals('addressed', $comment->fresh()->status->value);
     }
 
     // ─── Scenario 5: DB Notifications ─────────────────────────────────────────

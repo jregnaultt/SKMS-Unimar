@@ -52,14 +52,6 @@
                                     Reclamar Autoría
                                 </button>
                             </form>
-                            <form action="{{ route('claims.store') }}" method="POST" onsubmit="return confirm('¿Reclamar rol de tutor de este trabajo?')">
-                                @csrf
-                                <input type="hidden" name="production_id" value="{{ $prod->id }}">
-                                <input type="hidden" name="role" value="tutor">
-                                <button type="submit" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-sm font-bold transition">
-                                    Reclamar Tutoría
-                                </button>
-                            </form>
                         </div>
                     </div>
                 @endforeach
@@ -221,9 +213,9 @@
                                                 @csrf
                                                 @method('PATCH')
                                                 <select name="status" onchange="this.form.submit()" class="text-sm font-bold rounded-lg border-slate-200 py-1.5 px-3 pr-8 text-slate-700 focus:ring-[#0d4d98] focus:border-[#0d4d98] cursor-pointer bg-white">
-                                                    <option value="pending" {{ $comment->status === 'pending' ? 'selected' : '' }}>Pendiente</option>
-                                                    <option value="in_progress" {{ $comment->status === 'in_progress' ? 'selected' : '' }}>En Progreso</option>
-                                                    <option value="addressed" {{ $comment->status === 'addressed' ? 'selected' : '' }}>Subsanado</option>
+                                                    <option value="pending" {{ $comment->status->value === 'pending' ? 'selected' : '' }}>Pendiente</option>
+                                                    <option value="in_progress" {{ $comment->status->value === 'in_progress' ? 'selected' : '' }}>En Progreso</option>
+                                                    <option value="addressed" {{ $comment->status->value === 'addressed' ? 'selected' : '' }}>Subsanado</option>
                                                 </select>
                                             </form>
                                         </div>

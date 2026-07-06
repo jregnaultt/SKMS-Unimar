@@ -176,18 +176,21 @@ class CommentServiceTest extends TestCase
         ]);
     }
 
-    // ── Case 10: Student cannot skip pending → addressed ─────────────────────
+    // ── Case 10: Student can transition pending → addressed ──────────────────
 
-    public function test_student_cannot_skip_directly_to_addressed(): void
+    public function test_student_can_transition_pending_directly_to_addressed(): void
     {
         $comment = Comment::factory()->pending()->create([
             'production_id' => $this->production->id,
             'user_id' => $this->tutor->id,
         ]);
 
-        $this->expectException(\InvalidArgumentException::class);
-
         $this->service->changeStatus($comment, $this->student, CommentStatus::Addressed);
+
+        $this->assertDatabaseHas('comments', [
+            'id' => $comment->id,
+            'status' => CommentStatus::Addressed->value,
+        ]);
     }
 
     // ── Case 11: Student can mark in_progress → addressed ────────────────────

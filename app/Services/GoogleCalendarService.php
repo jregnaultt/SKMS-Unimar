@@ -40,7 +40,8 @@ class GoogleCalendarService
         $client->setAccessToken([
             'access_token' => $user->google_access_token,
             'refresh_token' => $user->google_refresh_token,
-            'expires_in' => $user->google_token_expires_at ? $user->google_token_expires_at->diffInSeconds(now(), false) : 0,
+            'expires_in' => $user->google_token_expires_at ? now()->diffInSeconds($user->google_token_expires_at, false) : 0,
+            'created' => time(),
         ]);
 
         if ($client->isAccessTokenExpired()) {

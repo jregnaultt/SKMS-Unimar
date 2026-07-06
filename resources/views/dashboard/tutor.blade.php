@@ -2,9 +2,56 @@
     $productions = $data['productions'] ?? collect();
     $defensas = $data['defensas'] ?? collect();
     $roleLabel = $data['roleLabel'] ?? 'Evaluador';
+    $suggestedProductions = $data['suggestedProductions'] ?? collect();
 @endphp
 
 <div class="space-y-5">
+    <!-- Suggested Productions (Sugerencias de vinculación) -->
+    @if ($suggestedProductions->isNotEmpty())
+        <div class="bg-gradient-to-r from-blue-500/10 via-indigo-500/5 to-transparent border border-blue-100 rounded-2xl p-4 md:p-5 shadow-sm">
+            <div class="flex items-center space-x-2.5 mb-4">
+                <span class="flex h-2.5 w-2.5 relative">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-blue-500"></span>
+                </span>
+                <h3 class="text-base font-bold text-slate-800">Trabajos científicos sugeridos</h3>
+            </div>
+            <p class="text-sm text-slate-600 mb-4">
+                Hemos encontrado tesis históricas que podrían ser de tu tutoría. Reclama tu vinculación oficial para que aparezcan en tu panel de control.
+            </p>
+            <div class="grid gap-4 md:grid-cols-2">
+                @foreach ($suggestedProductions as $prod)
+                    <div class="bg-white border border-slate-100 rounded-xl p-5 shadow-[0_4px_20px_rgba(13,77,152,0.02)] flex flex-col justify-between hover:-translate-y-0.5 hover:shadow-md transition-all duration-200">
+                        <div>
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="px-2.5 py-0.5 text-sm font-bold rounded-full bg-slate-100 text-slate-700 uppercase tracking-wider">
+                                    {{ $prod->productionType->name ?? 'Tesis' }}
+                                </span>
+                                <span class="text-sm text-slate-550 font-semibold">
+                                    {{ $prod->academicPeriod->name ?? '' }}
+                                </span>
+                            </div>
+                            <h4 class="text-sm font-bold text-slate-800 line-clamp-2 mb-3">{{ $prod->title }}</h4>
+                            <div class="space-y-1 text-sm text-slate-600">
+                                <p>Autores: <strong class="text-slate-700">{{ $prod->authors }}</strong></p>
+                                <p>Tutor: <strong class="text-slate-700">{{ $prod->tutor }}</strong></p>
+                            </div>
+                        </div>
+                        <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-end space-x-2">
+                            <form action="{{ route('claims.store') }}" method="POST" onsubmit="return confirm('¿Reclamar rol de tutor de este trabajo?')">
+                                @csrf
+                                <input type="hidden" name="production_id" value="{{ $prod->id }}">
+                                <input type="hidden" name="role" value="tutor">
+                                <button type="submit" class="px-4 py-2.5 bg-[#0d4d98] hover:bg-[#0b3d78] text-white rounded-lg text-sm font-bold transition">
+                                    Reclamar Tutoría
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    @endif
     <!-- Header Summary Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <!-- Total Assigned -->

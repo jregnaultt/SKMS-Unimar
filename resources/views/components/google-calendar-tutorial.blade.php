@@ -54,7 +54,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                         </svg>
                     </span>
-                    <h3 class="text-lg font-bold text-slate-800">Sincronizar Google Calendar</h3>
+                    <h3 class="text-lg font-bold text-slate-800">Conectar Cuenta de Google</h3>
                 </div>
                 
                 <!-- Indicador visual (Pasos) -->
@@ -70,14 +70,14 @@
                 <!-- SVG animado de Conexión -->
                 <div class="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center relative shadow-inner">
                     <div class="absolute inset-0 bg-unimar-blue/5 rounded-full animate-ping"></div>
-                    <!-- Icono SKMS y Google Calendar -->
+                    <!-- Icono SKMS y Google Services -->
                     <svg class="w-14 h-14 text-unimar-blue" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-.778.099-1.533.284-2.253"/>
                     </svg>
                 </div>
-                <h4 class="text-base font-bold text-slate-800">¿Por qué es importante sincronizar?</h4>
+                <h4 class="text-base font-bold text-slate-800">¿Por qué conectar tu cuenta?</h4>
                 <p class="text-sm text-slate-500 leading-relaxed max-w-sm">
-                    Al conectar tu cuenta de Google Calendar, todas las entregas académicas, hitos y fechas de defensa se guardarán automáticamente en tu calendario. Además, invitará a tutores y jurados al instante.
+                    Al conectar tu cuenta de Google, agendaremos tus entregas y defensas en tu **Google Calendar** e invitaremos a tus tutores. También activaremos la **sincronización automática de comentarios y observaciones** directamente desde tus documentos vinculados de **Google Docs**.
                 </p>
                 <div class="w-full bg-slate-50 p-3 rounded-xl border border-slate-100 flex items-center space-x-2 text-left">
                     <span class="text-emerald-500 shrink-0">
@@ -85,7 +85,7 @@
                             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                         </svg>
                     </span>
-                    <span class="text-xs text-slate-600 font-semibold">¡Sincronización Inteligente! Si tú no tienes cuenta, el hito se sincroniza a través del tutor.</span>
+                    <span class="text-xs text-slate-600 font-semibold">¡Todo automático! Olvídate de copiar observaciones o agendar citas a mano.</span>
                 </div>
             </div>
 
@@ -93,7 +93,7 @@
             <div x-show="currentStep === 2" class="p-6 flex-1 flex flex-col items-center text-center space-y-4">
                 <h4 class="text-base font-bold text-slate-800">Paso 2: Conceder los permisos de Google</h4>
                 <p class="text-sm text-slate-500 leading-relaxed max-w-sm">
-                    Durante la vinculación de la cuenta, Google te solicitará permiso para gestionar tus eventos del calendario de forma segura.
+                    Durante la vinculación de la cuenta, Google te solicitará permiso para gestionar tu calendario y leer tus documentos.
                 </p>
                 
                 <!-- Mockup CSS/SVG de la pantalla de Google -->
@@ -114,12 +114,21 @@
                         </div>
                         <p class="text-[10px] text-slate-500">SKMS Unimar quiere acceder a tu Cuenta de Google:</p>
                         
-                        <!-- Permiso Caja -->
+                        <!-- Permiso Caja 1 -->
                         <div class="p-2 bg-blue-50/50 border border-blue-100 rounded-lg flex items-start space-x-2">
                             <input type="checkbox" checked disabled class="mt-0.5 rounded text-blue-600 focus:ring-0">
                             <div class="space-y-0.5">
                                 <p class="font-bold text-slate-800 text-[10px]">Ver y editar eventos de tu calendario</p>
-                                <p class="text-[9px] text-slate-400 leading-tight">Obligatorio para que la app agende las entregas automáticamente.</p>
+                                <p class="text-[9px] text-slate-400 leading-tight">Agendar las entregas automáticamente.</p>
+                            </div>
+                        </div>
+
+                        <!-- Permiso Caja 2 -->
+                        <div class="p-2 bg-blue-50/50 border border-blue-100 rounded-lg flex items-start space-x-2">
+                            <input type="checkbox" checked disabled class="mt-0.5 rounded text-blue-600 focus:ring-0">
+                            <div class="space-y-0.5">
+                                <p class="font-bold text-slate-800 text-[10px]">Ver tus archivos de Google Drive</p>
+                                <p class="text-[9px] text-slate-400 leading-tight">Extraer tus tesis y comentarios de Google Docs.</p>
                             </div>
                         </div>
 

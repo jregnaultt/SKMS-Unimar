@@ -43,6 +43,7 @@ class OllamaExtractor
             ."abstract: [El resumen de la tesis. Debe ser el resumen textual de la investigación. Excluye dedicatorias, agradecimientos, índices o introducciones]\n"
             ."keywords: [Palabras clave de la investigación separadas por coma]\n\n"
             ."Reglas críticas:\n"
+            ."- Evita incluir el membrete o encabezado institucional de la portada (como 'UNIVERSIDAD DE MARGARITA', 'VICERRECTORADO ACADÉMICO', 'DECANATO DE...', 'TRABAJO DE GRADO', etc.) al inicio del título. El título debe empezar directamente con el título de la investigación. Sin embargo, si el nombre de la universidad o del decanato forma parte del título natural del trabajo al final o en el medio, consérvalo tal cual.\n"
             ."- No uses llaves {}, ni comillas \"\", ni corchetes [] alrededor de las claves ni de los valores.\n"
             ."- No incluyas ningún texto explicativo, preámbulo ni postulado. Empieza directamente con 'title:'.\n"
             ."- No agregues bloques de código de markdown como ```toon o ```text.\n"

@@ -23,6 +23,7 @@ use App\Services\GoogleDriveService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -123,8 +124,8 @@ class ProductionController extends Controller
                     'production_type_id' => $request->input('production_type_id'),
                     'academic_period_id' => $request->input('academic_period_id'),
                     'subject_id' => $request->input('subject_id'),
-                    'workflow_state' => $request->input('action') === 'submit' ? 'under_tutor_review' : 'draft',
-                    'submission_date' => $request->input('action') === 'submit' ? now() : null,
+                    'workflow_state' => 'draft',
+                    'submission_date' => null,
                     'google_drive_file_id' => $googleDriveFileId,
                     'google_document_title' => $googleDocumentTitle,
                 ]);
@@ -194,9 +195,7 @@ class ProductionController extends Controller
                 }
             });
 
-            $statusMessage = $request->input('action') === 'submit'
-                ? '¡Producción científica guardada y enviada a revisión con éxito!'
-                : '¡Producción científica guardada como borrador con éxito!';
+            $statusMessage = '¡Producción científica guardada como borrador con éxito!';
 
             return redirect()->route('dashboard')->with('success', $statusMessage);
         } catch (\Exception $e) {
@@ -227,6 +226,48 @@ class ProductionController extends Controller
             'status' => 'processing',
             'file_id' => $fileId,
         ]);
+    }
+
+    public function extractGoogleMetadata(Request $request)
+    {
+        $request->validate([
+            'google_drive_file_id' => 'required|string',
+            'google_access_token' => 'required|string',
+        ]);
+
+        $fileId = $request->input('google_drive_file_id');
+        $accessToken = $request->input('google_access_token');
+
+        $tempFileId = Str::uuid()->toString();
+        $tempPath = "temp_pdfs/{$tempFileId}.pdf";
+
+        try {
+            $response = Http::withToken($accessToken)
+                ->get("https://www.googleapis.com/drive/v3/files/{$fileId}/export", [
+                    'mimeType' => 'application/pdf',
+                ]);
+
+            if (! $response->successful()) {
+                Log::error('Falla al exportar Google Doc para extracción: '.$response->body());
+
+                return response()->json(['error' => 'No se pudo descargar el documento de Google Docs.'], 500);
+            }
+
+            Storage::disk('local')->put($tempPath, $response->body());
+            $fullPath = Storage::disk('local')->path($tempPath);
+
+            // Pass true to deleteAfterExtraction so the temp PDF gets deleted once extraction finishes
+            ExtractMetadataJob::dispatch($request->user()->id, $fullPath, $tempFileId, true);
+
+            return response()->json([
+                'status' => 'processing',
+                'file_id' => $tempFileId,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error extractGoogleMetadata: '.$e->getMessage());
+
+            return response()->json(['error' => 'Falla al procesar el documento: '.$e->getMessage()], 500);
+        }
     }
 
     public function show(Production $production)
@@ -441,6 +482,7 @@ class ProductionController extends Controller
 
             $driveService = new GoogleDriveService;
             $driveService->exportToPdf($production, $production->google_drive_file_id, $request->input('google_access_token'));
+            $driveService->syncComments($production, $production->google_drive_file_id, $request->input('google_access_token'));
 
             return response()->json([
                 'status' => 'success',
