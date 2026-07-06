@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\UpdateUserRoleRequest;
 use App\Models\User;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -52,5 +53,40 @@ class AdminUserController extends Controller
 
         return redirect()->route('admin.users.index')
             ->with('success', "Roles del usuario {$user->name} actualizados correctamente.");
+    }
+
+    /**
+     * Search users by role and query term for autocomplete.
+     */
+    public function search(Request $request): JsonResponse
+    {
+        $query = $request->input('q');
+        $role = $request->input('role');
+
+        $usersQuery = User::query();
+
+        if ($role) {
+            $usersQuery->role($role);
+        }
+
+        if (! empty($query)) {
+            $usersQuery->where(function ($q) use ($query) {
+                $q->where('name', 'like', "%{$query}%")
+                    ->orWhere('email', 'like', "%{$query}%")
+                    ->orWhere('cedula', 'like', "%{$query}%");
+            });
+        }
+
+        $users = $usersQuery->limit(10)
+            ->get(['id', 'name', 'email', 'cedula']);
+
+        $results = $users->map(function ($user) {
+            return [
+                'id' => $user->id,
+                'text' => $user->name,
+            ];
+        });
+
+        return response()->json($results);
     }
 }

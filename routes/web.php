@@ -110,6 +110,7 @@ Route::middleware('auth')->group(function () {
         Route::post('periods/{period}/milestones', [AdminAcademicPeriodController::class, 'storeMilestone'])->name('periods.milestones.store');
         Route::delete('periods/{period}/milestones/{milestone}', [AdminAcademicPeriodController::class, 'destroyMilestone'])->name('periods.milestones.destroy');
         Route::get('periods/{period}/students-under-tutor', [AdminAcademicPeriodController::class, 'getStudentsUnderTutor'])->name('periods.students-under-tutor');
+        Route::get('users/search', [AdminUserController::class, 'search'])->name('users.search');
         Route::resource('users', AdminUserController::class)->only(['index', 'edit', 'update']);
         Route::get('audit-logs', [AdminAuditLogController::class, 'index'])->name('audit-logs.index');
         Route::get('audit-logs/{auditLog}', [AdminAuditLogController::class, 'show'])->name('audit-logs.show');

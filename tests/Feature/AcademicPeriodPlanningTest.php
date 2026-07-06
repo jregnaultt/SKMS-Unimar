@@ -14,6 +14,7 @@ use App\Models\SubjectTutorPeriod;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
@@ -330,6 +331,124 @@ class AcademicPeriodPlanningTest extends TestCase
         $this->assertDatabaseHas('production_milestones', [
             'production_id' => $productionB->id,
             'period_milestone_id' => $pm->id,
+        ]);
+    }
+
+    public function test_student_production_creation_prepopulates_from_previous_approved_production(): void
+    {
+        // 1. Create subjects
+        $seminario = Subject::create(['name' => 'SEMINARIO METODOLÓGICO DE INVESTIGACIÓN', 'code' => 'SMI1004341']);
+        $trabajo1 = Subject::create(['name' => 'Trabajo de Investigación I', 'code' => 'TRI1106341']);
+
+        // 2. Enroll student in Seminario and create an approved production
+        Enrollment::create([
+            'academic_period_id' => $this->period->id,
+            'student_id' => $this->student->id,
+            'subject_id' => $seminario->id,
+            'tutor_id' => $this->tutor->id,
+        ]);
+
+        $prevProd = Production::create([
+            'uuid' => (string) Str::uuid(),
+            'title' => 'Proyecto Base de Inteligencia Artificial',
+            'abstract' => 'Este es el abstract inicial de seminario.',
+            'authors' => $this->student->name,
+            'tutor' => $this->tutor->name,
+            'academic_program_id' => AcademicProgram::first()->id,
+            'research_line_id' => ResearchLine::first()->id,
+            'production_type_id' => ProductionType::first()->id,
+            'academic_period_id' => $this->period->id,
+            'subject_id' => $seminario->id,
+            'workflow_state' => 'approved',
+        ]);
+        $prevProd->users()->attach($this->student->id, ['role' => 'author']);
+        $prevProd->users()->attach($this->tutor->id, ['role' => 'tutor']);
+
+        // 3. Remove seminario enrollment and enroll student in Trabajo I
+        Enrollment::where('student_id', $this->student->id)->delete();
+
+        SubjectTutorPeriod::create([
+            'academic_period_id' => $this->period->id,
+            'subject_id' => $trabajo1->id,
+            'tutor_id' => $this->tutor->id,
+        ]);
+
+        Enrollment::create([
+            'academic_period_id' => $this->period->id,
+            'student_id' => $this->student->id,
+            'subject_id' => $trabajo1->id,
+            'tutor_id' => $this->tutor->id,
+        ]);
+
+        // 4. Request the create form and verify prepopulated fields are present
+        $response = $this->actingAs($this->student)->get(route('productions.create'));
+
+        $response->assertStatus(200);
+        $response->assertSee('Proyecto Base de Inteligencia Artificial');
+        $response->assertSee('Este es el abstract inicial de seminario.');
+    }
+
+    public function test_student_production_creation_shows_continuity_warning_for_trabajo_ii(): void
+    {
+        // 1. Create subjects
+        $trabajo2 = Subject::create(['name' => 'Trabajo de Investigación II', 'code' => 'TRI1206441']);
+
+        // 2. Enroll student in Trabajo II
+        Enrollment::create([
+            'academic_period_id' => $this->period->id,
+            'student_id' => $this->student->id,
+            'subject_id' => $trabajo2->id,
+            'tutor_id' => $this->tutor->id,
+        ]);
+
+        // 3. Request form and see warning
+        $response = $this->actingAs($this->student)->get(route('productions.create'));
+
+        $response->assertStatus(200);
+        $response->assertSee('Advertencia de Continuidad');
+        $response->assertSee('Estás registrando tu proyecto para <strong>Trabajo de Investigación II</strong>', false);
+    }
+
+    public function test_coordinator_can_search_users_by_role(): void
+    {
+        $studentX = User::factory()->create([
+            'name' => 'Alfredo Estudiante',
+            'email' => 'alfredo.student@example.com',
+            'cedula' => 'V-99999991',
+        ]);
+        $studentX->assignRole('Estudiante');
+
+        $tutorY = User::factory()->create([
+            'name' => 'Bernardo Tutor',
+            'email' => 'bernardo.tutor@example.com',
+            'cedula' => 'V-99999992',
+        ]);
+        $tutorY->assignRole('Tutor');
+
+        // 1. Search without query returns default users (up to 10)
+        $response = $this->actingAs($this->coordinator)
+            ->get(route('admin.users.search', ['q' => '']));
+        $response->assertStatus(200);
+        $response->assertJsonCount(5);
+
+        // 2. Search by name with role filter (Tutor)
+        $response = $this->actingAs($this->coordinator)
+            ->get(route('admin.users.search', ['q' => 'Bernardo', 'role' => 'Tutor']));
+        $response->assertStatus(200);
+        $response->assertJsonCount(1);
+        $response->assertJsonFragment([
+            'id' => $tutorY->id,
+            'text' => 'Bernardo Tutor',
+        ]);
+
+        // 3. Search by name with role filter (Estudiante)
+        $response = $this->actingAs($this->coordinator)
+            ->get(route('admin.users.search', ['q' => 'Alfredo', 'role' => 'Estudiante']));
+        $response->assertStatus(200);
+        $response->assertJsonCount(1);
+        $response->assertJsonFragment([
+            'id' => $studentX->id,
+            'text' => 'Alfredo Estudiante',
         ]);
     }
 }

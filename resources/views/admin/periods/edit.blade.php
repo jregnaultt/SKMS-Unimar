@@ -147,12 +147,11 @@
                                 </div>
                                 <div>
                                     <label for="tutor_id" class="block text-base font-bold text-slate-600 uppercase tracking-wider mb-1.5">Tutor Académico</label>
-                                    <select name="tutor_id" id="tutor_id" required class="block w-full rounded-xl border-slate-200 bg-white text-slate-700 text-base py-2.5 px-3 focus:outline-none focus:ring-2 focus:ring-unimar-blue/50 h-11">
-                                        <option value="">Selecciona tutor...</option>
-                                        @foreach($tutors as $tut)
-                                            <option value="{{ $tut->id }}">{{ $tut->name }} ({{ $tut->email }})</option>
-                                        @endforeach
-                                    </select>
+                                    <x-advanced-select 
+                                        name="tutor_id" 
+                                        placeholder="Seleccione tutor..." 
+                                        endpoint="/admin/users/search?role=Tutor"
+                                    />
                                 </div>
                                 <button type="submit" class="w-full mt-4 py-3 bg-unimar-blue hover:bg-unimar-blue/95 text-white font-bold rounded-xl text-base uppercase tracking-wider transition shadow-base h-11 inline-flex items-center justify-center cursor-pointer">
                                     Habilitar Tutor
@@ -228,12 +227,11 @@
                                 @csrf
                                 <div>
                                     <label for="student_id" class="block text-base font-bold text-slate-600 uppercase tracking-wider mb-1.5">Estudiante</label>
-                                    <select name="student_id" id="student_id" required class="block w-full rounded-xl border-slate-200 bg-white text-slate-700 text-base py-2.5 px-3 focus:outline-none focus:ring-2 focus:ring-unimar-blue/50 h-11">
-                                        <option value="">Selecciona estudiante...</option>
-                                        @foreach($students as $stud)
-                                            <option value="{{ $stud->id }}">{{ $stud->name }} ({{ $stud->email }})</option>
-                                        @endforeach
-                                    </select>
+                                    <x-advanced-select 
+                                        name="student_id" 
+                                        placeholder="Seleccione estudiante..." 
+                                        endpoint="/admin/users/search?role=Estudiante"
+                                    />
                                 </div>
                                 <div>
                                     <label for="enrollment_subject_id" class="block text-base font-bold text-slate-600 uppercase tracking-wider mb-1.5">Materia (Unidad Curricular)</label>
@@ -246,12 +244,11 @@
                                 </div>
                                 <div>
                                     <label for="enrollment_tutor_id" class="block text-base font-bold text-slate-600 uppercase tracking-wider mb-1.5">Tutor Asignado</label>
-                                    <select name="tutor_id" id="enrollment_tutor_id" class="block w-full rounded-xl border-slate-200 bg-white text-slate-700 text-base py-2.5 px-3 focus:outline-none focus:ring-2 focus:ring-unimar-blue/50 h-11">
-                                        <option value="">-- Selecciona Tutor Habilitado --</option>
-                                        <template x-for="tInfo in filteredTutors" :key="tInfo.id">
-                                            <option :value="tInfo.tutor.id" x-text="tInfo.tutor.name"></option>
-                                        </template>
-                                    </select>
+                                    <x-advanced-select 
+                                        name="tutor_id" 
+                                        placeholder="-- Selecciona Tutor Habilitado --"
+                                        optionsWatch="filteredTutors"
+                                    />
                                     <p class="text-base text-slate-500 font-semibold mt-1">Solo se muestran los tutores habilitados previamente en esta materia.</p>
                                 </div>
                                 <button type="submit" class="w-full mt-4 py-3 bg-unimar-blue hover:bg-unimar-blue/95 text-white font-bold rounded-xl text-base uppercase tracking-wider transition shadow-base h-11 inline-flex items-center justify-center cursor-pointer">
@@ -373,12 +370,14 @@
                                 </div>
                                 <div>
                                     <label for="milestone_tutor_id" class="block text-base font-bold text-slate-600 uppercase tracking-wider mb-1.5">Grupo de Tutor (Opcional)</label>
-                                    <select name="tutor_id" id="milestone_tutor_id" x-model="tutorId" @change="fetchTutorStudents()" :disabled="selectedId !== ''" :class="selectedId !== '' ? 'bg-slate-100 cursor-not-allowed opacity-60' : 'bg-white'" class="block w-full rounded-xl border-slate-200 text-slate-700 text-base py-2.5 px-3 focus:outline-none focus:ring-2 focus:ring-unimar-blue/50 h-11">
-                                        <option value="">-- Todos los Estudiantes (Global) --</option>
-                                        @foreach($tutors as $tut)
-                                            <option value="{{ $tut->id }}">Grupo de: {{ $tut->name }}</option>
-                                        @endforeach
-                                    </select>
+                                    <div @change="tutorId = $event.detail.value.length ? $event.detail.value[0].id : ''; fetchTutorStudents()">
+                                        <x-advanced-select 
+                                            name="tutor_id" 
+                                            placeholder="Todos los Estudiantes (Global)..." 
+                                            endpoint="/admin/users/search?role=Tutor"
+                                            disabled="selectedId !== ''"
+                                        />
+                                    </div>
                                     <p class="text-base text-slate-500 font-semibold mt-1">Si seleccionas un tutor, esta fecha límite aplicará solo a sus alumnos tutorados.</p>
                                 </div>
 
@@ -417,102 +416,14 @@
                                     <span>Buscando alumnos tutorados...</span>
                                 </div>
 
-                                <div>
-                                    <div x-data="{
-                                        search: '',
-                                        results: [],
-                                        isOpen: false,
-                                        loading: false,
-                                        async fetchResults() {
-                                            if (this.search.length < 2) {
-                                                this.results = [];
-                                                return;
-                                            }
-                                            this.loading = true;
-                                            try {
-                                                let res = await fetch(`/admin/students/search?q=${encodeURIComponent(this.search)}`);
-                                                this.results = await res.json();
-                                            } catch (e) {
-                                                console.error(e);
-                                            } finally {
-                                                this.loading = false;
-                                            }
-                                        },
-                                        selectStudent(id, name) {
-                                            selectedId = id;
-                                            selectedName = name;
-                                            this.search = name;
-                                            this.isOpen = false;
-                                        },
-                                        clearSelection() {
-                                            selectedId = '';
-                                            selectedName = '';
-                                            this.search = '';
-                                            this.results = [];
-                                        }
-                                    }"
-                                    @click.outside="isOpen = false"
-                                    class="relative">
-                                        <label class="block text-base font-bold text-slate-600 uppercase tracking-wider mb-1.5">Estudiante Específico (Opcional)</label>
-
-                                        <div class="relative">
-                                            <input type="text"
-                                                   x-model="search"
-                                                   @input.debounce.300ms="fetchResults(); isOpen = true"
-                                                   @focus="isOpen = true"
-                                                   placeholder="Buscar por Nombre, Cédula o Correo..."
-                                                   class="block w-full rounded-xl border border-slate-200 bg-white text-slate-700 text-base py-2.5 px-3 pr-10 focus:outline-none focus:ring-2 focus:ring-unimar-blue/50 h-11"
-                                                   :readonly="selectedId !== ''"
-                                                   :disabled="tutorId !== ''"
-                                                   :class="tutorId !== '' ? 'bg-slate-100 cursor-not-allowed opacity-60' : 'bg-white'" />
-
-                                            <!-- Botón para Limpiar Selección -->
-                                            <template x-if="selectedId !== ''">
-                                                <button type="button" @click="clearSelection()" class="absolute right-3 top-3 text-slate-400 hover:text-slate-600 focus:outline-none cursor-pointer">
-                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                                                    </svg>
-                                                </button>
-                                            </template>
-
-                                            <!-- Indicador de Carga -->
-                                            <template x-if="loading">
-                                                <div class="absolute right-3 top-3.5">
-                                                    <svg class="animate-spin h-4 w-4 text-unimar-blue" fill="none" viewBox="0 0 24 24">
-                                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                                    </svg>
-                                                </div>
-                                            </template>
-                                        </div>
-
-                                        <!-- Campo oculto para el post del form -->
-                                        <input type="hidden" name="student_id" :value="selectedId" />
-
-                                        <!-- Dropdown de Resultados -->
-                                        <div x-show="isOpen && (results.length > 0 || search.length >= 2)"
-                                             class="absolute z-30 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-60 overflow-y-auto"
-                                             x-transition
-                                             style="display: none;">
-
-                                            <template x-if="results.length === 0 && !loading">
-                                                <div class="p-3 text-base text-slate-500 font-semibold text-center">
-                                                    No se encontraron estudiantes.
-                                                </div>
-                                            </template>
-
-                                            <template x-for="student in results" :key="student.id">
-                                                <div @click="selectStudent(student.id, student.name)"
-                                                     class="p-3 hover:bg-slate-50 cursor-pointer transition border-b border-slate-100 last:border-0 text-left">
-                                                    <div class="text-base font-bold text-slate-800" x-text="student.name"></div>
-                                                    <div class="flex justify-between items-center text-xs text-slate-550 font-semibold mt-0.5">
-                                                        <span x-text="'C.I. ' + (student.cedula || 'N/A')"></span>
-                                                        <span x-text="student.email"></span>
-                                                    </div>
-                                                </div>
-                                            </template>
-                                        </div>
-                                    </div>
+                                <div @change="selectedId = $event.detail.value.length ? $event.detail.value[0].id : ''; selectedName = $event.detail.value.length ? $event.detail.value[0].text : ''">
+                                    <label class="block text-base font-bold text-slate-600 uppercase tracking-wider mb-1.5">Estudiante Específico (Opcional)</label>
+                                    <x-advanced-select 
+                                        name="student_id" 
+                                        placeholder="Buscar por Nombre, Cédula o Correo..." 
+                                        endpoint="/admin/users/search?role=Estudiante"
+                                        disabled="tutorId !== ''"
+                                    />
                                     <p class="text-base text-slate-500 font-semibold mt-1">Si seleccionas un estudiante, la actividad aplicará únicamente a él.</p>
                                 </div>
                                 <div>
