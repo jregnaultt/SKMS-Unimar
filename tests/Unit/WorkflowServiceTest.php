@@ -8,6 +8,7 @@ use App\Models\DocumentVersion;
 use App\Models\Production;
 use App\Models\ProductionType;
 use App\Models\ResearchLine;
+use App\Models\Subject;
 use App\Models\User;
 use App\Services\WorkflowService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -60,6 +61,7 @@ class WorkflowServiceTest extends TestCase
         $line = ResearchLine::create(['academic_program_id' => $program->id, 'name' => 'IA', 'is_active' => true]);
         $type = ProductionType::create(['name' => 'Tesis']);
         $period = AcademicPeriod::create(['name' => '2026-I', 'start_date' => '2026-01-01', 'end_date' => '2026-06-30', 'is_active' => true]);
+        $subject = Subject::create(['name' => 'Trabajo de Investigación II', 'code' => 'TRI1206441']);
 
         // 4. Setup Production
         $this->production = Production::create([
@@ -70,6 +72,7 @@ class WorkflowServiceTest extends TestCase
             'research_line_id' => $line->id,
             'production_type_id' => $type->id,
             'academic_period_id' => $period->id,
+            'subject_id' => $subject->id,
             'workflow_state' => 'draft',
         ]);
 
@@ -236,5 +239,16 @@ class WorkflowServiceTest extends TestCase
 
         // Verify temp file is cleaned up
         Storage::disk('local')->assertMissing("temp_pdfs/{$fileId}.pdf");
+    }
+
+    public function test_cannot_publish_work_if_not_trabajo_ii(): void
+    {
+        $nonTrabajoIISubject = Subject::create(['name' => 'Seminario Metodológico', 'code' => 'SMI1004341']);
+        $this->production->update([
+            'workflow_state' => 'approved',
+            'subject_id' => $nonTrabajoIISubject->id,
+        ]);
+
+        $this->assertFalse($this->workflowService->canTransition($this->production, 'published', $this->coordinatorUser));
     }
 }

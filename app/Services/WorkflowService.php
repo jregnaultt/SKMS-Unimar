@@ -39,6 +39,14 @@ class WorkflowService
             return false;
         }
 
+        // Restrict publication transition only to Trabajo de Investigación II
+        if ($targetState === 'published') {
+            $subject = $production->subject;
+            if (! $subject || $subject->code !== 'TRI1206441') {
+                return false;
+            }
+        }
+
         // 2. Coordinators and Super Admins can transition anything
         if ($user->hasRole(['Coordinador', 'Super Admin', 'Decano'])) {
             return true;

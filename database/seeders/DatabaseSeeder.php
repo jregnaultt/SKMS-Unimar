@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
             RoleSeeder::class,
             SuperAdminSeeder::class,
             UserSeeder::class,
+            SubjectSeeder::class,
         ]);
 
         // Seed Academic Programs

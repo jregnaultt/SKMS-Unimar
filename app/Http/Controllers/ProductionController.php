@@ -37,6 +37,8 @@ class ProductionController extends Controller
         $activePeriod = AcademicPeriod::where('is_active', true)->orderBy('end_date', 'desc')->first();
         $enrollment = null;
 
+        $previousProduction = null;
+
         if (! $isCoordinator && $user->hasRole('Estudiante')) {
             if ($activePeriod) {
                 $enrollment = Enrollment::where('academic_period_id', $activePeriod->id)
@@ -47,6 +49,28 @@ class ProductionController extends Controller
             if (! $enrollment) {
                 return redirect()->route('dashboard')->with('error', 'No tienes una inscripción activa para el período académico actual. Por favor, comunícate con la coordinación.');
             }
+
+            // Query previous production for continuity
+            $currentSubjectCode = $enrollment->subject->code ?? null;
+            $previousSubjectCode = null;
+
+            if ($currentSubjectCode === 'TRI1106341') {
+                $previousSubjectCode = 'SMI1004341';
+            } elseif ($currentSubjectCode === 'TRI1206441') {
+                $previousSubjectCode = 'TRI1106341';
+            }
+
+            if ($previousSubjectCode) {
+                $previousProduction = Production::whereHas('users', function ($q) use ($user) {
+                    $q->where('users.id', $user->id)->where('role', 'author');
+                })
+                    ->whereHas('subject', function ($q) use ($previousSubjectCode) {
+                        $q->where('code', $previousSubjectCode);
+                    })
+                    ->whereIn('workflow_state', ['approved', 'published'])
+                    ->orderBy('created_at', 'desc')
+                    ->first();
+            }
         }
 
         $academicPrograms = AcademicProgram::where('is_active', true)->orderBy('name')->get();
@@ -55,7 +79,7 @@ class ProductionController extends Controller
         $researchLines = ResearchLine::where('is_active', true)->orderBy('name')->get();
         $tutors = User::role('Tutor')->orderBy('name')->get();
 
-        return view('pages.productions.create', compact('academicPrograms', 'productionTypes', 'academicPeriods', 'researchLines', 'tutors', 'enrollment', 'activePeriod'));
+        return view('pages.productions.create', compact('academicPrograms', 'productionTypes', 'academicPeriods', 'researchLines', 'tutors', 'enrollment', 'activePeriod', 'previousProduction'));
     }
 
     public function store(StoreProductionRequest $request): RedirectResponse

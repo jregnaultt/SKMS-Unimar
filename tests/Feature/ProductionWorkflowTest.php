@@ -7,6 +7,7 @@ use App\Models\AcademicProgram;
 use App\Models\Production;
 use App\Models\ProductionType;
 use App\Models\ResearchLine;
+use App\Models\Subject;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
@@ -56,6 +57,7 @@ class ProductionWorkflowTest extends TestCase
         $line = ResearchLine::create(['academic_program_id' => $program->id, 'name' => 'IA', 'is_active' => true]);
         $type = ProductionType::create(['name' => 'Tesis']);
         $period = AcademicPeriod::create(['name' => '2026-I', 'start_date' => '2026-01-01', 'end_date' => '2026-06-30', 'is_active' => true]);
+        $subject = Subject::create(['name' => 'Trabajo de Investigación II', 'code' => 'TRI1206441']);
 
         // 4. Setup Production as Draft
         $this->production = Production::create([
@@ -66,6 +68,7 @@ class ProductionWorkflowTest extends TestCase
             'research_line_id' => $line->id,
             'production_type_id' => $type->id,
             'academic_period_id' => $period->id,
+            'subject_id' => $subject->id,
             'workflow_state' => 'draft',
         ]);
 

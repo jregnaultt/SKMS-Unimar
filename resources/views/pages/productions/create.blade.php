@@ -88,6 +88,22 @@
             metadata.tutor_id = '{{ $enrollment->tutor_id }}';
             metadata.authors = '{{ $user->name }}';
         @endif
+
+        @if(isset($previousProduction))
+            metadata.title = {!! json_encode($previousProduction->title) !!};
+            metadata.abstract = {!! json_encode($previousProduction->abstract) !!};
+            metadata.tutor_id = '{{ $previousProduction->users()->wherePivot('role', 'tutor')->first()?->id ?? ($enrollment->tutor_id ?? '') }}';
+            academicProgramId = '{{ $previousProduction->academic_program_id }}';
+            productionTypeId = '{{ $previousProduction->production_type_id }}';
+            researchLineId = '{{ $previousProduction->research_line_id }}';
+            
+            // Trigger filtering and selection of research line
+            filterResearchLines();
+            
+            @if($previousProduction->keywords->count() > 0)
+                keywordList = {!! json_encode($previousProduction->keywords->pluck('name')->toArray()) !!};
+            @endif
+        @endif
     "
     class="space-y-8 max-w-5xl mx-auto pb-12">
 
@@ -139,6 +155,20 @@
                         <li>{{ $error }}</li>
                     @endforeach
                 </ul>
+            </div>
+        @endif
+
+        @if(isset($enrollment) && $enrollment->subject->code === 'TRI1206441')
+            <div class="p-4 bg-amber-50 border-l-4 border-amber-500 rounded-r-xl shadow-sm text-amber-800 transition duration-300">
+                <div class="flex items-start">
+                    <svg class="w-5 h-5 mr-3 text-amber-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                    </svg>
+                    <div>
+                        <span class="font-bold text-sm">Advertencia de Continuidad:</span>
+                        <p class="text-sm mt-1 font-medium">Estás registrando tu proyecto para <strong>Trabajo de Investigación II</strong>. Por norma académica de la institución, debes mantener el mismo tutor y tema que fueron aprobados en Trabajo de Investigación I, salvo excepciones muy justificadas autorizadas por la coordinación.</p>
+                    </div>
+                </div>
             </div>
         @endif
 
