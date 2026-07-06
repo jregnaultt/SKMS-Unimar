@@ -144,7 +144,7 @@
                                                                     </span>
                                                                 </td>
                                                                 <td class="px-4 py-3 text-right whitespace-nowrap">
-                                                                    <a href="{{ route('productions.show', $prod) }}" class="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-[#0d4d98] hover:bg-[#0b3d78] text-white rounded-lg text-[11px] font-bold transition shadow-sm">
+                                                                    <a href="{{ $prod->show_url }}" class="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-[#0d4d98] hover:bg-[#0b3d78] text-white rounded-lg text-[11px] font-bold transition shadow-sm">
                                                                         <span>Ver Tesis</span>
                                                                     </a>
                                                                 </td>
@@ -251,7 +251,7 @@
                                                                     </span>
                                                                 </td>
                                                                 <td class="px-4 py-3 text-right whitespace-nowrap">
-                                                                    <a href="{{ route('productions.show', $prod) }}" class="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-[#0d4d98] hover:bg-[#0b3d78] text-white rounded-lg text-[11px] font-bold transition shadow-sm">
+                                                                    <a href="{{ $prod->show_url }}" class="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-[#0d4d98] hover:bg-[#0b3d78] text-white rounded-lg text-[11px] font-bold transition shadow-sm">
                                                                         <span>Ver Tesis</span>
                                                                     </a>
                                                                 </td>
@@ -356,7 +356,7 @@
                                                     </span>
                                                 </td>
                                                 <td class="px-4 py-3.5 text-right whitespace-nowrap">
-                                                    <a href="{{ route('productions.show', $prod) }}" class="inline-flex items-center space-x-1 px-3 py-1.5 bg-[#0d4d98] hover:bg-[#0b3d78] text-white rounded-lg text-[11px] font-bold shadow-sm transition">
+                                                    <a href="{{ $prod->show_url }}" class="inline-flex items-center space-x-1 px-3 py-1.5 bg-[#0d4d98] hover:bg-[#0b3d78] text-white rounded-lg text-[11px] font-bold shadow-sm transition">
                                                         <span>Evaluar</span>
                                                     </a>
                                                 </td>
@@ -436,7 +436,7 @@
                                                     </span>
                                                 </td>
                                                 <td class="px-4 py-3.5 text-right whitespace-nowrap">
-                                                    <a href="{{ route('productions.show', $prod) }}" class="inline-flex items-center space-x-1 px-3 py-1.5 bg-[#0d4d98] hover:bg-[#0b3d78] text-white rounded-lg text-[11px] font-bold shadow-sm transition">
+                                                    <a href="{{ $prod->show_url }}" class="inline-flex items-center space-x-1 px-3 py-1.5 bg-[#0d4d98] hover:bg-[#0b3d78] text-white rounded-lg text-[11px] font-bold shadow-sm transition">
                                                         <span>Evaluar</span>
                                                     </a>
                                                 </td>

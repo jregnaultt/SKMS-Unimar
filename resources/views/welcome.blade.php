@@ -401,9 +401,9 @@
                                 :tutor="$pub->tutor ?? 'No asignado'"
                                 :program="$pub->academicProgram ? $pub->academicProgram->name : 'Ingeniería'"
                                 :period="$pub->academicPeriod ? $pub->academicPeriod->name : 'Periodo Activo'"
-                                :link="route('productions.show', $pub->id)"
+                                :link="$pub->show_url"
                                 :showPdf="$pub->hasMedia('documento')"
-                                :pdfLink="route('productions.document', $pub)"
+                                :pdfLink="$pub->pdf_url"
                             />
                         @endforeach
                     @else

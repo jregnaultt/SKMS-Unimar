@@ -212,7 +212,7 @@
                                     </header>
 
                                     <h4 class="text-lg font-bold text-slate-950 hover:text-[#0d4d98] transition mb-3 leading-snug">
-                                        <a href="{{ route('productions.show', $production) }}">{{ $production->title }}</a>
+                                        <a href="{{ $production->show_url }}">{{ $production->title }}</a>
                                     </h4>
 
                                     <p class="text-sm text-slate-600 mb-4 leading-relaxed line-clamp-3 text-justify">
@@ -261,7 +261,7 @@
 
                                 <!-- Card Footer Actions -->
                                 <div class="flex items-center justify-between border-t border-slate-100 pt-4 mt-2">
-                                    <a href="{{ route('productions.show', $production) }}" class="inline-flex items-center text-sm font-bold text-[#0d4d98] hover:underline">
+                                    <a href="{{ $production->show_url }}" class="inline-flex items-center text-sm font-bold text-[#0d4d98] hover:underline">
                                         Ver detalles
                                         <svg class="w-3 h-3 ms-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path>
@@ -269,7 +269,7 @@
                                     </a>
 
                                     @if($production->hasMedia('documento'))
-                                        <a href="{{ route('productions.document', $production) }}" target="_blank" class="inline-flex items-center px-3.5 py-2 bg-slate-50 hover:bg-[#0d4d98] hover:text-white rounded-xl text-sm font-bold text-slate-700 border border-slate-200/60 shadow-sm transition">
+                                        <a href="{{ $production->pdf_url }}" target="_blank" class="inline-flex items-center px-3.5 py-2 bg-slate-50 hover:bg-[#0d4d98] hover:text-white rounded-xl text-sm font-bold text-slate-700 border border-slate-200/60 shadow-sm transition">
                                             <svg class="w-3.5 h-3.5 mr-1.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
                                             </svg>

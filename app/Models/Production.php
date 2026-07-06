@@ -104,6 +104,30 @@ class Production extends Model implements HasMedia
     }
 
     /**
+     * Get the appropriate show URL based on the workflow state.
+     */
+    public function getShowUrlAttribute(): string
+    {
+        if ($this->workflow_state === 'published') {
+            return route('catalog.show-public', $this->uuid);
+        }
+
+        return route('productions.show', $this);
+    }
+
+    /**
+     * Get the appropriate PDF download URL based on the workflow state.
+     */
+    public function getPdfUrlAttribute(): string
+    {
+        if ($this->workflow_state === 'published') {
+            return route('catalog.download-public-pdf', $this->uuid);
+        }
+
+        return route('productions.document', $this);
+    }
+
+    /**
      * Get the route key for the model.
      */
     public function getRouteKeyName(): string

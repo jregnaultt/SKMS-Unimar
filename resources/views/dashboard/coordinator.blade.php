@@ -110,7 +110,7 @@
                                         <td class="px-4 py-3 whitespace-nowrap text-right text-sm font-medium">
                                             <div class="flex items-center justify-end space-x-2">
                                                 <!-- Link to show page to validate full Dublin Core -->
-                                                <a href="{{ route('productions.show', $prod) }}" class="px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-bold transition">
+                                                <a href="{{ $prod->show_url }}" class="px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-bold transition">
                                                     Validar Metadatos
                                                 </a>
                                                 <!-- Quick publish action -->

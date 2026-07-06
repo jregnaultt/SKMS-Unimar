@@ -410,11 +410,11 @@
                             <!-- dc:identifier -->
                             <div class="space-y-1">
                                 <span class="font-bold text-slate-400 uppercase tracking-wider text-[9px]">Identificador Único (dc:identifier)</span>
-                                <p class="text-slate-850 leading-relaxed font-mono text-[11px] truncate" title="{{ $production->doi ?: route('productions.show', $production) }}">
+                                <p class="text-slate-850 leading-relaxed font-mono text-[11px] truncate" title="{{ $production->doi ?: $production->show_url }}">
                                     @if($production->doi)
                                         <span class="bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded border border-indigo-100 font-semibold">DOI: {{ $production->doi }}</span>
                                     @else
-                                        <a href="{{ route('productions.show', $production) }}" class="text-blue-600 hover:underline">{{ route('productions.show', $production) }}</a>
+                                        <a href="{{ $production->show_url }}" class="text-blue-600 hover:underline">{{ $production->show_url }}</a>
                                     @endif
                                 </p>
                             </div>
@@ -555,7 +555,7 @@
                             $citationAuthor = $production->authors;
                             $citationYear = $production->published_at ? $production->published_at->format('Y') : ($production->approval_date ? $production->approval_date->format('Y') : $production->created_at->format('Y'));
                             $citationTitle = $production->title;
-                            $citationUrl = route('productions.show', $production);
+                            $citationUrl = $production->show_url;
                             
                             $apaCitation = "{$citationAuthor} ({$citationYear}). {$citationTitle}. Decanato de Ingeniería, Universidad de Margarita. {$citationUrl}";
                             $harvardCitation = "{$citationAuthor}, {$citationYear}. {$citationTitle}. Decanato de Ingeniería, Universidad de Margarita. Disponible en: <{$citationUrl}> [Accedido: " . now()->format('d/m/Y') . "].";
