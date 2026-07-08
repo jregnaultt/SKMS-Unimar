@@ -321,48 +321,49 @@
                                placeholder="EJ. PROPUESTA DE UN REPOSITORIO DE CONOCIMIENTO CIENTÍFICO..." />
                     </div>
 
-                    <!-- Resumen -->
-                    <div>
-                        <label for="abstract" class="block text-sm font-bold text-slate-600 uppercase tracking-wider mb-1.5">Resumen Académico (Abstract)</label>
-                        <textarea name="abstract" 
-                                  id="abstract" 
-                                  x-model="metadata.abstract" 
-                                  required 
-                                  rows="6" 
-                                  :class="isUploading ? 'animate-pulse bg-slate-100 border-slate-200 text-transparent pointer-events-none' : 'bg-slate-50/50 text-slate-700 placeholder-slate-400 focus:border-unimar-blue focus:ring-unimar-blue/10 border-slate-200/80'"
-                                  class="block w-full rounded-xl text-base py-3 px-4 focus:outline-none focus:ring-2 focus:ring-[#0d4d98]/50 transition-all duration-150"
-                                  placeholder="Escribe o verifica el resumen de la investigación..."></textarea>
-                    </div>
-
-                    <!-- Palabras Clave (Chips reactivos) -->
-                    <div>
-                        <label class="block text-sm font-bold text-slate-600 uppercase tracking-wider mb-1.5">Palabras Clave (Palabras Clave)</label>
-                        <div class="flex flex-wrap gap-2 p-3 border border-slate-200/80 rounded-xl bg-slate-50/50 min-h-[46px] focus-within:border-unimar-blue focus-within:ring focus-within:ring-unimar-blue/10 transition duration-150">
-                            <!-- Listado de Chips -->
-                            <template x-for="(tag, index) in keywordList" :key="index">
-                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-sm font-bold bg-unimar-blue/10 text-unimar-blue border border-unimar-blue/20 transition-all duration-150">
-                                    <span x-text="tag"></span>
-                                    <button type="button" @click="removeKeyword(index)" class="ml-1.5 text-unimar-blue/60 hover:text-unimar-blue focus:outline-none">
-                                        <svg aria-hidden="true" class="h-3 w-3" stroke="currentColor" fill="none" viewBox="0 0 8 8">
-                                            <path stroke-linecap="round" stroke-width="1.5" d="M1 1l6 6m0-6L1 7" />
-                                        </svg>
-                                    </button>
-                                </span>
-                            </template>
-                            <!-- Input para nuevos chips -->
-                            <input type="text" 
-                                   id="keyword_input"
-                                   aria-label="Añadir palabra clave"
-                                   placeholder="Añadir palabra y presionar Enter..." 
-                                   x-model="newTag" 
-                                   @keydown.enter.prevent="addKeyword" 
-                                   @keydown.comma.prevent="addKeyword" 
-                                   @blur="addKeyword" 
-                                   class="flex-1 border-0 p-0 text-base focus:ring-0 text-slate-700 bg-transparent placeholder-slate-400 min-w-[180px]" />
+                    @if(isset($enrollment) && $enrollment->subject->code === 'TRI1206441')
+                        <!-- Resumen -->
+                        <div>
+                            <label for="abstract" class="block text-sm font-bold text-slate-600 uppercase tracking-wider mb-1.5">Resumen Académico (Abstract)</label>
+                            <textarea name="abstract" 
+                                      id="abstract" 
+                                      x-model="metadata.abstract" 
+                                      rows="6" 
+                                      :class="isUploading ? 'animate-pulse bg-slate-100 border-slate-200 text-transparent pointer-events-none' : 'bg-slate-50/50 text-slate-700 placeholder-slate-400 focus:border-unimar-blue focus:ring-unimar-blue/10 border-slate-200/80'"
+                                      class="block w-full rounded-xl text-base py-3 px-4 focus:outline-none focus:ring-2 focus:ring-[#0d4d98]/50 transition-all duration-150"
+                                      placeholder="Escribe o verifica el resumen de la investigación..."></textarea>
                         </div>
-                        <input type="hidden" name="keywords" :value="keywordList.join(',')">
-                        <p class="text-sm text-slate-555 mt-1.5 font-bold uppercase tracking-wider">Presiona Enter o escribe una Coma para separar las palabras clave.</p>
-                    </div>
+
+                        <!-- Palabras Clave (Chips reactivos) -->
+                        <div>
+                            <label class="block text-sm font-bold text-slate-600 uppercase tracking-wider mb-1.5">Palabras Clave</label>
+                            <div class="flex flex-wrap gap-2 p-3 border border-slate-200/80 rounded-xl bg-slate-50/50 min-h-[46px] focus-within:border-unimar-blue focus-within:ring focus-within:ring-unimar-blue/10 transition duration-150">
+                                <!-- Listado de Chips -->
+                                <template x-for="(tag, index) in keywordList" :key="index">
+                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-sm font-bold bg-unimar-blue/10 text-unimar-blue border border-unimar-blue/20 transition-all duration-150">
+                                        <span x-text="tag"></span>
+                                        <button type="button" @click="removeKeyword(index)" class="ml-1.5 text-unimar-blue/60 hover:text-unimar-blue focus:outline-none">
+                                            <svg aria-hidden="true" class="h-3 w-3" stroke="currentColor" fill="none" viewBox="0 0 8 8">
+                                                <path stroke-linecap="round" stroke-width="1.5" d="M1 1l6 6m0-6L1 7" />
+                                            </svg>
+                                        </button>
+                                    </span>
+                                </template>
+                                <!-- Input para nuevos chips -->
+                                <input type="text" 
+                                       id="keyword_input"
+                                       aria-label="Añadir palabra clave"
+                                       placeholder="Añadir palabra y presionar Enter..." 
+                                       x-model="newTag" 
+                                       @keydown.enter.prevent="addKeyword" 
+                                       @keydown.comma.prevent="addKeyword" 
+                                       @blur="addKeyword" 
+                                       class="flex-1 border-0 p-0 text-base focus:ring-0 text-slate-700 bg-transparent placeholder-slate-400 min-w-[180px]" />
+                            </div>
+                            <input type="hidden" name="keywords" :value="keywordList.join(',')">
+                            <p class="text-sm text-slate-555 mt-1.5 font-bold uppercase tracking-wider">Presiona Enter o escribe una Coma para separar las palabras clave.</p>
+                        </div>
+                    @endif
                 </div>
             </div>
 

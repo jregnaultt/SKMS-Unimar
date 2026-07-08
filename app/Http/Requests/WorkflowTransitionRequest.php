@@ -26,7 +26,7 @@ class WorkflowTransitionRequest extends FormRequest
         $currentState = $production ? $production->workflow_state : null;
 
         return [
-            'target_state' => 'required|in:under_tutor_review,under_jury_review,needs_corrections,approved,published,rejected',
+            'target_state' => 'required|in:under_tutor_review,under_jury_review,under_coordinator_review,needs_corrections,approved,published,rejected',
             'comment' => [
                 'nullable',
                 'string',
@@ -58,6 +58,8 @@ class WorkflowTransitionRequest extends FormRequest
                     }
                 },
             ],
+            'preassigned_jury_1_id' => 'nullable|exists:users,id|different:preassigned_jury_2_id',
+            'preassigned_jury_2_id' => 'nullable|exists:users,id|different:preassigned_jury_1_id',
         ];
     }
 

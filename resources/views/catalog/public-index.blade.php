@@ -30,7 +30,7 @@
 
                         <!-- Academic Program Filter -->
                         <div class="space-y-1.5">
-                            <label for="program-filter" class="block text-xs font-bold text-slate-600 uppercase tracking-wider">
+                            <label for="program-filter" class="block text-sm font-bold text-slate-600 uppercase tracking-wider">
                                 Programa Académico
                             </label>
                             <select id="program-filter" name="program" onchange="this.form.submit()" class="w-full h-11 text-sm rounded-xl border-slate-200 focus:ring-[#0d4d98] focus:border-[#0d4d98] cursor-pointer bg-white text-slate-700">
@@ -45,7 +45,7 @@
 
                         <!-- Research Line Filter -->
                         <div class="space-y-1.5">
-                            <label for="line-filter" class="block text-xs font-bold text-slate-600 uppercase tracking-wider">
+                            <label for="line-filter" class="block text-sm font-bold text-slate-600 uppercase tracking-wider">
                                 Línea de Investigación
                             </label>
                             <select id="line-filter" name="line" onchange="this.form.submit()" class="w-full h-11 text-sm rounded-xl border-slate-200 focus:ring-[#0d4d98] focus:border-[#0d4d98] cursor-pointer bg-white text-slate-700">
@@ -60,7 +60,7 @@
 
                         <!-- Production Type Filter -->
                         <div class="space-y-1.5">
-                            <label for="type-filter" class="block text-xs font-bold text-slate-600 uppercase tracking-wider">
+                            <label for="type-filter" class="block text-sm font-bold text-slate-600 uppercase tracking-wider">
                                 Tipo de Producción
                             </label>
                             <select id="type-filter" name="type" onchange="this.form.submit()" class="w-full h-11 text-sm rounded-xl border-slate-200 focus:ring-[#0d4d98] focus:border-[#0d4d98] cursor-pointer bg-white text-slate-700">
@@ -75,7 +75,7 @@
 
                         <!-- Tutor Filter -->
                         <div class="space-y-1.5">
-                            <label for="tutor-filter" class="block text-xs font-bold text-slate-600 uppercase tracking-wider">
+                            <label for="tutor-filter" class="block text-sm font-bold text-slate-600 uppercase tracking-wider">
                                 Tutor Académico
                             </label>
                             <select id="tutor-filter" name="tutor" onchange="this.form.submit()" class="w-full h-11 text-sm rounded-xl border-slate-200 focus:ring-[#0d4d98] focus:border-[#0d4d98] cursor-pointer bg-white text-slate-700">
@@ -90,7 +90,7 @@
 
                         <!-- Year Filter -->
                         <div class="space-y-1.5">
-                            <label for="year-filter" class="block text-xs font-bold text-slate-600 uppercase tracking-wider">
+                            <label for="year-filter" class="block text-sm font-bold text-slate-600 uppercase tracking-wider">
                                 Año de Publicación
                             </label>
                             <select id="year-filter" name="year" onchange="this.form.submit()" class="w-full h-11 text-sm rounded-xl border-slate-200 focus:ring-[#0d4d98] focus:border-[#0d4d98] cursor-pointer bg-white text-slate-700">
@@ -125,7 +125,7 @@
                         </div>
                         <div class="space-y-1">
                             <h4 class="text-sm font-bold text-slate-800 uppercase tracking-wider">Preservación Digital</h4>
-                            <p class="text-xs text-slate-500 leading-normal font-medium">Toda la producción científica de UNIMAR está catalogada bajo el estándar internacional Dublin Core y es compatible con el protocolo de interoperabilidad OAI-PMH.</p>
+                            <p class="text-sm text-slate-500 leading-normal font-medium">Toda la producción científica de UNIMAR está catalogada bajo el estándar internacional Dublin Core y es compatible con el protocolo de interoperabilidad OAI-PMH.</p>
                         </div>
                     </div>
                 </aside>
@@ -163,14 +163,14 @@
                             <template x-for="item in results" :key="item.id">
                                 <a :href="'/catalog/' + item.uuid" class="block p-3 hover:bg-slate-50 transition text-left">
                                     <span class="block text-sm font-semibold text-slate-800" x-text="item.title"></span>
-                                    <span class="block text-xs text-[#0d4d98] font-bold uppercase tracking-wider mt-1" x-text="item.production_type ? item.production_type.name : 'Trabajo Científico'"></span>
+                                    <span class="block text-sm text-[#0d4d98] font-bold uppercase tracking-wider mt-1" x-text="item.production_type ? item.production_type.name : 'Trabajo Científico'"></span>
                                 </a>
                             </template>
                         </div>
                     </div>
 
                     <!-- Results Statistics -->
-                    <div class="flex items-center justify-between text-xs font-bold text-slate-400 uppercase tracking-wider px-1">
+                    <div class="flex items-center justify-between text-sm font-bold text-slate-400 uppercase tracking-wider px-1">
                         <div>
                             @if(request('q'))
                                 Resultados para "<span class="text-slate-800 normal-case">{{ request('q') }}</span>":
@@ -190,7 +190,7 @@
                                         <span class="px-2.5 py-0.5 text-xs font-extrabold rounded-full bg-[#0d4d98]/10 text-[#0d4d98] border border-[#0d4d98]/20 uppercase tracking-wider self-start">
                                             {{ $production->productionType->name ?? 'Trabajo Científico' }}
                                         </span>
-                                        <span class="text-xs text-slate-400 font-bold uppercase tracking-wider">
+                                        <span class="text-sm text-slate-400 font-bold uppercase tracking-wider">
                                             Publicado: {{ $production->published_at ? $production->published_at->format('d/m/Y') : 'N/A' }}
                                         </span>
                                     </header>
@@ -204,7 +204,7 @@
                                     </p>
 
                                     <!-- Metadata attributes grid -->
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs text-slate-500 border-t border-slate-100 pt-4 mb-4 font-medium">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-slate-500 border-t border-slate-100 pt-4 mb-4 font-medium">
                                         <div class="flex items-center truncate">
                                             <svg aria-hidden="true" class="w-4 h-4 mr-2 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
@@ -235,7 +235,7 @@
                                     @if($production->keywords->isNotEmpty())
                                         <div class="flex flex-wrap gap-1.5 border-t border-slate-100 pt-3.5">
                                             @foreach($production->keywords as $keyword)
-                                                <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold bg-slate-100 text-slate-600 border border-slate-200/40">
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200/40">
                                                     #{{ $keyword->name }}
                                                 </span>
                                             @endforeach
@@ -244,12 +244,12 @@
                                 </div>
 
                                 <div class="flex items-center justify-end gap-3 border-t border-slate-100 pt-4 mt-4">
-                                    <a href="{{ route('catalog.show-public', $production->uuid) }}" class="px-4 py-2 text-xs font-bold text-[#0d4d98] hover:bg-[#0d4d98]/5 border border-[#0d4d98]/20 rounded-xl transition">
+                                    <a href="{{ route('catalog.show-public', $production->uuid) }}" class="px-4 py-2 text-sm font-bold text-[#0d4d98] hover:bg-[#0d4d98]/5 border border-[#0d4d98]/20 rounded-xl transition">
                                         Ver Ficha Completa
                                     </a>
                                     
                                     @if($production->hasMedia('documento'))
-                                        <a href="{{ route('catalog.download-public-pdf', $production->uuid) }}" class="px-4 py-2 text-xs font-bold text-white bg-[#0d4d98] hover:bg-[#09356b] rounded-xl transition flex items-center shadow-sm">
+                                        <a href="{{ route('catalog.download-public-pdf', $production->uuid) }}" class="px-4 py-2 text-sm font-bold text-white bg-[#0d4d98] hover:bg-[#09356b] rounded-xl transition flex items-center shadow-sm">
                                             <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
                                             </svg>

@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Traits\HasAuditLog;
 use Illuminate\Database\Eloquent\Model;
 
 class OaiPmhToken extends Model
 {
+    use HasAuditLog;
+
     protected $primaryKey = 'token';
 
     public $incrementing = false;

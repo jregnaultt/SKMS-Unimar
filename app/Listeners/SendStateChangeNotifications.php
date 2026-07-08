@@ -3,6 +3,7 @@
 namespace App\Listeners;
 
 use App\Events\ProductionStateChanged;
+use App\Models\User;
 use App\Notifications\ProductionStateChangedNotification;
 
 class SendStateChangeNotifications
@@ -106,9 +107,26 @@ class SendStateChangeNotifications
                     ));
                 }
             }
+        } elseif ($newState === 'under_coordinator_review') {
+            $title = 'Nueva tesis pendiente de tu aprobación';
+            $message = "El tutor ha recomendado la aprobación del trabajo \"{$production->title}\". Requiere tu aprobación final.";
+            $coordinators = User::role('Coordinador')->get();
+
+            foreach ($coordinators as $coordinator) {
+                $coordinator->notify(new ProductionStateChangedNotification(
+                    $production,
+                    $previousState,
+                    $newState,
+                    $title,
+                    $message,
+                    $comment
+                ));
+            }
         } elseif ($newState === 'approved') {
             $title = '¡Trabajo Aprobado!';
-            $message = "Felicidades, tu trabajo \"{$production->title}\" ha sido aprobado.";
+            $message = $production->subject?->code === 'SMI1004341'
+                ? "¡Felicidades! Tu Seminario Metodológico \"{$production->title}\" ha sido aprobado. Ya puedes inscribirte en Trabajo de Investigación I."
+                : "Felicidades, tu trabajo \"{$production->title}\" ha sido aprobado.";
 
             foreach ($authors as $author) {
                 $author->notify(new ProductionStateChangedNotification(

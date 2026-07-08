@@ -59,14 +59,9 @@
                                 Dashboard
                             </a>
                         @else
-                            <a href="{{ route('login') }}" class="text-sm font-bold uppercase tracking-wider text-[#0d4d98] hover:text-[#09356b] transition-colors">
+                            <a href="{{ route('login') }}" class="inline-flex items-center justify-center px-5 py-2.5 text-sm font-bold uppercase tracking-wider text-white bg-[#0d4d98] hover:bg-[#09356b] rounded-lg transition-all duration-200 shadow-md shadow-[#0d4d98]/10 hover:shadow-lg hover:shadow-[#0d4d98]/20">
                                 Acceder
                             </a>
-                            @if (Route::has('register'))
-                                <a href="{{ route('register') }}" class="inline-flex items-center justify-center px-5 py-2.5 text-sm font-bold uppercase tracking-wider text-white bg-[#0d4d98] hover:bg-[#09356b] rounded-lg transition-all duration-200 shadow-md shadow-[#0d4d98]/10">
-                                    Registrarse
-                                </a>
-                            @endif
                         @endauth
                     @endif
                 </div>
@@ -104,14 +99,9 @@
                                 Dashboard
                             </a>
                         @else
-                            <a href="{{ route('login') }}" class="w-full text-center py-2.5 text-sm font-bold uppercase tracking-wider text-[#0d4d98] hover:text-[#09356b] transition-colors border border-[#0d4d98]/20 rounded-lg bg-white">
+                            <a href="{{ route('login') }}" class="w-full inline-flex items-center justify-center px-5 py-2.5 text-sm font-bold uppercase tracking-wider text-white bg-[#0d4d98] hover:bg-[#09356b] rounded-lg transition shadow-md">
                                 Acceder
                             </a>
-                            @if (Route::has('register'))
-                                <a href="{{ route('register') }}" class="w-full inline-flex items-center justify-center px-5 py-2.5 text-sm font-bold uppercase tracking-wider text-white bg-[#0d4d98] hover:bg-[#09356b] rounded-lg transition shadow-md">
-                                    Registrarse
-                                </a>
-                            @endif
                         @endauth
                     @endif
                 </div>

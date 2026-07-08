@@ -398,12 +398,12 @@
                                                 
                                                 <label :for="'student_checkbox_' + student.id" class="text-sm text-slate-750 font-bold leading-tight cursor-pointer select-none">
                                                     <span x-text="student.name"></span>
-                                                    <span class="block text-xs text-slate-500 font-semibold mt-0.5" x-text="student.email + ' (C.I. ' + (student.cedula || 'N/A') + ')'"></span>
+                                                    <span class="block text-sm text-slate-500 font-semibold mt-0.5" x-text="student.email + ' (C.I. ' + (student.cedula || 'N/A') + ')'"></span>
                                                 </label>
                                             </div>
                                         </template>
                                     </div>
-                                    <p class="text-xs text-slate-500 font-semibold leading-normal mt-2">Desmarca a los estudiantes a quienes NO deseas enviarles esta actividad.</p>
+                                    <p class="text-sm text-slate-500 font-semibold leading-normal mt-2">Desmarca a los estudiantes a quienes NO deseas enviarles esta actividad.</p>
                                 </div>
                                 <div x-show="tutorId && subjectId && students.length === 0 && !loadingStudents" class="p-3 text-center bg-slate-100/60 rounded-xl text-sm text-slate-500 font-semibold border border-slate-200/50" style="display: none;">
                                     No hay estudiantes inscritos con este tutor en esta materia.
@@ -472,7 +472,7 @@
                                                     <td class="px-6 py-4 whitespace-nowrap text-base font-bold text-slate-800">{{ $mil->subject->name }}</td>
                                                     <td class="px-6 py-4 whitespace-nowrap text-base text-slate-700 font-medium">
                                                          <div class="font-bold">{{ $mil->title }}</div>
-                                                         <div class="flex items-center space-x-2.5 mt-1 text-xs font-semibold text-slate-400">
+                                                         <div class="flex items-center space-x-2.5 mt-1 text-sm font-semibold text-slate-400">
                                                              <span class="uppercase tracking-wider">
                                                                  @if($mil->type === 'delivery') Entrega
                                                                  @elseif($mil->type === 'pre_defense') Pre-Defensa
@@ -501,7 +501,7 @@
                                                                  Grupo de {{ $mil->tutor->name }}
                                                              </span>
                                                              @if($mil->excluded_student_ids && count($mil->excluded_student_ids) > 0)
-                                                                 <div class="text-xs font-semibold text-rose-600 mt-1 max-w-xs whitespace-normal">
+                                                                 <div class="text-sm font-semibold text-rose-600 mt-1 max-w-xs whitespace-normal">
                                                                      Excluidos: {{ \App\Models\User::whereIn('id', $mil->excluded_student_ids)->pluck('name')->implode(', ') }}
                                                                  </div>
                                                              @endif

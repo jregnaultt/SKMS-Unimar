@@ -147,8 +147,15 @@ class CatalogController extends Controller
             abort(404, 'Archivo no encontrado.');
         }
 
-        return response()->download($media->getPath(), $media->file_name, [
+        $period = $production->academicPeriod?->name ?? 'Periodo';
+        $authors = $production->authors ?? 'Autor';
+        $filename = "{$period} - {$authors}.pdf";
+        $cleanFilename = str_replace(['/', '\\', '?', '%', '*', ':', '|', '"', '<', '>'], '-', $filename);
+
+        return response()->download($media->getPath(), $cleanFilename, [
             'Content-Type' => 'application/pdf',
+            'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
+            'Pragma' => 'no-cache',
         ]);
     }
 }

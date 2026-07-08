@@ -118,11 +118,34 @@ class DashboardController extends Controller
                 ->get();
         }
 
+        $hasApprovedSeminario = Production::whereHas('users', fn ($q) => $q->where('users.id', $user->id)->where('role', 'author'))
+            ->whereHas('subject', fn ($q) => $q->where('code', 'SMI1004341'))
+            ->whereIn('workflow_state', ['approved', 'published'])
+            ->exists();
+
+        $hasTrabajoI = Production::whereHas('users', fn ($q) => $q->where('users.id', $user->id)->where('role', 'author'))
+            ->whereHas('subject', fn ($q) => $q->where('code', 'TRI1106341'))
+            ->exists();
+
+        $hasApprovedTrabajoI = Production::whereHas('users', fn ($q) => $q->where('users.id', $user->id)->where('role', 'author'))
+            ->whereHas('subject', fn ($q) => $q->where('code', 'TRI1106341'))
+            ->whereIn('workflow_state', ['approved', 'published'])
+            ->exists();
+
+        $hasTrabajoII = Production::whereHas('users', fn ($q) => $q->where('users.id', $user->id)->where('role', 'author'))
+            ->whereHas('subject', fn ($q) => $q->where('code', 'TRI1206441'))
+            ->exists();
+
+        $showTransitionToTrabajoI = $hasApprovedSeminario && ! $hasTrabajoI;
+        $showTransitionToTrabajoII = $hasApprovedTrabajoI && ! $hasTrabajoII;
+
         return [
             'myProductions' => $myProductions,
             'suggestedProductions' => $suggestedProductions,
             'activeProduction' => $activeProduction,
             'progressData' => $progressData,
+            'showTransitionToTrabajoI' => $showTransitionToTrabajoI,
+            'showTransitionToTrabajoII' => $showTransitionToTrabajoII,
         ];
     }
 
@@ -138,10 +161,9 @@ class DashboardController extends Controller
             ->latest()
             ->get();
 
-        // Get defense milestones related to these productions
+        // Get all milestones related to these productions
         $productionIds = $productions->pluck('id')->toArray();
         $defensas = ProductionMilestone::whereIn('production_id', $productionIds)
-            ->whereIn('type', ['defense', 'pre_defense'])
             ->with('production')
             ->orderBy('scheduled_date', 'asc')
             ->get();

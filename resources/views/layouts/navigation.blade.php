@@ -77,16 +77,16 @@
                     <div x-show="open" x-transition class="absolute right-0 z-50 mt-2 w-80 origin-top-right rounded-lg bg-white dark:bg-gray-800 shadow-xl border border-gray-100 dark:border-gray-700 py-1" style="display: none;">
                         <div class="flex items-center justify-between border-b border-gray-100 dark:border-gray-700 px-4 py-2">
                             <span class="text-sm font-bold text-gray-700 dark:text-gray-300">Notificaciones</span>
-                            <button x-show="unreadCount > 0" @click="markAllAsRead()" class="text-xs text-blue-600 hover:underline">Marcar todo leído</button>
+                            <button x-show="unreadCount > 0" @click="markAllAsRead()" class="text-sm text-blue-600 hover:underline">Marcar todo leído</button>
                         </div>
                         <div class="max-h-64 overflow-y-auto">
                             <template x-for="n in notifications" :key="n.id">
                                 <div :class="n.read_at ? 'bg-white dark:bg-gray-800' : 'bg-blue-50/50 dark:bg-blue-900/10'" class="px-4 py-2.5 border-b border-gray-50 dark:border-gray-700 last:border-b-0 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition">
                                     <p class="text-sm font-semibold text-gray-800 dark:text-gray-200" x-text="n.data.title"></p>
-                                    <p class="text-[11px] text-gray-600 dark:text-gray-400 mt-0.5" x-text="n.data.message"></p>
+                                    <p class="text-xs text-gray-600 dark:text-gray-400 mt-0.5" x-text="n.data.message"></p>
                                     <div class="flex items-center justify-between mt-1.5">
-                                        <span class="text-[9px] text-gray-400" x-text="new Date(n.created_at).toLocaleDateString()"></span>
-                                        <button x-show="!n.read_at" @click="markAsRead(n.id)" class="text-[9px] text-blue-600 hover:underline">Marcar como leída</button>
+                                        <span class="text-xs text-gray-400" x-text="new Date(n.created_at).toLocaleDateString()"></span>
+                                        <button x-show="!n.read_at" @click="markAsRead(n.id)" class="text-xs text-blue-600 hover:underline">Marcar como leída</button>
                                     </div>
                                 </div>
                             </template>

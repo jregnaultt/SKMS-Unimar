@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\AcademicProgram;
+use App\Models\Enrollment;
+use App\Models\PeriodMilestone;
 use App\Models\Production;
 use App\Models\ResearchLine;
 use App\Models\User;
@@ -18,6 +20,52 @@ class ProgressController extends Controller
      * Inject ProgressService.
      */
     public function __construct(protected ProgressService $progressService) {}
+
+    /**
+     * Redirect to student's active production progress page or show global milestones if they have no production.
+     */
+    public function myMilestones(Request $request): RedirectResponse|View
+    {
+        /** @var User $user */
+        $user = auth()->user();
+
+        // 1. Check if student has a registered production
+        $production = $user->productions()->latest()->first();
+
+        if ($production) {
+            return redirect()->route('progress.student.show', $production);
+        }
+
+        // 2. Student does NOT have a production. Check their enrollment
+        $enrollment = Enrollment::where('student_id', $user->id)
+            ->with(['academicPeriod', 'subject'])
+            ->latest()
+            ->first();
+
+        $periodMilestones = collect();
+        if ($enrollment) {
+            $periodMilestones = PeriodMilestone::where('academic_period_id', $enrollment->academic_period_id)
+                ->where('subject_id', $enrollment->subject_id)
+                ->where(function ($query) use ($user) {
+                    $query->whereNull('student_id')
+                        ->orWhere('student_id', $user->id);
+                })
+                ->orderBy('scheduled_date', 'asc')
+                ->get()
+                ->filter(function ($pm) use ($user) {
+                    if (is_array($pm->excluded_student_ids) && in_array($user->id, $pm->excluded_student_ids)) {
+                        return false;
+                    }
+
+                    return true;
+                });
+        }
+
+        return view('pages.progress.no-production-milestones', [
+            'enrollment' => $enrollment,
+            'periodMilestones' => $periodMilestones,
+        ]);
+    }
 
     /**
      * Display student progress dashboard for a specific production.

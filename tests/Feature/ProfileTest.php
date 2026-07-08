@@ -29,7 +29,7 @@ class ProfileTest extends TestCase
             ->actingAs($user)
             ->patch('/profile', [
                 'name' => 'Test User',
-                'email' => 'test@example.com',
+                'email' => 'test@unimar.edu.ve',
                 'telefono' => '+584123456789',
             ]);
 
@@ -40,7 +40,7 @@ class ProfileTest extends TestCase
         $user->refresh();
 
         $this->assertSame('Test User', $user->name);
-        $this->assertSame('test@example.com', $user->email);
+        $this->assertSame('test@unimar.edu.ve', $user->email);
         $this->assertSame('+584123456789', $user->telefono);
         $this->assertNull($user->email_verified_at);
     }
@@ -98,5 +98,26 @@ class ProfileTest extends TestCase
             ->assertRedirect('/profile');
 
         $this->assertNotNull($user->fresh());
+    }
+
+    public function test_email_must_use_unimar_edu_ve_domain(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this
+            ->actingAs($user)
+            ->patch('/profile', [
+                'name' => 'Test User',
+                'email' => 'invalid@gmail.com',
+                'telefono' => '+584123456789',
+            ]);
+
+        $response->assertSessionHasErrors(['email']);
+
+        $errors = session('errors');
+        $this->assertEquals(
+            'mira porfa tiene que ser ese tipo de correo nada mas',
+            $errors->get('email')[0]
+        );
     }
 }

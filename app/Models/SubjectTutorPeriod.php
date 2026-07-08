@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Traits\HasAuditLog;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class SubjectTutorPeriod extends Model
 {
+    use HasAuditLog;
+
     protected $table = 'subject_tutor_periods';
 
     protected $guarded = ['id'];

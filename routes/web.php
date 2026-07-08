@@ -40,7 +40,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 use App\Http\Controllers\Admin\AdminAcademicPeriodController;
 use App\Http\Controllers\Admin\AdminAcademicProgramController;
+use App\Http\Controllers\Admin\AdminApprovalsController;
 use App\Http\Controllers\Admin\AdminAuditLogController;
+use App\Http\Controllers\Admin\AdminJuryAssignmentController;
 use App\Http\Controllers\Admin\AdminResearchLineController;
 use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Admin\BulkProductionController;
@@ -58,6 +60,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/productions', [ProductionController::class, 'store'])->name('productions.store');
     Route::get('/productions/{production}', [ProductionController::class, 'show'])->name('productions.show');
     Route::get('/productions/{production}/edit', [ProductionController::class, 'edit'])->name('productions.edit');
+    Route::patch('/productions/{production}/metadata', [ProductionController::class, 'updateMetadata'])->name('productions.update-metadata');
     Route::post('/productions/{production}/assign-users', [ProductionController::class, 'assignUsers'])->name('productions.assign-users');
     Route::get('/productions/{production}/documento', [ProductionController::class, 'downloadDocument'])->name('productions.document');
     Route::get('/versions/{version}/documento', [ProductionController::class, 'downloadVersionDocument'])->name('versions.document');
@@ -81,6 +84,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/comments/{comment}', [CommentController::class, 'destroy'])->name('comments.destroy');
 
     // Progress tracking routes (Module 5)
+    Route::get('/mis-hitos', [ProgressController::class, 'myMilestones'])->name('progress.student.my-milestones');
     Route::get('/productions/{production}/progreso', [ProgressController::class, 'studentShow'])->name('progress.student.show');
     Route::get('/coordinacion/dashboard', [ProgressController::class, 'coordinatorIndex'])->name('progress.coordinator.index');
     Route::post('/productions/{production}/hitos', [ProgressController::class, 'configureMilestones'])->name('progress.milestones.store');
@@ -113,6 +117,14 @@ Route::middleware('auth')->group(function () {
         Route::get('periods/{period}/students-under-tutor', [AdminAcademicPeriodController::class, 'getStudentsUnderTutor'])->name('periods.students-under-tutor');
         Route::get('users/search', [AdminUserController::class, 'search'])->name('users.search');
         Route::resource('users', AdminUserController::class)->only(['index', 'edit', 'update']);
+
+        // Jury Assignment Routes
+        Route::get('juries', [AdminJuryAssignmentController::class, 'index'])->name('juries.index');
+        Route::post('juries/{production}', [AdminJuryAssignmentController::class, 'assign'])->name('juries.assign');
+
+        // Coordinator Approvals Route
+        Route::get('approvals', [AdminApprovalsController::class, 'index'])->name('approvals.index');
+
         Route::get('audit-logs', [AdminAuditLogController::class, 'index'])->name('audit-logs.index');
         Route::get('audit-logs/{auditLog}', [AdminAuditLogController::class, 'show'])->name('audit-logs.show');
 

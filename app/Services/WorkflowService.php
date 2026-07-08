@@ -19,8 +19,9 @@ class WorkflowService
      */
     protected array $validTransitions = [
         'draft' => ['under_tutor_review'],
-        'under_tutor_review' => ['needs_corrections', 'under_jury_review', 'rejected'],
+        'under_tutor_review' => ['needs_corrections', 'under_jury_review', 'under_coordinator_review', 'rejected'],
         'under_jury_review' => ['needs_corrections', 'approved', 'rejected'],
+        'under_coordinator_review' => ['needs_corrections', 'approved', 'rejected'],
         'needs_corrections' => ['under_tutor_review'],
         'approved' => ['published'],
         'published' => [],
@@ -34,8 +35,11 @@ class WorkflowService
     {
         $currentState = $production->workflow_state;
 
+        $isSubjectWithoutJury = in_array($production->subject?->code, ['SMI1004341', 'TRI1106341']);
+
         // 1. Validate state transition path
-        if (! isset($this->validTransitions[$currentState]) || ! in_array($targetState, $this->validTransitions[$currentState])) {
+        $allowed = $this->validTransitions[$currentState] ?? [];
+        if (! in_array($targetState, $allowed)) {
             return false;
         }
 
@@ -64,7 +68,13 @@ class WorkflowService
 
         // Tutors review under_tutor_review
         if ($currentState === 'under_tutor_review') {
-            if (in_array($targetState, ['needs_corrections', 'under_jury_review', 'rejected'])) {
+            $allowedTutorStates = ['needs_corrections', 'rejected'];
+            if ($isSubjectWithoutJury) {
+                $allowedTutorStates[] = 'under_coordinator_review';
+            } else {
+                $allowedTutorStates[] = 'under_jury_review';
+            }
+            if (in_array($targetState, $allowedTutorStates)) {
                 return $this->isProductionUser($production, $user, 'tutor') && $user->hasRole('Tutor');
             }
         }
@@ -118,6 +128,14 @@ class WorkflowService
 
             if ($targetState === 'approved') {
                 $updateData['approval_date'] = now();
+                if ($production->subject?->code === 'TRI1106341') {
+                    if (isset($data['preassigned_jury_1_id'])) {
+                        $updateData['preassigned_jury_1_id'] = $data['preassigned_jury_1_id'];
+                    }
+                    if (isset($data['preassigned_jury_2_id'])) {
+                        $updateData['preassigned_jury_2_id'] = $data['preassigned_jury_2_id'];
+                    }
+                }
             }
 
             if ($targetState === 'published') {

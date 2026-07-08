@@ -24,11 +24,11 @@ class StoreProductionRequest extends FormRequest
     {
         return [
             'title' => ['required', 'string', 'max:500'],
-            'abstract' => ['required', 'string'],
+            'abstract' => ['nullable', 'string'],
             'authors' => ['required', 'string', 'max:500'],
             'tutor_id' => ['required', 'exists:users,id'],
             'subject_id' => ['nullable', 'exists:subjects,id'],
-            'keywords' => ['required', 'string', 'max:500'],
+            'keywords' => ['nullable', 'string', 'max:500'],
             'academic_program_id' => ['required', 'exists:academic_programs,id'],
             'research_line_id' => ['required', 'exists:research_lines,id'],
             'production_type_id' => ['required', 'exists:production_types,id'],

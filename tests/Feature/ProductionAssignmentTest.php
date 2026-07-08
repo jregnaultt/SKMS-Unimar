@@ -75,7 +75,7 @@ class ProductionAssignmentTest extends TestCase
     {
         $response = $this->actingAs($this->student)->post(route('productions.assign-users', $this->production), [
             'tutor_id' => $this->tutor->id,
-            'jury_id' => $this->jury->id,
+            'jury_1_id' => $this->jury->id,
         ]);
 
         $response->assertStatus(403);
@@ -85,11 +85,11 @@ class ProductionAssignmentTest extends TestCase
     {
         $response = $this->actingAs($this->coordinator)->post(route('productions.assign-users', $this->production), [
             'tutor_id' => $this->tutor->id,
-            'jury_id' => $this->jury->id,
+            'jury_1_id' => $this->jury->id,
         ]);
 
         $response->assertRedirect();
-        $response->assertSessionHas('success', 'Asignación de tutor y jurado guardada con éxito.');
+        $response->assertSessionHas('success', 'Asignación de tutor y jurados guardada con éxito.');
 
         $this->assertDatabaseHas('production_user', [
             'production_id' => $this->production->id,
@@ -113,7 +113,7 @@ class ProductionAssignmentTest extends TestCase
         // Now detach via assign-users POST with empty fields
         $response = $this->actingAs($this->coordinator)->post(route('productions.assign-users', $this->production), [
             'tutor_id' => null,
-            'jury_id' => null,
+            'jury_1_id' => null,
         ]);
 
         $response->assertRedirect();

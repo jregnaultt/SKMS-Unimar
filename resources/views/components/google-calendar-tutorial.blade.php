@@ -104,21 +104,21 @@
                             <span class="w-2 h-2 rounded-full bg-yellow-400"></span>
                             <span class="w-2 h-2 rounded-full bg-green-400"></span>
                         </div>
-                        <span class="text-[10px] text-slate-400">accounts.google.com</span>
+                        <span class="text-xs text-slate-400">accounts.google.com</span>
                     </div>
                     <div class="p-4 space-y-3">
                         <div class="flex items-center space-x-2">
                             <!-- Logo Google ficticio -->
-                            <span class="w-5 h-5 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-[10px]">G</span>
+                            <span class="w-5 h-5 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-xs">G</span>
                             <span class="font-bold text-slate-700">Acceder con Google</span>
                         </div>
-                        <p class="text-[10px] text-slate-500">SKMS Unimar quiere acceder a tu Cuenta de Google:</p>
+                        <p class="text-xs text-slate-500">SKMS Unimar quiere acceder a tu Cuenta de Google:</p>
                         
                         <!-- Permiso Caja 1 -->
                         <div class="p-2 bg-blue-50/50 border border-blue-100 rounded-lg flex items-start space-x-2">
                             <input type="checkbox" checked disabled class="mt-0.5 rounded text-blue-600 focus:ring-0">
                             <div class="space-y-0.5">
-                                <p class="font-bold text-slate-800 text-[10px]">Ver y editar eventos de tu calendario</p>
+                                <p class="font-bold text-slate-800 text-xs">Ver y editar eventos de tu calendario</p>
                                 <p class="text-[9px] text-slate-400 leading-tight">Agendar las entregas automáticamente.</p>
                             </div>
                         </div>
@@ -127,15 +127,15 @@
                         <div class="p-2 bg-blue-50/50 border border-blue-100 rounded-lg flex items-start space-x-2">
                             <input type="checkbox" checked disabled class="mt-0.5 rounded text-blue-600 focus:ring-0">
                             <div class="space-y-0.5">
-                                <p class="font-bold text-slate-800 text-[10px]">Ver tus archivos de Google Drive</p>
+                                <p class="font-bold text-slate-800 text-xs">Ver tus archivos de Google Drive</p>
                                 <p class="text-[9px] text-slate-400 leading-tight">Extraer tus tesis y comentarios de Google Docs.</p>
                             </div>
                         </div>
 
                         <!-- Botones de Google Mockup -->
                         <div class="flex justify-end space-x-2 pt-2">
-                            <span class="px-2.5 py-1 text-[10px] font-bold text-slate-450 border border-slate-250 rounded cursor-default">Cancelar</span>
-                            <span class="px-2.5 py-1 text-[10px] font-bold text-white bg-blue-600 rounded shadow-sm relative cursor-default">
+                            <span class="px-2.5 py-1 text-xs font-bold text-slate-450 border border-slate-250 rounded cursor-default">Cancelar</span>
+                            <span class="px-2.5 py-1 text-xs font-bold text-white bg-blue-600 rounded shadow-sm relative cursor-default">
                                 Continuar
                                 <!-- Resaltado / Indicador animado -->
                                 <span class="absolute -bottom-1 -right-1 flex h-2 w-2">
@@ -174,7 +174,7 @@
             <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
                 <div>
                     <!-- Botón No volver a mostrar -->
-                    <button @click="dismissTutorial()" class="text-xs text-slate-450 hover:text-slate-650 font-bold underline transition focus:outline-none">
+                    <button @click="dismissTutorial()" class="text-sm text-slate-450 hover:text-slate-650 font-bold underline transition focus:outline-none">
                         No volver a mostrar
                     </button>
                 </div>

@@ -12,7 +12,9 @@ use App\Models\ResearchLine;
 use App\Models\Subject;
 use App\Models\SubjectTutorPeriod;
 use App\Models\User;
+use App\Notifications\MissingProductionForMilestoneNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Spatie\Permission\Models\Role;
@@ -483,5 +485,84 @@ class AcademicPeriodPlanningTest extends TestCase
             'id' => $studentX->id,
             'text' => 'Alfredo Estudiante',
         ]);
+    }
+
+    public function test_student_without_production_gets_notified_when_milestone_created(): void
+    {
+        Notification::fake();
+
+        $student = User::factory()->create();
+        $student->assignRole('Estudiante');
+
+        // Enroll student in a subject and period
+        Enrollment::create([
+            'academic_period_id' => $this->period->id,
+            'subject_id' => $this->subject->id,
+            'student_id' => $student->id,
+            'tutor_id' => User::factory()->create()->id,
+        ]);
+
+        // Create a period milestone
+        $pm = PeriodMilestone::create([
+            'academic_period_id' => $this->period->id,
+            'subject_id' => $this->subject->id,
+            'type' => 'delivery',
+            'title' => 'Entrega de Capitulo 1',
+            'scheduled_date' => now()->addWeek(),
+        ]);
+
+        // Assert notification sent to student
+        Notification::assertSentTo(
+            $student,
+            MissingProductionForMilestoneNotification::class,
+            function ($notification) use ($pm) {
+                return $notification->periodMilestone->id === $pm->id;
+            }
+        );
+    }
+
+    public function test_student_with_production_redirects_to_progress_page(): void
+    {
+        $student = User::factory()->create();
+        $student->assignRole('Estudiante');
+
+        // Create production
+        $production = Production::create([
+            'title' => 'Tesis de Prueba',
+            'abstract' => 'Resumen',
+            'authors' => 'Autor',
+            'academic_program_id' => AcademicProgram::first()->id,
+            'research_line_id' => ResearchLine::first()->id,
+            'production_type_id' => ProductionType::first()->id,
+            'academic_period_id' => $this->period->id,
+            'workflow_state' => 'draft',
+        ]);
+        $production->users()->attach($student->id, ['role' => 'author']);
+
+        $response = $this->actingAs($student)
+            ->get(route('progress.student.my-milestones'));
+
+        $response->assertRedirect(route('progress.student.show', $production));
+    }
+
+    public function test_student_without_production_renders_fallback_milestones_page(): void
+    {
+        $student = User::factory()->create();
+        $student->assignRole('Estudiante');
+
+        // Enroll
+        Enrollment::create([
+            'academic_period_id' => $this->period->id,
+            'subject_id' => $this->subject->id,
+            'student_id' => $student->id,
+            'tutor_id' => User::factory()->create()->id,
+        ]);
+
+        $response = $this->actingAs($student)
+            ->get(route('progress.student.my-milestones'));
+
+        $response->assertStatus(200);
+        $response->assertViewIs('pages.progress.no-production-milestones');
+        $response->assertViewHas('periodMilestones');
     }
 }

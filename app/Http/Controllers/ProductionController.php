@@ -18,6 +18,7 @@ use App\Models\ProductionMilestone;
 use App\Models\ProductionType;
 use App\Models\ResearchLine;
 use App\Models\Revision;
+use App\Models\Subject;
 use App\Models\User;
 use App\Services\GoogleDriveService;
 use Illuminate\Http\RedirectResponse;
@@ -109,7 +110,28 @@ class ProductionController extends Controller
         }
 
         try {
-            DB::transaction(function () use ($request, $tempFullPath, $googleDriveFileId, $googleDocumentTitle, $googleAccessToken) {
+            $subject = Subject::find($request->input('subject_id'));
+            $preassignedJury1Id = null;
+            $preassignedJury2Id = null;
+
+            if ($subject && $subject->code === 'TRI1206441') {
+                $previousProduction = Production::whereHas('users', function ($q) use ($request) {
+                    $q->where('users.id', $request->user()->id)->where('role', 'author');
+                })
+                    ->whereHas('subject', function ($q) {
+                        $q->where('code', 'TRI1106341');
+                    })
+                    ->whereIn('workflow_state', ['approved', 'published'])
+                    ->orderBy('created_at', 'desc')
+                    ->first();
+
+                if ($previousProduction) {
+                    $preassignedJury1Id = $previousProduction->preassigned_jury_1_id;
+                    $preassignedJury2Id = $previousProduction->preassigned_jury_2_id;
+                }
+            }
+
+            DB::transaction(function () use ($request, $tempFullPath, $googleDriveFileId, $googleDocumentTitle, $googleAccessToken, $preassignedJury1Id, $preassignedJury2Id) {
                 $tutorUser = User::findOrFail($request->input('tutor_id'));
 
                 // 1. Create the production record
@@ -162,6 +184,14 @@ class ProductionController extends Controller
                 $production->users()->attach($tutorUser->id, [
                     'role' => 'tutor',
                 ]);
+
+                // Attach preassigned juries if they exist
+                if ($preassignedJury1Id) {
+                    $production->users()->attach($preassignedJury1Id, ['role' => 'jury']);
+                }
+                if ($preassignedJury2Id) {
+                    $production->users()->attach($preassignedJury2Id, ['role' => 'jury']);
+                }
 
                 // 6. Copy milestones from period_milestones to production_milestones
                 if ($production->subject_id) {
@@ -272,7 +302,7 @@ class ProductionController extends Controller
 
     public function show(Production $production)
     {
-        $production->load(['academicProgram', 'researchLine', 'productionType', 'academicPeriod', 'users']);
+        $production->load(['academicProgram', 'researchLine', 'productionType', 'academicPeriod', 'users', 'subject']);
 
         $user = auth()->user();
         $isAssociated = $production->users()->where('user_id', $user->id)->exists();
@@ -308,18 +338,18 @@ class ProductionController extends Controller
         $tutors = collect();
         $juries = collect();
         $assignedTutor = null;
-        $assignedJury = null;
+        $assignedJuries = collect();
 
         if ($isCoordinator) {
             $tutors = User::role('Tutor')->orderBy('name')->get();
             $juries = User::role('Jurado')->orderBy('name')->get();
             $assignedTutor = $production->users()->wherePivot('role', 'tutor')->first();
-            $assignedJury = $production->users()->wherePivot('role', 'jury')->first();
+            $assignedJuries = $production->users()->wherePivot('role', 'jury')->get();
         }
 
         return view('pages.productions.show', compact(
             'production', 'revisions', 'versions', 'comments',
-            'tutors', 'juries', 'assignedTutor', 'assignedJury'
+            'tutors', 'juries', 'assignedTutor', 'assignedJuries'
         ));
     }
 
@@ -327,7 +357,10 @@ class ProductionController extends Controller
     {
         $request->validate([
             'tutor_id' => 'nullable|exists:users,id',
-            'jury_id' => 'nullable|exists:users,id',
+            'jury_1_id' => 'nullable|exists:users,id|different:jury_2_id',
+            'jury_2_id' => 'nullable|exists:users,id|different:jury_1_id',
+            'preassigned_jury_1_id' => 'nullable|exists:users,id|different:preassigned_jury_2_id',
+            'preassigned_jury_2_id' => 'nullable|exists:users,id|different:preassigned_jury_1_id',
         ]);
 
         $user = auth()->user();
@@ -346,13 +379,24 @@ class ProductionController extends Controller
                 $production->users()->attach($request->input('tutor_id'), ['role' => 'tutor']);
             }
 
-            // Attach new jury if selected
-            if ($request->filled('jury_id')) {
-                $production->users()->attach($request->input('jury_id'), ['role' => 'jury']);
+            // Attach new juries if selected (Trabajo II)
+            if ($request->filled('jury_1_id')) {
+                $production->users()->attach($request->input('jury_1_id'), ['role' => 'jury']);
+            }
+            if ($request->filled('jury_2_id')) {
+                $production->users()->attach($request->input('jury_2_id'), ['role' => 'jury']);
+            }
+
+            // Save preassigned juries if it is Trabajo I
+            if ($production->subject?->code === 'TRI1106341') {
+                $production->update([
+                    'preassigned_jury_1_id' => $request->input('preassigned_jury_1_id'),
+                    'preassigned_jury_2_id' => $request->input('preassigned_jury_2_id'),
+                ]);
             }
         });
 
-        return back()->with('success', 'Asignación de tutor y jurado guardada con éxito.');
+        return back()->with('success', 'Asignación de tutor y jurados guardada con éxito.');
     }
 
     public function edit(Production $production)
@@ -522,5 +566,45 @@ class ProductionController extends Controller
         }
 
         return back()->with('success', '¡Se ha enviado la solicitud de revisión al jurado a tu tutor exitosamente!');
+    }
+
+    public function updateMetadata(Request $request, Production $production): RedirectResponse
+    {
+        $user = $request->user();
+        $isAuthor = $production->users()
+            ->where('user_id', $user->id)
+            ->wherePivot('role', 'author')
+            ->exists();
+        $isCoordinator = $user->hasRole(['Coordinador', 'Super Admin', 'Decano']);
+
+        if (! $isAuthor && ! $isCoordinator) {
+            abort(403, 'No tienes autorización para editar esta producción científica.');
+        }
+
+        $request->validate([
+            'abstract' => ['nullable', 'string'],
+            'keywords' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        DB::transaction(function () use ($request, $production) {
+            $production->update([
+                'abstract' => $request->input('abstract'),
+            ]);
+
+            // Process keywords
+            $keywords = array_filter(
+                array_map('trim', explode(',', $request->input('keywords') ?? '')),
+                fn ($k) => strlen($k) > 0
+            );
+
+            $keywordIds = [];
+            foreach ($keywords as $kwName) {
+                $keyword = Keyword::firstOrCreate(['name' => $kwName]);
+                $keywordIds[] = $keyword->id;
+            }
+            $production->keywords()->sync($keywordIds);
+        });
+
+        return back()->with('success', '¡El resumen y las palabras clave se han actualizado correctamente!');
     }
 }

@@ -99,6 +99,7 @@ class CatalogSearchTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertHeader('Content-Type', 'application/pdf');
+        $response->assertHeader('Content-Disposition', 'attachment; filename="2026-I - Autor de Prueba.pdf"');
         $this->assertEquals('Dummy PDF Content', $response->streamedContent());
     }
 

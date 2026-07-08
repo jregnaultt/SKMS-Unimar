@@ -8,6 +8,7 @@
         'under_review' => 'bg-yellow-50 text-yellow-800 border-yellow-200',
         'under_tutor_review' => 'bg-yellow-50 text-yellow-800 border-yellow-200',
         'under_jury_review' => 'bg-purple-50 text-purple-800 border-purple-200',
+        'under_coordinator_review' => 'bg-indigo-50 text-indigo-800 border-indigo-200',
         'needs_corrections' => 'bg-orange-50 text-orange-800 border-orange-200',
         'approved' => 'bg-emerald-50 text-emerald-800 border-emerald-200',
         'published' => 'bg-blue-50 text-blue-800 border-blue-200',
@@ -18,6 +19,7 @@
         'under_review' => 'En Revisión',
         'under_tutor_review' => 'En Revisión (Tutor)',
         'under_jury_review' => 'En Revisión (Jurado)',
+        'under_coordinator_review' => 'En Revisión (Coordinación)',
         'needs_corrections' => 'Requiere Correcciones',
         'approved' => 'Aprobado',
         'published' => 'Publicado',
@@ -41,6 +43,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
     <script>
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+        window.productionPins = @json($comments->whereNull('parent_id')->values());
     </script>
 
     <!-- Main Wrapper with Alpine.js state -->
@@ -66,7 +69,7 @@
         compareMode: false,
         compareVersionNumber: '',
         activePin: { page: null, x: 0, y: 0 },
-        pins: @json($comments->whereNull('parent_id')->values()),
+        pins: window.productionPins,
         pdfPageCount: 0,
         pdfPageCountCompare: 0,
         pageAspectRatios: {},
@@ -251,7 +254,7 @@
         <!-- Top Nav / Back Action and Status Badge -->
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200/60 pb-5">
             <div>
-                <a href="{{ route('catalog.index') }}" class="inline-flex items-center text-[10px] font-bold text-slate-400 hover:text-[#0d4d98] mb-2 transition duration-150 uppercase tracking-wider">
+                <a href="{{ route('catalog.index') }}" class="inline-flex items-center text-xs font-bold text-slate-400 hover:text-[#0d4d98] mb-2 transition duration-150 uppercase tracking-wider">
                     <svg class="w-3.5 h-3.5 mr-1.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
                     </svg>
@@ -318,7 +321,7 @@
                         </p>
                     </div>
                 </div>
-                <a href="{{ route('google.redirect') }}" class="inline-flex items-center px-3.5 py-2 bg-unimar-blue hover:bg-unimar-blue/95 text-white font-extrabold text-[10px] rounded-lg shadow-sm hover:shadow uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer shrink-0">
+                <a href="{{ route('google.redirect') }}" class="inline-flex items-center px-3.5 py-2 bg-unimar-blue hover:bg-unimar-blue/95 text-white font-extrabold text-xs rounded-lg shadow-sm hover:shadow uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer shrink-0">
                     <svg class="w-3.5 h-3.5 mr-1.5" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M12.24 10.285V14.4h6.887c-.648 2.41-2.519 4.114-6.887 4.114-4.68 0-8.472-3.84-8.472-8.5s3.792-8.5 8.472-8.5c2.17 0 4.015.772 5.485 2.146l3.007-3.007C18.66.772 15.658 0 12.24 0 5.58 0 0 5.37 0 12s5.58 12 12.24 12c6.96 0 11.57-4.89 11.57-11.79 0-.795-.085-1.57-.24-2.285H12.24z"/>
                     </svg>
@@ -336,10 +339,10 @@
                     <!-- Title and badging -->
                     <div class="space-y-3">
                         <div class="flex flex-wrap gap-2 items-center">
-                            <span class="px-2.5 py-1 text-[10px] font-extrabold rounded-md bg-[#0d4d98]/10 text-[#0d4d98] border border-[#0d4d98]/20 uppercase tracking-wider">
+                            <span class="px-2.5 py-1 text-xs font-extrabold rounded-md bg-[#0d4d98]/10 text-[#0d4d98] border border-[#0d4d98]/20 uppercase tracking-wider">
                                 {{ $production->productionType->name ?? 'Ficha de Obra' }}
                             </span>
-                            <span class="px-2.5 py-1 text-[10px] font-extrabold rounded-md bg-slate-100 text-slate-600 border border-slate-200/50 uppercase tracking-wider">
+                            <span class="px-2.5 py-1 text-xs font-extrabold rounded-md bg-slate-100 text-slate-600 border border-slate-200/50 uppercase tracking-wider">
                                 {{ $production->academicPeriod->name ?? 'Período N/A' }}
                             </span>
                         </div>
@@ -350,14 +353,14 @@
 
                     <!-- Dublin Core Grid -->
                     <div>
-                        <h3 class="text-xs font-bold text-slate-450 uppercase tracking-wider border-b border-slate-100 pb-2 mb-4">
+                        <h3 class="text-sm font-bold text-slate-450 uppercase tracking-wider border-b border-slate-100 pb-2 mb-4">
                             Metadatos Dublin Core Calificados (Qualifiers)
                         </h3>
                         
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-8 text-xs">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-8 text-sm">
                             <!-- dc:creator -->
                             <div class="space-y-1">
-                                <span class="font-bold text-slate-400 uppercase tracking-wider text-[9px]">Autores (dc:creator)</span>
+                                <span class="font-bold text-slate-400 uppercase tracking-wider text-xs">Autores (dc:creator)</span>
                                 <p class="text-slate-850 font-semibold leading-relaxed">
                                     {{ $production->authors }}
                                 </p>
@@ -365,7 +368,7 @@
 
                             <!-- dc:contributor -->
                             <div class="space-y-1">
-                                <span class="font-bold text-slate-400 uppercase tracking-wider text-[9px]">Tutor/Director (dc:contributor)</span>
+                                <span class="font-bold text-slate-400 uppercase tracking-wider text-xs">Tutor/Director (dc:contributor)</span>
                                 <p class="text-slate-850 font-semibold leading-relaxed">
                                     {{ $production->tutor }}
                                 </p>
@@ -373,7 +376,7 @@
 
                             <!-- dc:subject -->
                             <div class="space-y-1">
-                                <span class="font-bold text-slate-400 uppercase tracking-wider text-[9px]">Materia / Disciplina (dc:subject)</span>
+                                <span class="font-bold text-slate-400 uppercase tracking-wider text-xs">Materia / Disciplina (dc:subject)</span>
                                 <p class="text-slate-800 leading-relaxed">
                                     <strong class="font-semibold text-slate-900">{{ $production->academicProgram->name ?? 'No especificado' }}</strong>
                                     <span class="text-slate-300 mx-1">|</span>
@@ -383,7 +386,7 @@
 
                             <!-- dc:date -->
                             <div class="space-y-1">
-                                <span class="font-bold text-slate-400 uppercase tracking-wider text-[9px]">Fecha de Publicación (dc:date)</span>
+                                <span class="font-bold text-slate-400 uppercase tracking-wider text-xs">Fecha de Publicación (dc:date)</span>
                                 <p class="text-slate-850 font-semibold leading-relaxed">
                                     {{ $production->published_at ? $production->published_at->format('d/m/Y') : ($production->approval_date ? $production->approval_date->format('d/m/Y') : $production->created_at->format('d/m/Y')) }}
                                 </p>
@@ -391,7 +394,7 @@
 
                             <!-- dc:publisher -->
                             <div class="space-y-1">
-                                <span class="font-bold text-slate-400 uppercase tracking-wider text-[9px]">Editorial / Publicador (dc:publisher)</span>
+                                <span class="font-bold text-slate-400 uppercase tracking-wider text-xs">Editorial / Publicador (dc:publisher)</span>
                                 <p class="text-slate-800 leading-relaxed font-medium">
                                     Universidad de Margarita (UNIMAR) - Decanato de Ingeniería
                                 </p>
@@ -399,7 +402,7 @@
 
                             <!-- dc:rights -->
                             <div class="space-y-1">
-                                <span class="font-bold text-slate-400 uppercase tracking-wider text-[9px]">Derechos de Acceso (dc:rights)</span>
+                                <span class="font-bold text-slate-400 uppercase tracking-wider text-xs">Derechos de Acceso (dc:rights)</span>
                                 <p class="text-slate-800 leading-relaxed flex items-center gap-1">
                                     <span class="font-semibold text-emerald-600">Acceso Abierto (Open Access)</span>
                                     <span class="text-slate-300">|</span>
@@ -409,8 +412,8 @@
 
                             <!-- dc:identifier -->
                             <div class="space-y-1">
-                                <span class="font-bold text-slate-400 uppercase tracking-wider text-[9px]">Identificador Único (dc:identifier)</span>
-                                <p class="text-slate-850 leading-relaxed font-mono text-[11px] truncate" title="{{ $production->doi ?: $production->show_url }}">
+                                <span class="font-bold text-slate-400 uppercase tracking-wider text-xs">Identificador Único (dc:identifier)</span>
+                                <p class="text-slate-850 leading-relaxed font-mono text-sm truncate" title="{{ $production->doi ?: $production->show_url }}">
                                     @if($production->doi)
                                         <span class="bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded border border-indigo-100 font-semibold">DOI: {{ $production->doi }}</span>
                                     @else
@@ -421,7 +424,7 @@
 
                             <!-- dc:language -->
                             <div class="space-y-1">
-                                <span class="font-bold text-slate-400 uppercase tracking-wider text-[9px]">Idioma de la Obra (dc:language)</span>
+                                <span class="font-bold text-slate-400 uppercase tracking-wider text-xs">Idioma de la Obra (dc:language)</span>
                                 <p class="text-slate-800 leading-relaxed font-medium">
                                     Español (spa)
                                 </p>
@@ -429,7 +432,7 @@
 
                             <!-- dc:format -->
                             <div class="space-y-1">
-                                <span class="font-bold text-slate-400 uppercase tracking-wider text-[9px]">Formato Físico (dc:format)</span>
+                                <span class="font-bold text-slate-400 uppercase tracking-wider text-xs">Formato Físico (dc:format)</span>
                                 <p class="text-slate-800 leading-relaxed font-medium">
                                     application/pdf
                                 </p>
@@ -437,7 +440,7 @@
 
                             <!-- dc:source -->
                             <div class="space-y-1">
-                                <span class="font-bold text-slate-400 uppercase tracking-wider text-[9px]">Fuente de Catalogación (dc:source)</span>
+                                <span class="font-bold text-slate-400 uppercase tracking-wider text-xs">Fuente de Catalogación (dc:source)</span>
                                 <p class="text-slate-800 leading-relaxed font-medium">
                                     Catálogo Científico SKMS-Unimar
                                 </p>
@@ -445,7 +448,7 @@
 
                             <!-- dc:relation -->
                             <div class="space-y-1">
-                                <span class="font-bold text-slate-400 uppercase tracking-wider text-[9px]">Relación Institucional (dc:relation)</span>
+                                <span class="font-bold text-slate-400 uppercase tracking-wider text-xs">Relación Institucional (dc:relation)</span>
                                 <p class="text-slate-800 leading-relaxed font-medium">
                                     Colección de Trabajos de Grado e Investigación - Decanato de Ingeniería y Afines
                                 </p>
@@ -453,7 +456,7 @@
 
                             <!-- dc:coverage -->
                             <div class="space-y-1">
-                                <span class="font-bold text-slate-400 uppercase tracking-wider text-[9px]">Cobertura Espacio-Temporal (dc:coverage)</span>
+                                <span class="font-bold text-slate-400 uppercase tracking-wider text-xs">Cobertura Espacio-Temporal (dc:coverage)</span>
                                 <p class="text-slate-800 leading-relaxed font-medium">
                                     El Valle del Espíritu Santo, Nueva Esparta, Venezuela (UNIMAR)
                                 </p>
@@ -461,27 +464,96 @@
                         </div>
                     </div>
 
-                    <!-- dc:description (Abstract) -->
-                    <div class="space-y-2 pt-4 border-t border-slate-100">
-                        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                            Resumen Metodológico (dc:description)
-                        </h3>
-                        <p class="text-sm text-slate-700 leading-relaxed text-justify">
-                            {{ $production->abstract }}
-                        </p>
-                    </div>
+                    <!-- dc:description (Abstract) & Keywords -->
+                    @if($production->subject?->code === 'TRI1206441')
+                        <div x-data="{
+                            isEditing: false,
+                            abstract: '{{ addslashes($production->abstract) }}',
+                            keywordList: {{ json_encode($production->keywords->pluck('name')->toArray()) }},
+                            newTag: '',
+                            addKeyword() {
+                                const tag = this.newTag.trim().replace(/,/g, '');
+                                if (tag && !this.keywordList.includes(tag)) {
+                                    this.keywordList.push(tag);
+                                }
+                                this.newTag = '';
+                            },
+                            removeKeyword(index) {
+                                this.keywordList.splice(index, 1);
+                            }
+                        }" class="space-y-4 pt-4 border-t border-slate-100">
+                            <!-- VIEW MODE -->
+                            <div x-show="!isEditing" class="space-y-4">
+                                <div class="flex justify-between items-center">
+                                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                                        Resumen Metodológico (dc:description)
+                                    </h3>
+                                    @if($isAuthor || $isCoordinator)
+                                        <button type="button" @click="isEditing = true" class="text-xs font-bold text-unimar-blue hover:underline uppercase">
+                                            [Editar]
+                                        </button>
+                                    @endif
+                                </div>
+                                <p class="text-sm text-slate-700 leading-relaxed text-justify">
+                                    {{ $production->abstract ?: 'Sin resumen académico registrado.' }}
+                                </p>
 
-                    <!-- Keywords -->
-                    @if($production->keywords->isNotEmpty())
-                        <div class="space-y-2 pt-2">
-                            <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Palabras Clave (Keywords)</h4>
-                            <div class="flex flex-wrap gap-1.5">
-                                @foreach ($production->keywords as $kw)
-                                    <span class="px-2.5 py-1 text-xs font-semibold rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200/40 transition cursor-pointer">
-                                        #{{ $kw->name }}
-                                    </span>
-                                @endforeach
+                                <div class="space-y-2 pt-2">
+                                    <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider font-semibold text-slate-500">Palabras Clave (Keywords)</h4>
+                                    <div class="flex flex-wrap gap-1.5">
+                                        @forelse ($production->keywords as $kw)
+                                            <span class="px-2.5 py-1 text-xs font-semibold rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200/40 transition cursor-pointer">
+                                                #{{ $kw->name }}
+                                            </span>
+                                        @empty
+                                            <span class="text-sm text-slate-500 italic">Sin palabras clave registradas.</span>
+                                        @endforelse
+                                    </div>
+                                </div>
                             </div>
+
+                            <!-- EDIT MODE -->
+                            @if($isAuthor || $isCoordinator)
+                                <form x-show="isEditing" action="{{ route('productions.update-metadata', $production) }}" method="POST" class="space-y-4" style="display: none;">
+                                    @csrf
+                                    @method('PATCH')
+                                    <div>
+                                        <label for="edit_abstract" class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Resumen Académico</label>
+                                        <textarea name="abstract" id="edit_abstract" x-model="abstract" rows="6" class="block w-full rounded-xl text-base py-3 px-4 focus:outline-none focus:ring-2 focus:ring-[#0d4d98]/50 border-slate-200/80 bg-slate-50 text-slate-700" placeholder="Escribe el resumen del trabajo..."></textarea>
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5 font-semibold text-slate-500">Palabras Clave</label>
+                                        <div class="flex flex-wrap gap-2 p-3 border border-slate-200/80 rounded-xl bg-slate-50 min-h-[46px] focus-within:border-unimar-blue focus-within:ring focus-within:ring-unimar-blue/10 transition duration-150">
+                                            <template x-for="(tag, index) in keywordList" :key="index">
+                                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-unimar-blue/10 text-unimar-blue border border-unimar-blue/20 transition-all duration-150">
+                                                    <span x-text="tag"></span>
+                                                    <button type="button" @click="removeKeyword(index)" class="ml-1.5 text-unimar-blue/60 hover:text-unimar-blue focus:outline-none">
+                                                        &times;
+                                                    </button>
+                                                </span>
+                                            </template>
+                                            <input type="text" 
+                                                   placeholder="Añadir palabra y presionar Enter..." 
+                                                   x-model="newTag" 
+                                                   @keydown.enter.prevent="addKeyword" 
+                                                   @keydown.comma.prevent="addKeyword" 
+                                                   @blur="addKeyword" 
+                                                   class="flex-1 border-0 p-0 text-base focus:ring-0 text-slate-700 bg-transparent placeholder-slate-400 min-w-[180px]" />
+                                        </div>
+                                        <input type="hidden" name="keywords" :value="keywordList.join(',')">
+                                    </div>
+
+                                    <div class="flex justify-end space-x-2">
+                                        <button type="button" @click="isEditing = false; abstract = '{{ addslashes($production->abstract) }}'; keywordList = {{ json_encode($production->keywords->pluck('name')->toArray()) }}" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-sm font-bold uppercase transition">
+                                            Cancelar
+                                        </button>
+                                        <button type="submit" class="px-4 py-2 bg-[#0d4d98] hover:bg-[#0b3d78] text-white rounded-xl text-sm font-bold uppercase transition">
+                                            Guardar
+                                        </button>
+                                    </div>
+                                </form>
+                            @endif
                         </div>
                     @endif
                 </div>
@@ -495,7 +567,7 @@
                         <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider">
                             Métricas de Impacto
                         </h4>
-                        <p class="text-[10px] text-slate-400 font-semibold mt-0.5 uppercase tracking-wider">Estadísticas de visualización</p>
+                        <p class="text-xs text-slate-400 font-semibold mt-0.5 uppercase tracking-wider">Estadísticas de visualización</p>
                     </div>
 
                     @php
@@ -512,7 +584,7 @@
                             <span class="text-xl font-extrabold text-slate-850 leading-tight">
                                 {{ $visits }}
                             </span>
-                            <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">Visitas</span>
+                            <span class="text-xs text-slate-400 font-bold uppercase tracking-wider mt-0.5">Visitas</span>
                         </div>
                         
                         <div class="bg-slate-50 border border-slate-100 p-4 rounded-xl flex flex-col items-center justify-center text-center">
@@ -522,7 +594,7 @@
                             <span class="text-xl font-extrabold text-slate-850 leading-tight">
                                 {{ $downloads }}
                             </span>
-                            <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">Descargas</span>
+                            <span class="text-xs text-slate-400 font-bold uppercase tracking-wider mt-0.5">Descargas</span>
                         </div>
                     </div>
                 </div>
@@ -533,7 +605,7 @@
                         <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider">
                             Generador de Citas
                         </h4>
-                        <p class="text-[10px] text-slate-400 font-semibold mt-0.5 uppercase tracking-wider">Formatos académicos estándar</p>
+                        <p class="text-xs text-slate-400 font-semibold mt-0.5 uppercase tracking-wider">Formatos académicos estándar</p>
                     </div>
                     
                     <!-- Tabs -->
@@ -592,6 +664,100 @@
                         </button>
                     </div>
                 </div>
+
+                @if ($isCoordinator)
+                    <!-- Academic Assignment (Tutor / Jury) Card -->
+                    <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-[0_10px_30px_rgba(13,77,152,0.03)] border-t-4 border-t-[#0d4d98] space-y-4">
+                        <div class="border-b border-slate-100 pb-2">
+                            <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                                Asignación Académica
+                            </h4>
+                            <p class="text-[11px] text-slate-400 font-semibold mt-0.5 uppercase tracking-wider">Coordinación de Tesis</p>
+                        </div>
+
+                        <form action="{{ route('productions.assign-users', $production) }}" method="POST" class="space-y-4">
+                            @csrf
+                            <!-- Tutor Selector -->
+                            <div class="space-y-1.5">
+                                <label for="tutor_id" class="text-xs font-bold text-slate-500 uppercase tracking-wider block">Tutor Asignado</label>
+                                <select id="tutor_id" name="tutor_id" class="w-full text-xs rounded-xl border-slate-200 focus:ring-unimar-blue focus:border-unimar-blue">
+                                    <option value="">-- Sin Tutor --</option>
+                                    @foreach ($tutors as $t)
+                                        <option value="{{ $t->id }}" {{ $assignedTutor && $assignedTutor->id === $t->id ? 'selected' : '' }}>
+                                            {{ $t->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <!-- Jury Selector (Only for Trabajo de Investigación II: TRI1206441) -->
+                            @if ($production->subject?->code === 'TRI1206441')
+                                @php
+                                    $jury1 = $assignedJuries->get(0);
+                                    $jury2 = $assignedJuries->get(1);
+                                @endphp
+                                <div class="space-y-1.5">
+                                    <label for="jury_1_id" class="text-xs font-bold text-slate-500 uppercase tracking-wider block">Jurado Evaluador 1</label>
+                                    <select id="jury_1_id" name="jury_1_id" class="w-full text-xs rounded-xl border-slate-200 focus:ring-unimar-blue focus:border-unimar-blue">
+                                        <option value="">-- Sin Jurado --</option>
+                                        @foreach ($juries as $j)
+                                            <option value="{{ $j->id }}" {{ $jury1 && $jury1->id === $j->id ? 'selected' : '' }}>
+                                                {{ $j->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="space-y-1.5">
+                                    <label for="jury_2_id" class="text-xs font-bold text-slate-500 uppercase tracking-wider block">Jurado Evaluador 2</label>
+                                    <select id="jury_2_id" name="jury_2_id" class="w-full text-xs rounded-xl border-slate-200 focus:ring-unimar-blue focus:border-unimar-blue">
+                                        <option value="">-- Sin Jurado --</option>
+                                        @foreach ($juries as $j)
+                                            <option value="{{ $j->id }}" {{ $jury2 && $jury2->id === $j->id ? 'selected' : '' }}>
+                                                {{ $j->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            @elseif ($production->subject?->code === 'TRI1106341')
+                                <div class="p-3 bg-indigo-50/50 border border-indigo-100 rounded-xl space-y-3">
+                                    <p class="text-[11px] font-bold text-indigo-950 uppercase tracking-wide">Pre-asignación de Jurados para Trabajo II</p>
+                                    <div class="space-y-1.5">
+                                        <label for="preassigned_jury_1_id" class="text-xs font-bold text-slate-500 uppercase tracking-wider block">Jurado 1 para Trabajo II</label>
+                                        <select id="preassigned_jury_1_id" name="preassigned_jury_1_id" class="w-full text-xs rounded-xl border-slate-200 focus:ring-unimar-blue focus:border-unimar-blue">
+                                            <option value="">-- Sin Jurado --</option>
+                                            @foreach ($juries as $j)
+                                                <option value="{{ $j->id }}" {{ $production->preassigned_jury_1_id === $j->id ? 'selected' : '' }}>
+                                                    {{ $j->name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="space-y-1.5">
+                                        <label for="preassigned_jury_2_id" class="text-xs font-bold text-slate-500 uppercase tracking-wider block">Jurado 2 para Trabajo II</label>
+                                        <select id="preassigned_jury_2_id" name="preassigned_jury_2_id" class="w-full text-xs rounded-xl border-slate-200 focus:ring-unimar-blue focus:border-unimar-blue">
+                                            <option value="">-- Sin Jurado --</option>
+                                            @foreach ($juries as $j)
+                                                <option value="{{ $j->id }}" {{ $production->preassigned_jury_2_id === $j->id ? 'selected' : '' }}>
+                                                    {{ $j->name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                </div>
+                            @else
+                                <div class="p-3 bg-slate-50 border border-slate-100 rounded-xl text-center">
+                                    <p class="text-[11px] text-slate-400 font-medium italic">
+                                        Esta asignatura ({{ $production->subject?->name ?: 'Seminario / Trabajo I' }}) no requiere asignación de jurado.
+                                    </p>
+                                </div>
+                            @endif
+
+                            <button type="submit" class="w-full py-2 bg-[#0d4d98] hover:bg-[#0b3d78] text-white rounded-xl text-xs font-bold uppercase transition shadow-sm cursor-pointer">
+                                Guardar Asignación
+                            </button>
+                        </form>
+                    </div>
+                @endif
             </div>
         </div>
 
@@ -646,17 +812,17 @@
                     <!-- Versions selector -->
                     @if ($versions->isNotEmpty())
                         <div class="flex items-center space-x-1.5">
-                            <span class="text-[10px] font-bold text-slate-400 uppercase">Versión:</span>
+                            <span class="text-xs font-bold text-slate-400 uppercase">Versión:</span>
                             <div class="inline-flex rounded-lg shadow-sm bg-slate-50 p-0.5 border border-slate-200">
                                 <button type="button" 
-                                        class="px-2.5 py-1 text-[10px] font-extrabold rounded-md transition duration-150"
+                                        class="px-2.5 py-1 text-xs font-extrabold rounded-md transition duration-150"
                                         :class="activeVersionNumber === 'Actual' ? 'bg-[#0d4d98] text-white shadow-sm' : 'text-slate-700 hover:bg-slate-100'"
                                         @click="activePdfUrl = '{{ route('productions.document', $production) }}'; activeVersionNumber = 'Actual'; pdfLoaded = true">
                                     Actual
                                 </button>
                                 @foreach ($versions as $ver)
                                     <button type="button" 
-                                            class="px-2.5 py-1 text-[10px] font-extrabold rounded-md transition duration-150"
+                                            class="px-2.5 py-1 text-xs font-extrabold rounded-md transition duration-150"
                                             :class="activeVersionNumber == 'v{{ $ver->version_number }}' ? 'bg-[#0d4d98] text-white shadow-sm' : 'text-slate-700 hover:bg-slate-100'"
                                             @click="activePdfUrl = '{{ route('versions.document', $ver) }}'; activeVersionNumber = 'v{{ $ver->version_number }}'; pdfLoaded = true">
                                         v{{ $ver->version_number }}
@@ -741,7 +907,7 @@
 
                                     <div x-show="compareMode" class="flex items-center space-x-2" style="display: none;">
                                         <span class="text-xs text-slate-500 font-semibold">Historial:</span>
-                                        <select @change="loadCompareVersion($el.value)" class="text-[11px] rounded-lg border-slate-200 focus:ring-[#0d4d98] focus:border-[#0d4d98] py-1 pl-2 pr-8">
+                                        <select @change="loadCompareVersion($el.value)" class="text-xs rounded-lg border-slate-200 focus:ring-[#0d4d98] focus:border-[#0d4d98] py-1 pl-2 pr-8">
                                             <option value="">Seleccionar versión...</option>
                                             @foreach ($production->documentVersions as $ver)
                                                 <option value="{{ $ver->version_number }}">{{ 'Versión ' . $ver->version_number }}</option>
@@ -802,7 +968,7 @@
                                                  <template x-if="pin.annotation_position && pin.annotation_position.page == pageNum">
                                                      <a 
                                                          :href="'#comment-' + pin.id"
-                                                         class="absolute z-20 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white shadow-md transition-transform hover:scale-110 animate-fade-in"
+                                                         class="absolute z-20 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white shadow-md transition-transform hover:scale-110 animate-fade-in"
                                                          :class="pin.status === 'addressed' ? 'bg-emerald-500' : (pin.status === 'in_progress' ? 'bg-amber-500' : 'bg-rose-500')"
                                                          :style="`left: calc(${pin.annotation_position.x}% - 12px); top: calc(${pin.annotation_position.y}% - 12px);`"
                                                          :title="'Observación #' + pin.id"
@@ -857,17 +1023,17 @@
                         </div>
                         <div class="flex items-center gap-1.5 flex-wrap">
                             @if ($pendingCount > 0)
-                                <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-250 uppercase tracking-wider">
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-bold bg-rose-50 text-rose-700 border border-rose-250 uppercase tracking-wider">
                                     {{ $pendingCount }} Pendiente{{ $pendingCount > 1 ? 's' : '' }}
                                 </span>
                             @endif
                             @if ($inProgressCount > 0)
-                                <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-250 uppercase tracking-wider">
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-bold bg-amber-50 text-amber-700 border border-amber-250 uppercase tracking-wider">
                                     {{ $inProgressCount }} En Progreso
                                 </span>
                             @endif
                             @if ($addressedCount > 0)
-                                <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-250 uppercase tracking-wider">
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-250 uppercase tracking-wider">
                                     {{ $addressedCount }} Atendida{{ $addressedCount > 1 ? 's' : '' }}
                                 </span>
                             @endif
@@ -878,7 +1044,7 @@
                     <div class="p-6 space-y-4">
                         @if ($errors->has('reply') || $errors->has('status') || $errors->has('comment'))
                             <div class="p-4 bg-rose-50 border-l-4 border-rose-500 rounded-r-xl shadow-sm text-rose-800 space-y-1 mb-2">
-                                <div class="font-extrabold text-[10px] uppercase tracking-wider mb-2 flex items-center gap-1.5 text-rose-700">
+                                <div class="font-extrabold text-xs uppercase tracking-wider mb-2 flex items-center gap-1.5 text-rose-700">
                                     <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
                                     </svg>
@@ -908,19 +1074,19 @@
                                 <div class="px-4 pt-4 pb-3">
                                     <div class="flex items-start justify-between gap-2 mb-2 flex-wrap">
                                         <div class="flex items-center gap-2 flex-wrap">
-                                            <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider {{ $observation->status->badgeClass() }}">
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-bold uppercase tracking-wider {{ $observation->status->badgeClass() }}">
                                                 {{ $observation->status->label() }}
                                             </span>
                                             <span class="text-xs font-bold text-slate-750">
                                                 {{ $observation->user->name }}
                                             </span>
                                             @if ($observation->reference_section)
-                                                <span class="text-[10px] text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-md border border-blue-100 font-bold uppercase tracking-wider">
+                                                <span class="text-xs text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-md border border-blue-100 font-bold uppercase tracking-wider">
                                                     📍 {{ $observation->reference_section }}
                                                 </span>
                                             @endif
                                         </div>
-                                        <span class="text-[10px] text-slate-400 font-semibold" title="{{ $observation->created_at }}">
+                                        <span class="text-xs text-slate-400 font-semibold" title="{{ $observation->created_at }}">
                                             {{ $observation->created_at->diffForHumans() }}
                                         </span>
                                     </div>
@@ -935,7 +1101,7 @@
                                     <div class="mx-4 mb-3 pl-3 border-l-2 border-indigo-400 bg-indigo-50/40 rounded-r-lg py-2">
                                         <div class="flex items-center gap-2 mb-1">
                                             <span class="text-xs font-bold text-indigo-750">↳ {{ $reply->user->name }} (Estudiante)</span>
-                                            <span class="text-[10px] text-slate-400">{{ $reply->created_at->diffForHumans() }}</span>
+                                            <span class="text-xs text-slate-400">{{ $reply->created_at->diffForHumans() }}</span>
                                         </div>
                                         <p class="text-xs text-slate-600">{{ $reply->content }}</p>
                                     </div>
@@ -947,7 +1113,7 @@
                                         <!-- Student actions -->
                                         @if ($isAuthor)
                                             @if ($observation->google_comment_id && !auth()->user()->google_refresh_token)
-                                                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-200 rounded-lg shadow-sm">
+                                                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-amber-700 bg-amber-50 border border-amber-200 rounded-lg shadow-sm">
                                                     ⚠️ Conecta tu Cuenta de Google arriba para responder o resolver esta observación.
                                                 </span>
                                             @else
@@ -955,14 +1121,14 @@
                                                     <form action="{{ route('comments.update-status', $observation) }}" method="POST" class="inline">
                                                         @csrf @method('PATCH')
                                                         <input type="hidden" name="status" value="in_progress">
-                                                        <button type="submit" class="px-3 py-1 text-[10px] font-bold uppercase bg-amber-50 text-amber-700 border border-amber-350 hover:bg-amber-100 rounded-lg transition tracking-wider">
+                                                        <button type="submit" class="px-3 py-1 text-xs font-bold uppercase bg-amber-50 text-amber-700 border border-amber-350 hover:bg-amber-100 rounded-lg transition tracking-wider">
                                                             Marcar En Progreso
                                                         </button>
                                                     </form>
                                                     <form action="{{ route('comments.update-status', $observation) }}" method="POST" class="inline">
                                                         @csrf @method('PATCH')
                                                         <input type="hidden" name="status" value="addressed">
-                                                        <button type="submit" class="px-3 py-1 text-[10px] font-bold uppercase bg-emerald-50 text-emerald-700 border border-emerald-350 hover:bg-emerald-100 rounded-lg transition tracking-wider">
+                                                        <button type="submit" class="px-3 py-1 text-xs font-bold uppercase bg-emerald-50 text-emerald-700 border border-emerald-350 hover:bg-emerald-100 rounded-lg transition tracking-wider">
                                                             Marcar Atendido
                                                         </button>
                                                     </form>
@@ -970,7 +1136,7 @@
                                                     <form action="{{ route('comments.update-status', $observation) }}" method="POST" class="inline">
                                                         @csrf @method('PATCH')
                                                         <input type="hidden" name="status" value="addressed">
-                                                        <button type="submit" class="px-3 py-1 text-[10px] font-bold uppercase bg-emerald-50 text-emerald-700 border border-emerald-350 hover:bg-emerald-100 rounded-lg transition tracking-wider">
+                                                        <button type="submit" class="px-3 py-1 text-xs font-bold uppercase bg-emerald-50 text-emerald-700 border border-emerald-350 hover:bg-emerald-100 rounded-lg transition tracking-wider">
                                                             Marcar Atendido
                                                         </button>
                                                     </form>
@@ -979,7 +1145,7 @@
                                                 @if (! $reply && in_array($observation->status->value, ['pending', 'in_progress']))
                                                     <button type="button"
                                                             @click="showReplyModal = true; replyToId = {{ $observation->id }}; replyToRef = '{{ addslashes($observation->reference_section ?? 'Observación') }}'"
-                                                            class="px-3 py-1 text-[10px] font-bold uppercase bg-blue-50 text-blue-700 border border-blue-200 rounded-lg hover:bg-blue-100 transition tracking-wider">
+                                                            class="px-3 py-1 text-xs font-bold uppercase bg-blue-50 text-blue-700 border border-blue-200 rounded-lg hover:bg-blue-100 transition tracking-wider">
                                                         Responder
                                                     </button>
                                                 @endif
@@ -990,7 +1156,7 @@
                                         @if ($isTutorOrJury && $observation->status->value === 'addressed' && $observation->user_id === auth()->id())
                                             <form action="{{ route('comments.verify', $observation) }}" method="POST" class="inline">
                                                 @csrf
-                                                <button type="submit" class="px-3 py-1 text-[10px] font-bold uppercase bg-emerald-100 text-emerald-700 border border-emerald-350 hover:bg-emerald-200 rounded-lg transition tracking-wider">
+                                                <button type="submit" class="px-3 py-1 text-xs font-bold uppercase bg-emerald-100 text-emerald-700 border border-emerald-350 hover:bg-emerald-200 rounded-lg transition tracking-wider">
                                                     ✓ Verificar y Cerrar
                                                 </button>
                                             </form>
@@ -1001,7 +1167,7 @@
                                             <form action="{{ route('comments.destroy', $observation) }}" method="POST" class="inline"
                                                   onsubmit="return confirm('¿Eliminar esta observación?')">
                                                 @csrf @method('DELETE')
-                                                <button type="submit" class="px-3 py-1 text-[10px] font-bold uppercase bg-rose-50 text-rose-600 border border-rose-200 rounded-lg hover:bg-rose-100 transition tracking-wider">
+                                                <button type="submit" class="px-3 py-1 text-xs font-bold uppercase bg-rose-50 text-rose-600 border border-rose-200 rounded-lg hover:bg-rose-100 transition tracking-wider">
                                                     Eliminar
                                                 </button>
                                             </form>
@@ -1041,12 +1207,12 @@
                                 <input type="hidden" name="annotation_position[y]" :value="activePin.y">
 
                                 <template x-if="activePin.page">
-                                    <div class="mb-3 bg-blue-50 border border-blue-100 text-blue-800 p-2.5 rounded-xl text-[11px] font-semibold flex items-center justify-between">
+                                    <div class="mb-3 bg-blue-50 border border-blue-100 text-blue-800 p-2.5 rounded-xl text-xs font-semibold flex items-center justify-between">
                                         <div class="flex items-center space-x-1.5">
                                             <svg class="w-4 h-4 shrink-0 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                                             <span x-text="`Pin colocado: Pág. ${activePin.page} (X: ${Math.round(activePin.x)}%, Y: ${Math.round(activePin.y)}%)`"></span>
                                         </div>
-                                        <button type="button" @click="activePin.page = null" class="text-blue-500 hover:text-blue-700 text-[10px] uppercase font-bold tracking-wider hover:underline">Quitar Pin</button>
+                                        <button type="button" @click="activePin.page = null" class="text-blue-500 hover:text-blue-700 text-xs uppercase font-bold tracking-wider hover:underline">Quitar Pin</button>
                                     </div>
                                 </template>
 
@@ -1116,7 +1282,7 @@
                 <!-- Action / Decisions Panel Card -->
                 <div class="bg-white rounded-2xl p-6 shadow-[0_10px_30px_rgba(13,77,152,0.03)] border border-slate-200 space-y-4">
                     <h3 class="text-sm font-bold text-slate-800 border-b border-slate-100 pb-3 flex items-center uppercase tracking-wider">
-                        <svg class="w-4.5 h-4.5 mr-2 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-5 h-5 mr-2 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
                         </svg>
                         Panel de Control y Flujo
@@ -1137,21 +1303,32 @@
                         @if ($isTutor || $isCoordinator)
                             <div class="space-y-3">
                                 @if ($production->jury_review_requested)
-                                    <div class="bg-amber-50 border border-amber-200 text-amber-800 p-3 rounded-xl text-[11px] font-medium leading-normal flex items-start space-x-2">
+                                    <div class="bg-amber-50 border border-amber-200 text-amber-800 p-3 rounded-xl text-xs font-medium leading-normal flex items-start space-x-2">
                                         <svg class="w-4 h-4 shrink-0 text-amber-500 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
                                         <span>El estudiante solicita el pase para evaluación del Jurado.</span>
                                     </div>
                                 @endif
 
-                                <!-- Approve Pass to Jury -->
-                                <form action="{{ route('productions.transition', $production) }}" method="POST" onsubmit="return confirm('¿Estás seguro de autorizar el pase a revisión del Jurado?')">
-                                    @csrf
-                                    <input type="hidden" name="target_state" value="under_jury_review">
-                                    <button type="submit" class="w-full py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow transition duration-150 flex items-center justify-center">
-                                        <svg class="w-4 h-4 mr-1.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
-                                        Dar Pase a Jurado
-                                    </button>
-                                </form>
+                                <!-- Approve / Pass to Jury -->
+                                @if (in_array($production->subject?->code, ['SMI1004341', 'TRI1106341']))
+                                    <form action="{{ route('productions.transition', $production) }}" method="POST" onsubmit="return confirm('¿Estás seguro de recomendar y enviar este documento a Coordinación para su aprobación final?')">
+                                        @csrf
+                                        <input type="hidden" name="target_state" value="under_coordinator_review">
+                                        <button type="submit" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow transition duration-150 flex items-center justify-center cursor-pointer">
+                                            <svg class="w-4 h-4 mr-1.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+                                            Enviar a Coordinación
+                                        </button>
+                                    </form>
+                                @else
+                                    <form action="{{ route('productions.transition', $production) }}" method="POST" onsubmit="return confirm('¿Estás seguro de autorizar el pase a revisión del Jurado?')">
+                                        @csrf
+                                        <input type="hidden" name="target_state" value="under_jury_review">
+                                        <button type="submit" class="w-full py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow transition duration-150 flex items-center justify-center">
+                                            <svg class="w-4 h-4 mr-1.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+                                            Dar Pase a Jurado
+                                        </button>
+                                    </form>
+                                @endif
 
                                 <!-- Needs Corrections Trigger -->
                                 <button type="button" @click="showCorrectionModal = true" class="w-full py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow transition duration-150 flex items-center justify-center">
@@ -1213,6 +1390,62 @@
                             <p class="text-xs text-slate-400 text-center py-2 italic font-medium">Tesis en revisión formal por el Jurado.</p>
                         @endif
 
+                    <!-- Action: Coordinator reviews under_coordinator_review production -->
+                    @elseif ($production->workflow_state === 'under_coordinator_review')
+                        @if ($isCoordinator)
+                            <div class="space-y-3">
+                                <!-- Approve -->
+                                <form action="{{ route('productions.transition', $production) }}" method="POST" onsubmit="return confirm('¿Estás seguro de que deseas APROBAR esta producción científica?')">
+                                    @csrf
+                                    <input type="hidden" name="target_state" value="approved">
+
+                                    @if ($production->subject?->code === 'TRI1106341')
+                                        <!-- Juries pre-assignment for Trabajo II -->
+                                        <div class="mb-4 p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
+                                            <p class="text-[11px] font-bold text-slate-700 uppercase tracking-wide">Pre-asignación de Jurados para Trabajo II</p>
+                                            <div class="space-y-1.5">
+                                                <label for="preassigned_jury_1_id" class="text-[10px] font-semibold text-slate-500 block">Jurado Evaluador 1</label>
+                                                <select id="preassigned_jury_1_id" name="preassigned_jury_1_id" class="w-full text-[11px] rounded-lg border-slate-200 focus:ring-unimar-blue focus:border-unimar-blue">
+                                                    <option value="">-- Seleccionar Jurado 1 --</option>
+                                                    @foreach ($juries as $j)
+                                                        <option value="{{ $j->id }}">{{ $j->name }}</option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                            <div class="space-y-1.5">
+                                                <label for="preassigned_jury_2_id" class="text-[10px] font-semibold text-slate-500 block">Jurado Evaluador 2</label>
+                                                <select id="preassigned_jury_2_id" name="preassigned_jury_2_id" class="w-full text-[11px] rounded-lg border-slate-200 focus:ring-unimar-blue focus:border-unimar-blue">
+                                                    <option value="">-- Seleccionar Jurado 2 --</option>
+                                                    @foreach ($juries as $j)
+                                                        <option value="{{ $j->id }}">{{ $j->name }}</option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                        </div>
+                                    @endif
+
+                                    <button type="submit" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow transition duration-150 flex items-center justify-center cursor-pointer">
+                                        <svg class="w-4 h-4 mr-1.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                                        Aprobar Documento
+                                    </button>
+                                </form>
+
+                                <!-- Needs Corrections Trigger -->
+                                <button type="button" @click="showCorrectionModal = true" class="w-full py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow transition duration-150 flex items-center justify-center cursor-pointer">
+                                    <svg class="w-4 h-4 mr-1.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                    Solicitar Correcciones
+                                </button>
+
+                                <!-- Reject Trigger -->
+                                <button type="button" @click="showRejectModal = true" class="w-full py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow transition duration-150 flex items-center justify-center cursor-pointer">
+                                    <svg class="w-4 h-4 mr-1.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                    Rechazar Documento
+                                </button>
+                            </div>
+                        @else
+                            <p class="text-xs text-slate-400 text-center py-2 italic font-medium">Tesis en revisión formal por la Coordinación.</p>
+                        @endif
+
                     <!-- Action: Student resubmits after needs_corrections -->
                     @elseif ($production->workflow_state === 'needs_corrections' && ($isAuthor || $isCoordinator))
                         <form action="{{ route('productions.transition', $production) }}" method="POST" class="space-y-4">
@@ -1221,18 +1454,18 @@
                             <input type="hidden" name="file_id" :value="fileId">
 
                             @if ($production->google_drive_file_id)
-                                <div class="bg-indigo-50 border border-indigo-100 p-4 rounded-xl text-[11px] text-indigo-800 leading-normal">
+                                <div class="bg-indigo-50 border border-indigo-100 p-4 rounded-xl text-xs text-indigo-800 leading-normal">
                                     <p class="font-bold mb-1">Nota de Google Docs:</p>
                                     Tus correcciones se toman directamente del documento embebido. Asegúrate de haber guardado tus cambios antes de enviar.
                                 </div>
                             @else
                                 <div class="bg-slate-50 p-4 rounded-xl border border-dashed border-slate-200 text-center">
-                                    <label class="block text-[10px] font-bold text-slate-450 mb-2 uppercase">Subir Nueva Versión (PDF)</label>
+                                    <label class="block text-xs font-bold text-slate-450 mb-2 uppercase">Subir Nueva Versión (PDF)</label>
                                     <input type="file" @change="handleFileSelect" class="hidden" id="new-pdf-resubmit" accept="application/pdf">
                                     <label for="new-pdf-resubmit" class="px-3 py-2 bg-white border border-slate-200 text-slate-750 rounded-xl text-xs font-bold uppercase tracking-wider cursor-pointer hover:bg-slate-50 transition inline-block shadow-sm">
                                         Seleccionar Archivo
                                     </label>
-                                    <p class="text-[10px] text-slate-400 mt-2 font-medium" x-text="statusMessage || 'Ningún archivo cargado todavía'"></p>
+                                    <p class="text-xs text-slate-400 mt-2 font-medium" x-text="statusMessage || 'Ningún archivo cargado todavía'"></p>
                                     
                                     <div x-show="isUploading" class="w-full bg-slate-200 h-1.5 rounded-full mt-2" style="display: none;">
                                         <div class="bg-[#0d4d98] h-1.5 rounded-full transition-all" :style="'width: ' + uploadProgress + '%'"></div>
@@ -1241,7 +1474,7 @@
                             @endif
 
                             <div class="space-y-1">
-                                <label class="block text-[10px] font-bold text-slate-450 uppercase">Cambios realizados</label>
+                                <label class="block text-xs font-bold text-slate-450 uppercase">Cambios realizados</label>
                                 <textarea name="changelog" required rows="3" class="w-full rounded-xl border-slate-200 text-xs focus:ring-[#0d4d98] focus:border-[#0d4d98]" placeholder="Describe brevemente las correcciones aplicadas..."></textarea>
                             </div>
 
@@ -1268,7 +1501,7 @@
                 <!-- Revision History (Timeline) -->
                 <div class="bg-white rounded-2xl p-6 shadow-[0_10px_30px_rgba(13,77,152,0.03)] border border-slate-200">
                     <h3 class="text-sm font-bold text-slate-800 border-b border-slate-100 pb-3 mb-4 flex items-center uppercase tracking-wider">
-                        <svg class="w-4.5 h-4.5 mr-2 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <svg class="w-5 h-5 mr-2 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         Historial de Revisiones
                     </h3>
 
@@ -1286,11 +1519,11 @@
                                             <span class="font-bold text-slate-800">
                                                 {{ $statusLabels[$rev->new_state] ?? $rev->new_state }}
                                             </span>
-                                            <span class="text-[9px] text-slate-400 font-semibold" title="{{ $rev->created_at }}">
+                                            <span class="text-xs text-slate-400 font-semibold" title="{{ $rev->created_at }}">
                                                 {{ $rev->created_at->diffForHumans() }}
                                             </span>
                                         </div>
-                                        <p class="text-[10px] text-slate-500">
+                                        <p class="text-xs text-slate-500">
                                             Por: <strong class="text-slate-600">{{ $rev->user->name ?? 'Sistema' }}</strong> ({{ $rev->rol }})
                                         </p>
                                         @if ($rev->comentario)
@@ -1384,7 +1617,7 @@
                             <p class="mt-0.5">Abre Ajustes, ingresa a Safari, ve a Privacidad y desactiva la opción "Prevenir seguimiento entre sitios". Luego, recarga esta página.</p>
                         </div>
                     </div>
-                    <p class="text-[10px] text-slate-450 mt-2 bg-slate-50 p-2.5 rounded-lg border border-slate-150">Nota: Esta es una medida de seguridad exclusiva de los navegadores modernos para evitar el seguimiento comercial. Habilitar la cookie para este dominio local permite que la API oficial de Google Workspace verifique tu sesión con absoluta seguridad.</p>
+                    <p class="text-xs text-slate-450 mt-2 bg-slate-50 p-2.5 rounded-lg border border-slate-150">Nota: Esta es una medida de seguridad exclusiva de los navegadores modernos para evitar el seguimiento comercial. Habilitar la cookie para este dominio local permite que la API oficial de Google Workspace verifique tu sesión con absoluta seguridad.</p>
                 </div>
                 <div class="flex justify-end mt-6">
                     <button type="button" @click="showCookieModal = false" class="px-4 py-2 bg-[#0d4d98] hover:bg-blue-800 text-white rounded-xl text-xs font-bold shadow transition uppercase tracking-wider">

@@ -212,5 +212,7 @@
 
 <x-google-calendar-tutorial />
 
+@stack('scripts')
+
 </body>
 </html>

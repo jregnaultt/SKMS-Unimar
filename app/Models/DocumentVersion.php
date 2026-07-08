@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Traits\HasAuditLog;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -10,7 +11,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 
 class DocumentVersion extends Model implements HasMedia
 {
-    use InteractsWithMedia;
+    use HasAuditLog, InteractsWithMedia;
 
     protected $guarded = ['id'];
 

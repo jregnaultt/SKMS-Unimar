@@ -70,7 +70,7 @@
                 
                 <!-- Footer decorativo en el lado derecho -->
                 <div class="mt-8 text-center">
-                    <p class="text-xs text-slate-400">
+                    <p class="text-sm text-slate-400">
                         &copy; {{ date('Y') }} Decanato de Ingeniería - Universidad de Margarita.
                     </p>
                 </div>

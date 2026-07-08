@@ -107,7 +107,7 @@ class GoogleCalendarService
         $event->setDescription($description);
 
         // Date
-        $scheduledDate = $milestone->scheduled_date ?? now()->addDay();
+        $scheduledDate = ($milestone->scheduled_date ?? now()->addDay())->copy()->shiftTimezone('America/Caracas');
         $start = new EventDateTime;
         $start->setDateTime($scheduledDate->format(\DateTime::RFC3339));
         $start->setTimeZone('America/Caracas');

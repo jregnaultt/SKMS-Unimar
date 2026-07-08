@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Traits\HasAuditLog;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -15,7 +16,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 
 class Production extends Model implements HasMedia
 {
-    use HasFactory, InteractsWithMedia, SoftDeletes;
+    use HasAuditLog, HasFactory, InteractsWithMedia, SoftDeletes;
 
     protected $guarded = ['id'];
 
@@ -103,11 +104,25 @@ class Production extends Model implements HasMedia
         return $this->hasMany(Comment::class);
     }
 
+    public function preassignedJury1(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'preassigned_jury_1_id');
+    }
+
+    public function preassignedJury2(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'preassigned_jury_2_id');
+    }
+
     /**
      * Get the appropriate show URL based on the workflow state.
      */
     public function getShowUrlAttribute(): string
     {
+        if (auth()->check()) {
+            return route('productions.show', $this);
+        }
+
         if ($this->workflow_state === 'published') {
             return route('catalog.show-public', $this->uuid);
         }

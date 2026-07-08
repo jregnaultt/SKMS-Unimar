@@ -79,7 +79,7 @@ class ProductionUploadTest extends TestCase
         $response = $this->actingAs($this->student)->post(route('productions.store'), []);
 
         $response->assertSessionHasErrors([
-            'title', 'abstract', 'authors', 'tutor_id', 'keywords',
+            'title', 'authors', 'tutor_id',
             'academic_program_id', 'research_line_id',
             'production_type_id', 'academic_period_id',
             'file_id', 'action',
@@ -293,5 +293,30 @@ class ProductionUploadTest extends TestCase
             'id' => $prod->id,
             'deleted_at' => null,
         ]);
+    }
+
+    public function test_user_can_update_metadata_fields(): void
+    {
+        $prod = Production::create([
+            'uuid' => (string) Str::uuid(),
+            'title' => 'Tesis de prueba',
+            'workflow_state' => 'under_tutor_review',
+        ]);
+        $prod->users()->attach($this->student->id, ['role' => 'author']);
+
+        $response = $this->actingAs($this->student)->patch(route('productions.update-metadata', $prod), [
+            'abstract' => 'Este es el nuevo resumen del trabajo.',
+            'keywords' => 'IA, Laravel, PHP',
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success', '¡El resumen y las palabras clave se han actualizado correctamente!');
+
+        $this->assertDatabaseHas('productions', [
+            'id' => $prod->id,
+            'abstract' => 'Este es el nuevo resumen del trabajo.',
+        ]);
+
+        $this->assertTrue($prod->fresh()->keywords->pluck('name')->contains('IA'));
     }
 }

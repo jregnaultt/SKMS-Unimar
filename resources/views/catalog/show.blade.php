@@ -58,7 +58,7 @@
 
             @auth
                 @if(auth()->user()->hasRole(['Coordinador', 'Super Admin', 'Decano']) || $production->users->contains(auth()->id()))
-                    <a href="{{ route('productions.show', $production) }}" class="inline-flex items-center px-4 py-2 bg-slate-100 hover:bg-slate-200 text-[#0d4d98] text-xs font-bold uppercase tracking-wider rounded-xl transition border border-[#0d4d98]/20">
+                    <a href="{{ route('productions.show', $production) }}" class="inline-flex items-center px-4 py-2 bg-slate-100 hover:bg-slate-200 text-[#0d4d98] text-sm font-bold uppercase tracking-wider rounded-xl transition border border-[#0d4d98]/20">
                         <svg aria-hidden="true" class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>
                         </svg>
@@ -76,7 +76,7 @@
                 <span class="px-3.5 py-1 text-xs font-extrabold rounded-full bg-[#0d4d98]/10 text-[#0d4d98] border border-[#0d4d98]/20 uppercase tracking-wider">
                     {{ $production->productionType->name ?? 'Trabajo Científico' }}
                 </span>
-                <div class="flex items-center text-xs text-slate-400 font-bold uppercase tracking-wider">
+                <div class="flex items-center text-sm text-slate-400 font-bold uppercase tracking-wider">
                     <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                     </svg>
@@ -96,7 +96,7 @@
                 
                 <!-- DOI Identifier if exists -->
                 @if($production->doi)
-                    <div class="inline-flex items-center text-xs font-bold bg-slate-50 text-slate-600 border border-slate-200 px-3 py-1 rounded-lg">
+                    <div class="inline-flex items-center text-sm font-bold bg-slate-50 text-slate-600 border border-slate-200 px-3 py-1 rounded-lg">
                         <span class="text-slate-400 mr-1.5">DOI:</span>
                         <a href="https://doi.org/{{ $production->doi }}" target="_blank" class="hover:text-[#0d4d98] hover:underline">{{ $production->doi }}</a>
                     </div>
@@ -106,28 +106,28 @@
             <!-- Authors and Tutor Metadata Grid -->
             <section class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50 border border-slate-200/60 rounded-2xl p-5 md:p-6 text-sm">
                 <div class="space-y-1">
-                    <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block">Autores</span>
+                    <span class="text-sm font-bold text-slate-400 uppercase tracking-wider block">Autores</span>
                     <strong class="text-slate-800 text-base font-extrabold leading-normal block citation_author">
                         {{ $production->authors }}
                     </strong>
                 </div>
 
                 <div class="space-y-1">
-                    <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block">Tutor Académico</span>
+                    <span class="text-sm font-bold text-slate-400 uppercase tracking-wider block">Tutor Académico</span>
                     <strong class="text-slate-800 text-base font-extrabold leading-normal block">
                         {{ $production->tutor }}
                     </strong>
                 </div>
 
                 <div class="space-y-1 border-t border-slate-200/60 pt-3 md:border-t-0 md:pt-0">
-                    <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block">Programa de Grado</span>
+                    <span class="text-sm font-bold text-slate-400 uppercase tracking-wider block">Programa de Grado</span>
                     <strong class="text-slate-700 font-semibold block">
                         {{ $production->academicProgram->name ?? 'N/A' }}
                     </strong>
                 </div>
 
                 <div class="space-y-1 border-t border-slate-200/60 pt-3 md:border-t-0 md:pt-0">
-                    <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block">Línea de Investigación</span>
+                    <span class="text-sm font-bold text-slate-400 uppercase tracking-wider block">Línea de Investigación</span>
                     <strong class="text-slate-700 font-semibold block">
                         {{ $production->researchLine->name ?? 'N/A' }}
                     </strong>
@@ -147,7 +147,7 @@
             <!-- Keywords Section -->
             @if($production->keywords->isNotEmpty())
                 <section class="space-y-2 border-t border-slate-150 pt-6">
-                    <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                    <h4 class="text-sm font-bold text-slate-400 uppercase tracking-wider">
                         Palabras Clave
                     </h4>
                     <div class="flex flex-wrap gap-2">
@@ -171,8 +171,8 @@
                             </svg>
                         </div>
                         <div>
-                            <span class="text-xs font-bold uppercase tracking-wider block text-slate-400">Documento Adjunto</span>
-                            <span class="text-xs font-semibold text-slate-600 block">PDF Completo indexado por Google Scholar</span>
+                            <span class="text-sm font-bold uppercase tracking-wider block text-slate-400">Documento Adjunto</span>
+                            <span class="text-sm font-semibold text-slate-600 block">PDF Completo indexado por Google Scholar</span>
                         </div>
                     </div>
 

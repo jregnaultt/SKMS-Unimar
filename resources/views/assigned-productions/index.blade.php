@@ -137,7 +137,7 @@
                                                                     {{ $studentName }}
                                                                 </td>
                                                                 <td class="px-4 py-3 whitespace-nowrap">
-                                                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border 
+                                                                    <span class="px-2 py-0.5 rounded-full text-xs font-bold border 
                                                                         {{ $prod->workflow_state === 'approved' || $prod->workflow_state === 'published' ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : (
                                                                         $prod->workflow_state === 'under_review' || $prod->workflow_state === 'needs_corrections' ? 'bg-amber-50 text-amber-800 border-amber-200' : 'bg-slate-50 text-slate-600 border-slate-200') }}">
                                                                         {{ $stateLabels[$prod->workflow_state] ?? $prod->workflow_state }}
@@ -244,7 +244,7 @@
                                                                     {{ $studentName }}
                                                                 </td>
                                                                 <td class="px-4 py-3 whitespace-nowrap">
-                                                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border 
+                                                                    <span class="px-2 py-0.5 rounded-full text-xs font-bold border 
                                                                         {{ $prod->workflow_state === 'approved' || $prod->workflow_state === 'published' ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : (
                                                                         $prod->workflow_state === 'under_review' || $prod->workflow_state === 'needs_corrections' ? 'bg-amber-50 text-amber-800 border-amber-200' : 'bg-slate-50 text-slate-600 border-slate-200') }}">
                                                                         {{ $stateLabels[$prod->workflow_state] ?? $prod->workflow_state }}
@@ -343,7 +343,7 @@
                                                     <div class="text-xs font-bold text-slate-800 max-w-xs truncate" title="{{ $prod->title }}">
                                                         {{ $prod->title }}
                                                     </div>
-                                                    <div class="text-[10px] text-slate-400 mt-1">
+                                                    <div class="text-xs text-slate-400 mt-1">
                                                         {{ $prod->academicProgram->name ?? 'Programa' }} • {{ $prod->academicPeriod->name ?? '' }}
                                                     </div>
                                                 </td>
@@ -351,7 +351,7 @@
                                                     {{ $studentName }}
                                                 </td>
                                                 <td class="px-4 py-3.5 whitespace-nowrap">
-                                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border {{ $stateColors[$prod->workflow_state] ?? 'bg-slate-50 text-slate-700' }}">
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold border {{ $stateColors[$prod->workflow_state] ?? 'bg-slate-50 text-slate-700' }}">
                                                         {{ $stateLabels[$prod->workflow_state] ?? $prod->workflow_state }}
                                                     </span>
                                                 </td>
@@ -423,7 +423,7 @@
                                                     <div class="text-xs font-bold text-slate-800 max-w-xs truncate" title="{{ $prod->title }}">
                                                         {{ $prod->title }}
                                                     </div>
-                                                    <div class="text-[10px] text-slate-400 mt-1">
+                                                    <div class="text-xs text-slate-400 mt-1">
                                                         {{ $prod->academicProgram->name ?? 'Programa' }} • {{ $prod->academicPeriod->name ?? '' }}
                                                     </div>
                                                 </td>
@@ -431,7 +431,7 @@
                                                     {{ $studentName }}
                                                 </td>
                                                 <td class="px-4 py-3.5 whitespace-nowrap">
-                                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border {{ $stateColors[$prod->workflow_state] ?? 'bg-slate-50 text-slate-700' }}">
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold border {{ $stateColors[$prod->workflow_state] ?? 'bg-slate-50 text-slate-700' }}">
                                                         {{ $stateLabels[$prod->workflow_state] ?? $prod->workflow_state }}
                                                     </span>
                                                 </td>
@@ -517,7 +517,7 @@
                         <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                             <div>
                                 <h4 class="text-xs font-extrabold text-slate-800">Calendario de Defensas</h4>
-                                <p class="text-[10px] text-slate-400 font-semibold tracking-wide">Cronograma de sustentaciones</p>
+                                <p class="text-xs text-slate-400 font-semibold tracking-wide">Cronograma de sustentaciones</p>
                             </div>
                             <!-- Navegación -->
                             <div class="flex items-center space-x-1">
@@ -579,10 +579,10 @@
                                 <div class="p-3 bg-slate-50 border border-slate-100 rounded-xl space-y-1.5">
                                     <div class="flex items-center justify-between">
                                         <span class="px-2 py-0.5 text-[9px] font-bold rounded bg-amber-50 text-amber-700 border border-amber-200 uppercase" x-text="def.title"></span>
-                                        <span class="text-[10px] text-slate-600 font-bold" x-text="def.time"></span>
+                                        <span class="text-xs text-slate-600 font-bold" x-text="def.time"></span>
                                     </div>
                                     <h6 class="text-xs font-bold text-slate-800 leading-normal" x-text="def.production_title"></h6>
-                                    <p class="text-[10px] text-slate-500 border-t border-slate-200/55 pt-1.5">
+                                    <p class="text-xs text-slate-500 border-t border-slate-200/55 pt-1.5">
                                         Estudiante: <strong class="text-slate-700 font-bold" x-text="def.student"></strong>
                                     </p>
                                 </div>

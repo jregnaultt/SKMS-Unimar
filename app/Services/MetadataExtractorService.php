@@ -58,7 +58,7 @@ class MetadataExtractorService
 
                 $metadata = $this->mergeMetadata($metadata, $refined);
                 $metadata['_prompt'] = Str::limit($aiText, 1500, ' ... [Texto truncado en la consola para evitar límites de tamaño en WebSocket]');
-                $metadata['_toon'] = $toonResult;
+                $metadata['_toon'] = Str::limit($toonResult, 1500, ' ... [Texto truncado en la consola para evitar límites de tamaño en WebSocket]');
             } catch (\Exception $groqEx) {
                 Log::warning('La extracción con Groq falló, intentando fallback local con Ollama (Qwen2.5): '.$groqEx->getMessage());
                 try {
@@ -70,7 +70,7 @@ class MetadataExtractorService
 
                     $metadata = $this->mergeMetadata($metadata, $refined);
                     $metadata['_prompt'] = Str::limit($aiText, 1500, ' ... [Texto truncado en la consola para evitar límites de tamaño en WebSocket]');
-                    $metadata['_toon'] = $toonResult;
+                    $metadata['_toon'] = Str::limit($toonResult, 1500, ' ... [Texto truncado en la consola para evitar límites de tamaño en WebSocket]');
                 } catch (\Exception $ollamaEx) {
                     Log::error('Todos los métodos de extracción con IA fallaron para '.basename($filePath).': '.$ollamaEx->getMessage());
                 }

@@ -63,7 +63,7 @@
             </div>
             <div>
                 <span class="block text-3xl font-extrabold text-slate-800 leading-none">{{ $productions->count() }}</span>
-                <span class="text-xs text-slate-500 font-bold uppercase tracking-wider block mt-1.5">Trabajos Asignados</span>
+                <span class="text-sm text-slate-500 font-bold uppercase tracking-wider block mt-1.5">Trabajos Asignados</span>
             </div>
         </div>
 
@@ -78,7 +78,7 @@
                 <span class="block text-3xl font-extrabold text-slate-800 leading-none">
                     {{ $productions->where('workflow_state', 'under_review')->count() }}
                 </span>
-                <span class="text-xs text-slate-500 font-bold uppercase tracking-wider block mt-1.5">Pendientes de Revisión</span>
+                <span class="text-sm text-slate-500 font-bold uppercase tracking-wider block mt-1.5">Pendientes de Revisión</span>
             </div>
         </div>
 
@@ -91,7 +91,7 @@
             </div>
             <div>
                 <span class="block text-3xl font-extrabold text-slate-800 leading-none">{{ $defensas->count() }}</span>
-                <span class="text-xs text-slate-500 font-bold uppercase tracking-wider block mt-1.5">Defensas Programadas</span>
+                <span class="text-sm text-slate-500 font-bold uppercase tracking-wider block mt-1.5">Hitos/Actividades</span>
             </div>
         </div>
     </div>
@@ -106,7 +106,7 @@
                     <h3 class="text-lg font-extrabold text-slate-800">
                         {{ $roleLabel === 'Tutor' ? 'Bandeja de Tutorías Activas' : 'Bandeja de Evaluaciones (Jurado)' }}
                     </h3>
-                    <p class="text-xs text-slate-500 font-semibold mt-0.5 uppercase tracking-wider">
+                    <p class="text-sm text-slate-500 font-semibold mt-0.5 uppercase tracking-wider">
                         {{ $roleLabel === 'Tutor' ? 'Lista de tesis y proyectos científicos bajo tu supervisión y tutoría' : 'Lista de trabajos científicos asignados para tu evaluación final como jurado' }}
                     </p>
                 </div>
@@ -119,7 +119,7 @@
                             </svg>
                         </div>
                         <h4 class="text-sm font-bold text-slate-700">Sin asignaciones registradas</h4>
-                        <p class="mt-1.5 text-xs text-slate-500 leading-relaxed">
+                        <p class="mt-1.5 text-sm text-slate-500 leading-relaxed">
                             Actualmente no estás registrado como {{ $roleLabel === 'Tutor' ? 'tutor' : 'jurado' }} en ningún trabajo científico activo en este periodo.
                         </p>
                     </div>
@@ -128,10 +128,10 @@
                         <table class="min-w-full divide-y divide-slate-150 min-w-[650px]">
                             <thead class="bg-slate-50/75">
                                 <tr>
-                                    <th class="px-4 py-3.5 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Título de la Obra</th>
-                                    <th class="px-4 py-3.5 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Estudiante</th>
-                                    <th class="px-4 py-3.5 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Estado</th>
-                                    <th class="px-4 py-3.5 text-right text-xs font-bold text-slate-500 uppercase tracking-wider">Acciones</th>
+                                    <th class="px-4 py-3.5 text-left text-sm font-bold text-slate-500 uppercase tracking-wider">Título de la Obra</th>
+                                    <th class="px-4 py-3.5 text-left text-sm font-bold text-slate-500 uppercase tracking-wider">Estudiante</th>
+                                    <th class="px-4 py-3.5 text-left text-sm font-bold text-slate-500 uppercase tracking-wider">Estado</th>
+                                    <th class="px-4 py-3.5 text-right text-sm font-bold text-slate-500 uppercase tracking-wider">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-slate-100">
@@ -180,21 +180,21 @@
                                                 {{ $prod->title }}
                                             </div>
                                             <div class="flex items-center space-x-1.5 mt-1.5">
-                                                <span class="inline-flex items-center px-2 py-0.5 rounded-md bg-slate-50 border border-slate-200/60 text-[10px] font-bold text-slate-500 uppercase tracking-wide">
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded-md bg-slate-50 border border-slate-200/60 text-xs font-bold text-slate-500 uppercase tracking-wide">
                                                     {{ $prod->productionType->name ?? 'Tesis' }}
                                                 </span>
-                                                <span class="text-slate-300 text-xs">•</span>
-                                                <span class="text-[11px] text-slate-505 font-medium text-slate-500">
+                                                <span class="text-slate-300 text-sm">•</span>
+                                                <span class="text-xs text-slate-505 font-medium text-slate-500">
                                                     {{ $prod->academicPeriod->name ?? '' }}
                                                 </span>
                                             </div>
                                         </td>
                                         <td class="px-4 py-4 whitespace-nowrap">
                                             <div class="flex items-center space-x-2.5">
-                                                <div class="w-8 h-8 rounded-full bg-[#0d4d98]/10 text-[#0d4d98] flex items-center justify-center text-xs font-bold shrink-0 border border-[#0d4d98]/5">
+                                                <div class="w-8 h-8 rounded-full bg-[#0d4d98]/10 text-[#0d4d98] flex items-center justify-center text-sm font-bold shrink-0 border border-[#0d4d98]/5">
                                                     {{ $initials }}
                                                 </div>
-                                                <span class="text-sm font-semibold text-slate-700">{{ $studentName }}</span>
+                                                <span class="text-base font-semibold text-slate-700">{{ $studentName }}</span>
                                             </div>
                                         </td>
                                         <td class="px-4 py-4 whitespace-nowrap">
@@ -208,7 +208,7 @@
                                             </span>
                                         </td>
                                         <td class="px-4 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            <a href="{{ $prod->show_url }}" class="inline-flex items-center space-x-1.5 px-3.5 py-2 bg-[#0d4d98] hover:bg-[#0b3d78] text-white rounded-xl text-xs font-bold transition shadow-sm hover:shadow hover:-translate-y-0.5 duration-150">
+                                            <a href="{{ $prod->show_url }}" class="inline-flex items-center space-x-1.5 px-3.5 py-2 bg-[#0d4d98] hover:bg-[#0b3d78] text-white rounded-xl text-sm font-bold transition shadow-sm hover:shadow hover:-translate-y-0.5 duration-150">
                                                 <svg aria-hidden="true" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
@@ -321,7 +321,7 @@
                 </div>
 
                 <!-- Calendar grid -->
-                <div class="grid grid-cols-7 gap-1 text-center text-xs">
+                <div class="grid grid-cols-7 gap-1 text-center text-sm">
                     <!-- Weekdays -->
                     <template x-for="day in ['D', 'L', 'M', 'M', 'J', 'V', 'S']">
                         <div class="font-extrabold text-slate-400 py-1 uppercase tracking-wider" x-text="day"></div>
@@ -334,7 +334,7 @@
                                 @click="selectDay(d)"
                                 :disabled="!d.day"
                                 :class="{
-                                    'w-9 h-9 rounded-xl text-xs font-bold flex items-center justify-center transition-all focus:outline-none focus:ring-2 focus:ring-[#0d4d98]/40': true,
+                                    'w-9 h-9 rounded-xl text-sm font-bold flex items-center justify-center transition-all focus:outline-none focus:ring-2 focus:ring-[#0d4d98]/40': true,
                                     'hover:bg-slate-100 text-slate-700 cursor-pointer': d.day && !d.hasDefense,
                                     'bg-amber-50 text-amber-800 border border-amber-300/80 ring-2 ring-amber-500/10 hover:bg-amber-100 cursor-pointer': d.hasDefense,
                                     'text-slate-300 pointer-events-none': !d.day
@@ -376,11 +376,11 @@
                     <template x-for="def in selectedDefenses">
                         <div class="p-3.5 bg-slate-50 border border-slate-100 rounded-xl space-y-2.5">
                             <div class="flex items-center justify-between">
-                                <span class="px-2 py-0.5 text-[10px] font-bold rounded-md bg-amber-50 text-amber-700 border border-amber-200/50 uppercase tracking-wider" x-text="def.title"></span>
-                                <span class="text-xs text-slate-600 font-bold bg-white border border-slate-100 px-2 py-0.5 rounded-md shadow-sm" x-text="def.time"></span>
+                                <span class="px-2 py-0.5 text-xs font-bold rounded-md bg-amber-50 text-amber-700 border border-amber-200/50 uppercase tracking-wider" x-text="def.title"></span>
+                                <span class="text-sm text-slate-600 font-bold bg-white border border-slate-100 px-2 py-0.5 rounded-md shadow-sm" x-text="def.time"></span>
                             </div>
-                            <h6 class="text-sm font-bold text-slate-800 leading-normal" x-text="def.production_title"></h6>
-                            <div class="text-xs text-slate-500 border-t border-slate-200/50 pt-2 flex items-center space-x-1">
+                            <h6 class="text-base font-bold text-slate-800 leading-normal" x-text="def.production_title"></h6>
+                            <div class="text-sm text-slate-500 border-t border-slate-200/50 pt-2 flex items-center space-x-1">
                                 <span>Estudiante:</span>
                                 <strong class="text-slate-750 font-extrabold" x-text="def.student"></strong>
                             </div>
@@ -392,12 +392,12 @@
             <!-- Static information list if no day selected -->
             <div x-show="selectedDefenses.length === 0" class="bg-white border border-slate-100 rounded-2xl p-5 shadow-[0_10px_30px_rgba(13,77,152,0.03)] space-y-4">
                 <div class="border-b border-slate-150 pb-3">
-                    <h5 class="text-sm font-extrabold text-slate-800">Próximas Defensas</h5>
-                    <p class="text-[11px] text-slate-500 font-medium">Cronograma de eventos más cercanos</p>
+                    <h5 class="text-sm font-extrabold text-slate-800">Próximos Hitos / Entregas</h5>
+                    <p class="text-xs text-slate-500 font-medium">Cronograma de eventos más cercanos</p>
                 </div>
                 
                 @if ($defensas->isEmpty())
-                    <p class="text-xs text-slate-500 text-center py-6">No hay defensas programadas para este periodo.</p>
+                    <p class="text-sm text-slate-500 text-center py-6">No hay hitos programados para este periodo.</p>
                 @else
                     <div class="space-y-3">
                         @foreach ($defensas->take(3) as $def)
@@ -414,7 +414,7 @@
                                 <div class="flex items-center space-x-3.5">
                                     <!-- Mini calendar sheet -->
                                     <div class="w-11 h-12 bg-white border border-slate-200 rounded-xl flex flex-col items-center justify-center overflow-hidden shrink-0 shadow-sm">
-                                        <div class="w-full bg-[#0d4d98] text-[9px] text-white font-bold uppercase py-0.5 text-center tracking-wider">
+                                        <div class="w-full bg-[#0d4d98] text-xs text-white font-bold uppercase py-0.5 text-center tracking-wider">
                                             {{ $dateMonth }}
                                         </div>
                                         <div class="text-slate-800 text-base font-extrabold leading-none py-1">
@@ -422,16 +422,16 @@
                                         </div>
                                     </div>
                                     <div class="space-y-0.5">
-                                        <h6 class="text-xs font-bold text-slate-800 line-clamp-1" title="{{ $def->production->title }}">
+                                        <h6 class="text-sm font-bold text-slate-800 line-clamp-1" title="{{ $def->production->title }}">
                                             {{ $def->production->title }}
                                         </h6>
-                                        <p class="text-[11px] text-slate-500">
+                                        <p class="text-xs text-slate-500">
                                             Estudiante: <strong class="text-slate-700 font-semibold">{{ $def->production->authors }}</strong>
                                         </p>
                                     </div>
                                 </div>
                                 <div class="text-right shrink-0">
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded-lg bg-blue-50 text-[#0d4d98] text-xs font-bold border border-blue-100">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-lg bg-blue-50 text-[#0d4d98] text-sm font-bold border border-blue-100">
                                         {{ $def->scheduled_date->format('h:i A') }}
                                     </span>
                                 </div>

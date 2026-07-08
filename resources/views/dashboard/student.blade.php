@@ -12,6 +12,48 @@
 @endphp
 
 <div class="space-y-4">
+    <!-- Transition to Trabajo I Banner -->
+    @if ($data['showTransitionToTrabajoI'] ?? false)
+        <div class="bg-gradient-to-r from-emerald-500/15 via-teal-500/10 to-transparent border border-emerald-200 rounded-2xl p-5 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div class="space-y-1">
+                <div class="flex items-center space-x-2 text-emerald-800">
+                    <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <h3 class="text-base font-extrabold uppercase tracking-wide">¡Seminario Metodológico Aprobado!</h3>
+                </div>
+                <p class="text-xs font-semibold text-emerald-900 leading-normal max-w-2xl">
+                    ¡Felicidades! Tu Seminario ha sido aprobado formalmente por la Coordinación. Ya estás habilitado para cursar e inscribir tu **Trabajo de Investigación I**.
+                </p>
+            </div>
+            <div class="shrink-0">
+                <a href="{{ route('productions.create') }}" class="inline-flex items-center px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow-md hover:shadow-lg transition cursor-pointer">
+                    <span>Comenzar Trabajo I</span>
+                    <svg class="w-4 h-4 ml-1.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7l5 5m0 0l-5 5m5-5H6"></path></svg>
+                </a>
+            </div>
+        </div>
+    @endif
+
+    <!-- Transition to Trabajo II Banner -->
+    @if ($data['showTransitionToTrabajoII'] ?? false)
+        <div class="bg-gradient-to-r from-emerald-500/15 via-teal-500/10 to-transparent border border-emerald-200 rounded-2xl p-5 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div class="space-y-1">
+                <div class="flex items-center space-x-2 text-emerald-800">
+                    <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <h3 class="text-base font-extrabold uppercase tracking-wide">¡Trabajo de Investigación I Aprobado!</h3>
+                </div>
+                <p class="text-xs font-semibold text-emerald-900 leading-normal max-w-2xl">
+                    ¡Felicidades! Tu Trabajo I ha sido aprobado formalmente por la Coordinación. Ya estás habilitado para cursar e inscribir tu **Trabajo de Investigación II**.
+                </p>
+            </div>
+            <div class="shrink-0">
+                <a href="{{ route('productions.create') }}" class="inline-flex items-center px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow-md hover:shadow-lg transition cursor-pointer">
+                    <span>Comenzar Trabajo II</span>
+                    <svg class="w-4 h-4 ml-1.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7l5 5m0 0l-5 5m5-5H6"></path></svg>
+                </a>
+            </div>
+        </div>
+    @endif
+
     <!-- Suggested Productions (Sugerencias de vinculación) -->
     @if ($suggestedProductions->isNotEmpty())
         <div class="bg-gradient-to-r from-blue-500/10 via-indigo-500/5 to-transparent border border-blue-100 rounded-2xl p-4 md:p-5 shadow-sm">
@@ -332,10 +374,10 @@
                         </div>
                         <div>
                             <h5 class="text-sm font-bold text-slate-800">Google Docs Vinculado</h5>
-                            <p class="text-xs text-slate-650 mt-1 leading-normal">
+                            <p class="text-sm text-slate-650 mt-1 leading-normal">
                                 Título: <strong class="text-slate-850">{{ $activeProduction->google_document_title ?? 'Documento de Google' }}</strong>
                             </p>
-                            <p class="text-[9px] text-slate-400 mt-1 uppercase tracking-wider font-extrabold">Edición Directa Activa</p>
+                            <p class="text-xs text-slate-400 mt-1 uppercase tracking-wider font-extrabold">Edición Directa Activa</p>
                         </div>
                     </div>
 
@@ -367,7 +409,7 @@
                         </div>
                         <div>
                             <h5 class="text-sm font-bold text-slate-800">Fecha límite cercana</h5>
-                            <p class="text-xs text-slate-500 mt-0.5 leading-normal">
+                            <p class="text-sm text-slate-500 mt-0.5 leading-normal">
                                 Tu tutor espera la siguiente revisión. Sube la versión con las correcciones subsanadas.
                             </p>
                         </div>

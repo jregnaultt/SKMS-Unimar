@@ -22,11 +22,11 @@
             </div>
             <div>
                 <h1 class="font-extrabold text-lg tracking-tight text-slate-800 leading-tight">SKMS</h1>
-                <p class="text-xs text-slate-400 tracking-wider font-semibold uppercase leading-none mt-1">UNIMAR</p>
+                <p class="text-sm text-slate-400 tracking-wider font-semibold uppercase leading-none mt-1">UNIMAR</p>
             </div>
         </div>
         <div class="mt-4">
-            <span class="text-xs bg-[#0d4d98]/5 text-[#0d4d98] border border-[#0d4d98]/10 px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider">
+            <span class="text-sm bg-[#0d4d98]/5 text-[#0d4d98] border border-[#0d4d98]/10 px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider">
                 Decanato de Ingeniería
             </span>
         </div>
@@ -60,6 +60,16 @@
             <span class="text-base">Catálogo</span>
         </a>
 
+        <!-- Mis Hitos (Estudiante) -->
+        @if(auth()->user()->hasRole('Estudiante'))
+            <a href="{{ route('progress.student.my-milestones') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-150 {{ request()->routeIs('progress.student.*') ? 'bg-[#0d4d98] text-white font-bold shadow-md shadow-[#0d4d98]/10' : 'text-slate-600 hover:bg-[#0d4d98] hover:text-white hover:shadow-sm' }}">
+                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
+                <span class="text-base">Mis Hitos</span>
+            </a>
+        @endif
+
         <!-- Bibliometría -->
         @if(auth()->user()->hasRole(['Coordinador', 'Super Admin', 'Decano']))
             <a href="{{ route('bibliometrics.index') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-150 {{ request()->routeIs('bibliometrics.*') ? 'bg-[#0d4d98] text-white font-bold shadow-md shadow-[#0d4d98]/10' : 'text-slate-600 hover:bg-[#0d4d98] hover:text-white hover:shadow-sm' }}">
@@ -81,7 +91,7 @@
         <!-- Panel de Administración para Coordinador o Super Admin -->
         @if(auth()->user()->hasRole(['Coordinador', 'Super Admin', 'Decano']))
             <div class="pt-4 pb-2 shrink-0">
-                <p class="px-4 text-xs text-slate-400 font-bold uppercase tracking-wider">Gestión</p>
+                <p class="px-4 text-sm text-slate-400 font-bold uppercase tracking-wider">Gestión</p>
             </div>
             <div x-data="{ adminOpen: {{ request()->routeIs('admin.*') ? 'true' : 'false' }} }" class="space-y-1">
                 <!-- Toggle Button -->
@@ -124,6 +134,18 @@
                         <span>Usuarios y Roles</span>
                     </a>
 
+                    <a href="{{ route('admin.juries.index') }}" 
+                       class="flex items-center space-x-2.5 px-4 py-2 rounded-lg text-sm font-semibold transition {{ Request::routeIs('admin.juries.*') ? 'text-[#0d4d98] bg-[#0d4d98]/5 font-bold' : 'text-slate-500 hover:text-[#0d4d98] hover:bg-[#0d4d98]/5' }}">
+                        <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
+                        <span>Asignación de Jurados</span>
+                    </a>
+
+                    <a href="{{ route('admin.approvals.index') }}" 
+                       class="flex items-center space-x-2.5 px-4 py-2 rounded-lg text-sm font-semibold transition {{ Request::routeIs('admin.approvals.*') ? 'text-[#0d4d98] bg-[#0d4d98]/5 font-bold' : 'text-slate-500 hover:text-[#0d4d98] hover:bg-[#0d4d98]/5' }}">
+                        <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
+                        <span>Aprobaciones Finales</span>
+                    </a>
+
                     <a href="{{ route('admin.claims.index') }}" 
                        class="flex items-center space-x-2.5 px-4 py-2 rounded-lg text-sm font-semibold transition {{ Request::routeIs('admin.claims.*') ? 'text-[#0d4d98] bg-[#0d4d98]/5 font-bold' : 'text-slate-500 hover:text-[#0d4d98] hover:bg-[#0d4d98]/5' }}">
                         <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
@@ -155,15 +177,15 @@
             <div class="truncate">
                 <p class="text-sm font-bold text-slate-800 truncate">{{ auth()->user()->name }}</p>
                 @if(auth()->user()->hasRole('Decano'))
-                    <span class="inline-block mt-1 text-[10px] bg-amber-100 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">
+                    <span class="inline-block mt-1 text-xs bg-amber-100 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">
                         Decano
                     </span>
                 @elseif(auth()->user()->hasRole('Coordinador'))
-                    <span class="inline-block mt-1 text-[10px] bg-blue-100 text-[#0d4d98] border border-blue-200 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">
+                    <span class="inline-block mt-1 text-xs bg-blue-100 text-[#0d4d98] border border-blue-200 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">
                         Coordinación
                     </span>
                 @else
-                    <p class="text-xs text-slate-500 truncate">{{ auth()->user()->email }}</p>
+                    <p class="text-sm text-slate-500 truncate">{{ auth()->user()->email }}</p>
                 @endif
             </div>
         </div>

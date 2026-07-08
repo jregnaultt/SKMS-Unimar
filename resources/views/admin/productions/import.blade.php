@@ -58,7 +58,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-5">
                     <!-- Período Académico -->
                     <div>
-                        <label class="block text-xs font-extrabold text-slate-600 uppercase tracking-wider mb-2">Período Académico</label>
+                        <label class="block text-sm font-extrabold text-slate-600 uppercase tracking-wider mb-2">Período Académico</label>
                         <select x-model="defaults.academic_period_id" @change="applyDefaultsToAll('academic_period_id')" class="block w-full rounded-xl border-slate-200 bg-slate-50/50 text-slate-700 text-sm py-2.5 px-3 focus:outline-none focus:ring-2 focus:ring-[#0d4d98]/50 transition duration-150 cursor-pointer font-medium h-11">
                             <option value="">Seleccionar período...</option>
                             <template x-for="p in catalog.periods" :key="p.id">
@@ -69,7 +69,7 @@
 
                     <!-- Programa Académico -->
                     <div>
-                        <label class="block text-xs font-extrabold text-slate-600 uppercase tracking-wider mb-2">Programa Académico</label>
+                        <label class="block text-sm font-extrabold text-slate-600 uppercase tracking-wider mb-2">Programa Académico</label>
                         <select x-model="defaults.academic_program_id" @change="onDefaultProgramChange()" class="block w-full rounded-xl border-slate-200 bg-slate-50/50 text-slate-700 text-sm py-2.5 px-3 focus:outline-none focus:ring-2 focus:ring-[#0d4d98]/50 transition duration-150 cursor-pointer font-medium h-11">
                             <option value="">Seleccionar programa...</option>
                             <template x-for="p in catalog.programs" :key="p.id">
@@ -80,7 +80,7 @@
 
                     <!-- Línea de Investigación -->
                     <div>
-                        <label class="block text-xs font-extrabold text-slate-600 uppercase tracking-wider mb-2">Línea de Investigación</label>
+                        <label class="block text-sm font-extrabold text-slate-600 uppercase tracking-wider mb-2">Línea de Investigación</label>
                         <select x-model="defaults.research_line_id" @change="applyDefaultsToAll('research_line_id')" :disabled="!defaults.academic_program_id" class="block w-full rounded-xl border-slate-200 bg-slate-50/50 text-slate-700 text-sm py-2.5 px-3 focus:outline-none focus:ring-2 focus:ring-[#0d4d98]/50 transition duration-150 cursor-pointer font-medium h-11 disabled:bg-slate-100 disabled:cursor-not-allowed">
                             <option value="">Seleccionar línea...</option>
                             <template x-for="l in defaultFilteredLines" :key="l.id">
@@ -91,7 +91,7 @@
 
                     <!-- Tipo de Producción -->
                     <div>
-                        <label class="block text-xs font-extrabold text-slate-600 uppercase tracking-wider mb-2">Tipo de Producción</label>
+                        <label class="block text-sm font-extrabold text-slate-600 uppercase tracking-wider mb-2">Tipo de Producción</label>
                         <select x-model="defaults.production_type_id" @change="applyDefaultsToAll('production_type_id')" class="block w-full rounded-xl border-slate-200 bg-slate-50/50 text-slate-700 text-sm py-2.5 px-3 focus:outline-none focus:ring-2 focus:ring-[#0d4d98]/50 transition duration-150 cursor-pointer font-medium h-11">
                             <option value="">Seleccionar tipo...</option>
                             <template x-for="t in catalog.types" :key="t.id">
@@ -130,7 +130,7 @@
                         </div>
                         <div class="space-y-1">
                             <p class="text-base font-extrabold text-slate-700">Arrastra tus tesis o haz clic para seleccionar</p>
-                            <p class="text-xs text-slate-550 font-bold">PDF o Word (DOCX) hasta 20 MB por archivo. Límite máximo de 50 archivos por lote.</p>
+                            <p class="text-sm text-slate-555 font-bold">PDF o Word (DOCX) hasta 20 MB por archivo. Límite máximo de 50 archivos por lote.</p>
                         </div>
                         <input type="file" multiple class="hidden" accept="application/pdf, application/vnd.openxmlformats-officedocument.wordprocessingml.document" @change="handleFileSelect">
                     </label>
@@ -157,7 +157,7 @@
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
                         <thead>
-                            <tr class="bg-slate-50 border-b border-slate-150 text-slate-600 font-extrabold text-xs uppercase tracking-wider">
+                            <tr class="bg-slate-50 border-b border-slate-150 text-slate-600 font-extrabold text-sm uppercase tracking-wider">
                                 <th class="py-4 px-6 min-w-[200px]">Archivo / Estado</th>
                                 <th class="py-4 px-6 min-w-[320px]">Título del Trabajo de Grado</th>
                                 <th class="py-4 px-6 min-w-[180px]">Autores (Texto Plano)</th>
@@ -176,7 +176,7 @@
                                             
                                             <!-- Barra de progreso de subida -->
                                             <div x-show="item.status === 'uploading'" class="space-y-1 w-44">
-                                                <div class="flex justify-between text-[10px] font-bold text-slate-500 uppercase">
+                                                <div class="flex justify-between text-sm font-bold text-slate-500 uppercase">
                                                     <span>Subiendo...</span>
                                                     <span x-text="item.progress + '%'"></span>
                                                 </div>
@@ -186,7 +186,7 @@
                                             </div>
 
                                             <!-- Badges de Estado -->
-                                            <span x-show="item.status === 'processing'" class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200/50 animate-pulse">
+                                            <span x-show="item.status === 'processing'" class="inline-flex items-center px-2 py-0.5 rounded text-sm font-bold bg-amber-50 text-amber-700 border border-amber-200/50 animate-pulse">
                                                 <svg class="animate-spin -ml-0.5 mr-1 h-3 w-3 text-amber-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -194,11 +194,11 @@
                                                 Analizando con IA...
                                             </span>
 
-                                            <span x-show="item.status === 'completed'" class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/60">
+                                            <span x-show="item.status === 'completed'" class="inline-flex items-center px-2 py-0.5 rounded text-sm font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/60">
                                                 Listo para importar
                                             </span>
 
-                                            <span x-show="item.status === 'error'" class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200/60" :title="item.error_message">
+                                            <span x-show="item.status === 'error'" class="inline-flex items-center px-2 py-0.5 rounded text-sm font-bold bg-rose-50 text-rose-700 border border-rose-200/60" :title="item.error_message">
                                                 Error en carga
                                             </span>
                                         </div>
@@ -297,7 +297,7 @@
                 <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between shrink-0 bg-slate-50/50">
                     <div>
                         <h4 class="text-base font-extrabold text-slate-800">Metadatos de Tesis Histórica</h4>
-                        <p class="text-xs text-slate-550 mt-0.5" x-text="activeItem ? activeItem.filename : ''"></p>
+                        <p class="text-sm text-slate-555 mt-0.5" x-text="activeItem ? activeItem.filename : ''"></p>
                     </div>
                     <button type="button" @click="modalOpen = false" class="p-2 -m-2 text-slate-555 hover:text-slate-700 rounded-xl cursor-pointer">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -312,14 +312,14 @@
                         <div class="space-y-5">
                             <!-- Resumen / Abstract -->
                             <div>
-                                <label class="block text-xs font-extrabold text-slate-600 uppercase tracking-wider mb-2">Resumen Académico (Abstract)</label>
+                                <label class="block text-sm font-extrabold text-slate-600 uppercase tracking-wider mb-2">Resumen Académico (Abstract)</label>
                                 <textarea x-model="activeItem.abstract" rows="5" placeholder="Escribe o revisa el resumen del trabajo..."
                                           class="w-full text-sm rounded-xl border-slate-200 bg-slate-50/50 focus:border-[#0d4d98] focus:ring-[#0d4d98]/10 py-2 px-3 focus:outline-none"></textarea>
                             </div>
 
                             <!-- Palabras Clave (Comma separated) -->
                             <div>
-                                <label class="block text-xs font-extrabold text-slate-600 uppercase tracking-wider mb-2">Palabras Clave (Separadas por Comas)</label>
+                                <label class="block text-sm font-extrabold text-slate-600 uppercase tracking-wider mb-2">Palabras Clave (Separadas por Comas)</label>
                                 <input type="text" x-model="activeItem.keywords" placeholder="Ej: Repositorio, IA, Dublin Core, PHP"
                                        class="w-full text-sm rounded-xl border-slate-200 bg-slate-50/50 focus:border-[#0d4d98] focus:ring-[#0d4d98]/10 py-2.5 px-3 focus:outline-none h-11">
                             </div>
@@ -328,7 +328,7 @@
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <!-- Período -->
                                 <div>
-                                    <label class="block text-xs font-extrabold text-slate-600 uppercase tracking-wider mb-2">Período Académico</label>
+                                    <label class="block text-sm font-extrabold text-slate-600 uppercase tracking-wider mb-2">Período Académico</label>
                                     <select x-model="activeItem.academic_period_id" class="block w-full rounded-xl border-slate-200 bg-slate-50/50 text-slate-700 text-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-[#0d4d98]/50 transition cursor-pointer font-medium h-11">
                                         <option value="">Seleccionar período...</option>
                                         <template x-for="p in catalog.periods" :key="p.id">
@@ -339,7 +339,7 @@
 
                                 <!-- Programa -->
                                 <div>
-                                    <label class="block text-xs font-extrabold text-slate-600 uppercase tracking-wider mb-2">Programa Académico</label>
+                                    <label class="block text-sm font-extrabold text-slate-600 uppercase tracking-wider mb-2">Programa Académico</label>
                                     <select x-model="activeItem.academic_program_id" @change="onItemProgramChange()" class="block w-full rounded-xl border-slate-200 bg-slate-50/50 text-slate-700 text-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-[#0d4d98]/50 transition cursor-pointer font-medium h-11">
                                         <option value="">Seleccionar programa...</option>
                                         <template x-for="p in catalog.programs" :key="p.id">
@@ -350,7 +350,7 @@
 
                                 <!-- Línea -->
                                 <div>
-                                    <label class="block text-xs font-extrabold text-slate-600 uppercase tracking-wider mb-2">Línea de Investigación</label>
+                                    <label class="block text-sm font-extrabold text-slate-600 uppercase tracking-wider mb-2">Línea de Investigación</label>
                                     <select x-model="activeItem.research_line_id" :disabled="!activeItem.academic_program_id" class="block w-full rounded-xl border-slate-200 bg-slate-50/50 text-slate-700 text-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-[#0d4d98]/50 transition cursor-pointer font-medium h-11 disabled:bg-slate-100 disabled:cursor-not-allowed">
                                         <option value="">Seleccionar línea...</option>
                                         <template x-for="l in activeItemFilteredLines" :key="l.id">
@@ -361,7 +361,7 @@
 
                                 <!-- Tipo -->
                                 <div>
-                                    <label class="block text-xs font-extrabold text-slate-600 uppercase tracking-wider mb-2">Tipo de Producción</label>
+                                    <label class="block text-sm font-extrabold text-slate-600 uppercase tracking-wider mb-2">Tipo de Producción</label>
                                     <select x-model="activeItem.production_type_id" class="block w-full rounded-xl border-slate-200 bg-slate-50/50 text-slate-700 text-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-[#0d4d98]/50 transition cursor-pointer font-medium h-11">
                                         <option value="">Seleccionar tipo...</option>
                                         <template x-for="t in catalog.types" :key="t.id">

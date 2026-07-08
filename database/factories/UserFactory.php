@@ -35,7 +35,7 @@ class UserFactory extends Factory
     {
         return [
             'name' => fake()->name(),
-            'email' => fake()->unique()->safeEmail(),
+            'email' => fake()->unique()->userName().'@unimar.edu.ve',
             'cedula' => 'V-'.fake()->unique()->numberBetween(1000000, 29999999),
             'telefono' => '+584'.fake()->randomElement(['12', '14', '16', '24', '26']).fake()->numerify('#######'),
             'email_verified_at' => now(),

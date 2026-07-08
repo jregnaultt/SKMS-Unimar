@@ -2,11 +2,15 @@
 
 namespace App\Models;
 
+use App\Models\Traits\HasAuditLog;
+use App\Notifications\MissingProductionForMilestoneNotification;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PeriodMilestone extends Model
 {
+    use HasAuditLog;
+
     protected $guarded = ['id'];
 
     protected static function booted(): void
@@ -18,7 +22,7 @@ class PeriodMilestone extends Model
 
             foreach ($productions as $production) {
                 $authorUser = $production->users()->wherePivot('role', 'author')->first();
-                if ($pm->student_id && (! $authorUser || $authorUser->id !== $pm->student_id)) {
+                if ($pm->student_id && (! $authorUser || $authorUser->id != $pm->student_id)) {
                     continue;
                 }
 
@@ -31,7 +35,7 @@ class PeriodMilestone extends Model
                 }
 
                 $tutorUser = $production->users()->wherePivot('role', 'tutor')->first();
-                if (! $pm->tutor_id || ($tutorUser && $tutorUser->id === $pm->tutor_id)) {
+                if (! $pm->tutor_id || ($tutorUser && $tutorUser->id == $pm->tutor_id)) {
                     ProductionMilestone::updateOrCreate(
                         [
                             'production_id' => $production->id,
@@ -48,6 +52,37 @@ class PeriodMilestone extends Model
                     );
                 }
             }
+
+            // Notify students who are enrolled in the subject but do not have a production registered yet
+            $enrollments = Enrollment::where('academic_period_id', $pm->academic_period_id)
+                ->where('subject_id', $pm->subject_id)
+                ->get();
+
+            foreach ($enrollments as $enrollment) {
+                $student = $enrollment->student;
+                if (! $student) {
+                    continue;
+                }
+
+                if ($pm->student_id && $student->id !== $pm->student_id) {
+                    continue;
+                }
+
+                if (is_array($pm->excluded_student_ids) && in_array($student->id, $pm->excluded_student_ids)) {
+                    continue;
+                }
+
+                $hasProduction = Production::where('academic_period_id', $pm->academic_period_id)
+                    ->where('subject_id', $pm->subject_id)
+                    ->whereHas('users', function ($query) use ($student) {
+                        $query->where('users.id', $student->id)->where('production_user.role', 'author');
+                    })
+                    ->exists();
+
+                if (! $hasProduction) {
+                    $student->notify(new MissingProductionForMilestoneNotification($pm));
+                }
+            }
         });
 
         static::deleted(function (self $pm) {
@@ -58,6 +93,8 @@ class PeriodMilestone extends Model
     protected function casts(): array
     {
         return [
+            'student_id' => 'integer',
+            'tutor_id' => 'integer',
             'scheduled_date' => 'datetime',
             'notify_tutor' => 'boolean',
             'notify_jury' => 'boolean',

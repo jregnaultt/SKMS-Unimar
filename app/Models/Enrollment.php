@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Traits\HasAuditLog;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Enrollment extends Model
 {
+    use HasAuditLog;
+
     protected $guarded = ['id'];
 
     protected static function booted(): void
