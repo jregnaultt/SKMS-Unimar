@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\CommentStatus;
 use App\Events\ProductionStateChanged;
 use App\Http\Requests\StoreProductionRequest;
 use App\Jobs\ExportGoogleDocToPdfJob;
@@ -21,6 +22,8 @@ use App\Models\Revision;
 use App\Models\Subject;
 use App\Models\User;
 use App\Services\GoogleDriveService;
+use App\Services\MetadataExtractorService;
+use App\Services\WorkflowService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -31,6 +34,30 @@ use Illuminate\Support\Str;
 
 class ProductionController extends Controller
 {
+    public function __construct(
+        protected MetadataExtractorService $metadataExtractorService
+    ) {}
+
+    public function index(Request $request)
+    {
+        $user = auth()->user();
+
+        if ($user->hasRole(['Coordinador', 'Super Admin', 'Decano'])) {
+            $productions = Production::with(['academicProgram', 'academicPeriod', 'productionType', 'subject'])
+                ->latest()
+                ->get();
+        } else {
+            $productions = Production::whereHas('users', function ($query) use ($user) {
+                $query->where('users.id', $user->id);
+            })
+                ->with(['academicProgram', 'academicPeriod', 'productionType', 'subject'])
+                ->latest()
+                ->get();
+        }
+
+        return view('pages.productions.index', compact('productions'));
+    }
+
     public function create()
     {
         $user = auth()->user();
@@ -240,7 +267,7 @@ class ProductionController extends Controller
         $fieldName = $request->hasFile('documento') ? 'documento' : ($request->hasFile('pdf') ? 'pdf' : 'documento');
 
         $request->validate([
-            $fieldName => 'required|file|extensions:pdf,docx|max:10240', // 10MB max
+            $fieldName => 'required|file|extensions:pdf,docx|max:5120', // 5MB max
         ]);
 
         $file = $request->file($fieldName);
@@ -302,6 +329,9 @@ class ProductionController extends Controller
 
     public function show(Production $production)
     {
+        if (in_array($production->workflow_state, ['approved', 'published'])) {
+            $production->increment('views_count');
+        }
         $production->load(['academicProgram', 'researchLine', 'productionType', 'academicPeriod', 'users', 'subject']);
 
         $user = auth()->user();
@@ -428,12 +458,37 @@ class ProductionController extends Controller
             abort(403, 'No tienes autorización para acceder a este documento.');
         }
 
+        if (in_array($production->workflow_state, ['approved', 'published'])) {
+            $production->increment('downloads_count');
+        }
+
         $media = $production->getFirstMedia('documento');
         if (! $media) {
             abort(404, 'Documento no encontrado.');
         }
 
-        return response()->file($media->getPath());
+        // Clean on-the-fly for retroactive support of existing files
+        $this->metadataExtractorService->removeExtraUnimarCoverPage($media->getPath());
+
+        $period = $production->academicPeriod?->name ?? 'Periodo';
+        $authors = $production->authors ?? 'Autor';
+        $filename = "{$period} - {$authors}.pdf";
+        $cleanFilename = str_replace(['/', '\\', '?', '%', '*', ':', '|', '"', '<', '>'], '-', $filename);
+
+        if (request()->has('download')) {
+            return response()->download($media->getPath(), $cleanFilename, [
+                'Content-Type' => $media->mime_type ?? 'application/pdf',
+                'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
+                'Pragma' => 'no-cache',
+            ]);
+        }
+
+        return response()->file($media->getPath(), [
+            'Content-Disposition' => 'inline; filename="'.$cleanFilename.'"',
+            'Content-Type' => $media->mime_type ?? 'application/pdf',
+            'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
+            'Pragma' => 'no-cache',
+        ]);
     }
 
     public function downloadVersionDocument(DocumentVersion $version)
@@ -443,7 +498,7 @@ class ProductionController extends Controller
         $isAssociated = $production->users()->where('user_id', $user->id)->exists();
         $isCoordinator = $user->hasRole(['Coordinador', 'Super Admin', 'Decano']);
 
-        if ($production->workflow_state !== 'published' && ! $isAssociated && ! $isCoordinator) {
+        if (! $isAssociated && ! $isCoordinator) {
             abort(403, 'No tienes autorización para acceder a este documento.');
         }
 
@@ -452,7 +507,28 @@ class ProductionController extends Controller
             abort(404, 'Documento de versión no encontrado.');
         }
 
-        return response()->file($media->getPath());
+        // Clean on-the-fly for retroactive support of existing files
+        $this->metadataExtractorService->removeExtraUnimarCoverPage($media->getPath());
+
+        $period = $production->academicPeriod?->name ?? 'Periodo';
+        $authors = $production->authors ?? 'Autor';
+        $filename = "{$period} - {$authors} - V{$version->version_number}.pdf";
+        $cleanFilename = str_replace(['/', '\\', '?', '%', '*', ':', '|', '"', '<', '>'], '-', $filename);
+
+        if (request()->has('download')) {
+            return response()->download($media->getPath(), $cleanFilename, [
+                'Content-Type' => $media->mime_type ?? 'application/pdf',
+                'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
+                'Pragma' => 'no-cache',
+            ]);
+        }
+
+        return response()->file($media->getPath(), [
+            'Content-Disposition' => 'inline; filename="'.$cleanFilename.'"',
+            'Content-Type' => $media->mime_type ?? 'application/pdf',
+            'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
+            'Pragma' => 'no-cache',
+        ]);
     }
 
     public function submitDraft(Request $request, Production $production): RedirectResponse
@@ -524,7 +600,7 @@ class ProductionController extends Controller
             // Delete existing media first if we are replacing it
             $production->clearMediaCollection('documento');
 
-            $driveService = new GoogleDriveService;
+            $driveService = app(GoogleDriveService::class);
             $driveService->exportToPdf($production, $production->google_drive_file_id, $request->input('google_access_token'));
             $driveService->syncComments($production, $production->google_drive_file_id, $request->input('google_access_token'));
 
@@ -553,6 +629,14 @@ class ProductionController extends Controller
 
         if ($production->workflow_state !== 'under_tutor_review') {
             return back()->with('error', 'Solo se puede solicitar revisión de jurado cuando el documento está en revisión del tutor.');
+        }
+
+        $hasPendingComments = $production->comments()
+            ->whereIn('status', [CommentStatus::Pending->value, CommentStatus::InProgress->value])
+            ->exists();
+
+        if ($hasPendingComments) {
+            return back()->with('error', 'Debes esperar a que tu tutor valide las correcciones. Tienes observaciones pendientes.');
         }
 
         $production->update([
@@ -606,5 +690,26 @@ class ProductionController extends Controller
         });
 
         return back()->with('success', '¡El resumen y las palabras clave se han actualizado correctamente!');
+    }
+
+    /**
+     * Appeal a rejected production, moving it back to draft and incrementing appeals_count.
+     */
+    public function appeal(Request $request, Production $production): RedirectResponse
+    {
+        $workflowService = resolve(WorkflowService::class);
+        $user = $request->user();
+
+        try {
+            $workflowService->transition($production, 'draft', $user, [
+                'comment' => 'Apelación de rechazo iniciada por el estudiante.',
+            ]);
+        } catch (\InvalidArgumentException $e) {
+            return back()->with('error', 'No puedes apelar este trabajo: '.$e->getMessage());
+        } catch (\Exception $e) {
+            return back()->with('error', 'Ocurrió un error al procesar la apelación.');
+        }
+
+        return back()->with('success', 'Tu apelación ha sido enviada con éxito. El trabajo ha vuelto al estado de Borrador.');
     }
 }

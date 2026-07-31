@@ -61,6 +61,7 @@ class ProductionStateChangedNotification extends Notification implements ShouldQ
     {
         return [
             'production_id' => $this->production->id,
+            'production_uuid' => $this->production->uuid,
             'title' => $this->title,
             'message' => $this->message,
             'previous_state' => $this->previousState,

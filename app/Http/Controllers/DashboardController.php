@@ -103,7 +103,8 @@ class DashboardController extends Controller
         $myProductions = $user->productions()->latest()->get();
         $suggestedProductions = $this->claimService->suggestHistoricalProductions($user);
 
-        $activeProduction = $myProductions->first();
+        $activeProduction = $myProductions->where('workflow_state', '!=', 'rejected')->first();
+        $rejectedProduction = $myProductions->where('workflow_state', 'rejected')->first();
         $progressData = [];
 
         if ($activeProduction) {
@@ -143,6 +144,7 @@ class DashboardController extends Controller
             'myProductions' => $myProductions,
             'suggestedProductions' => $suggestedProductions,
             'activeProduction' => $activeProduction,
+            'rejectedProduction' => $rejectedProduction,
             'progressData' => $progressData,
             'showTransitionToTrabajoI' => $showTransitionToTrabajoI,
             'showTransitionToTrabajoII' => $showTransitionToTrabajoII,

@@ -18,6 +18,10 @@ use Illuminate\Support\Str;
  */
 class GoogleDriveService
 {
+    public function __construct(
+        protected MetadataExtractorService $metadataExtractorService
+    ) {}
+
     /**
      * Exports a Google Doc to PDF format and attaches it to the production's media library.
      *
@@ -43,9 +47,20 @@ class GoogleDriveService
         $safeTitle = preg_replace('/[^A-Za-z0-9_\-]/', '_', $production->title);
         $fileName = $safeTitle.'_'.time().'.pdf';
 
-        $production->addMediaFromString($response->body())
+        // Save PDF to a temporary file
+        $tempPath = tempnam(sys_get_temp_dir(), 'google_pdf_');
+        file_put_contents($tempPath, $response->body());
+
+        // Process temporary file to strip empty Unimar covers
+        $this->metadataExtractorService->removeExtraUnimarCoverPage($tempPath);
+
+        // Add to media collection
+        $production->addMedia($tempPath)
             ->usingFileName($fileName)
             ->toMediaCollection('documento');
+
+        // Delete temporary file
+        @unlink($tempPath);
 
         return true;
     }

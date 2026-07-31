@@ -296,6 +296,132 @@ class MetadataExtractorService
     }
 
     /**
+     * Normalizes a name (swaps last/first names if comma is present, cleans up spacing,
+     * and maps to canonical normalized names for known tutors and authors).
+     */
+    public function normalizeName(string $name): string
+    {
+        $name = trim($name);
+        if (empty($name)) {
+            return $name;
+        }
+
+        // 1. Check if we have multiple names separated by commas (e.g. "Santiago Rodríguez, Mariana Mouhamed")
+        if (str_contains($name, ',')) {
+            $parts = explode(',', $name);
+            if (count($parts) === 2) {
+                $part1 = trim($parts[0]);
+                $part2 = trim($parts[1]);
+
+                // Count words in each part
+                $words1 = count(preg_split('/\s+/', $part1));
+                $words2 = count(preg_split('/\s+/', $part2));
+
+                // If both parts have 2 or more words (excluding metadata like C.I.), they are separate authors
+                if ($words1 >= 2 && $words2 >= 2 && ! preg_match('/^(?:C\.?I\.?|V-|E-|\d)/i', $part2)) {
+                    $norm1 = $this->normalizeName($part1);
+                    $norm2 = $this->normalizeName($part2);
+
+                    return $norm1.', '.$norm2;
+                }
+
+                // Otherwise, swap "Lastname, Firstname" format if part2 is not metadata
+                if (! preg_match('/^(?:C\.?I\.?|V-|E-|\d)/i', $part2) && strlen($part1) > 1 && strlen($part2) > 1) {
+                    $name = $part2.' '.$part1;
+                }
+            }
+        }
+
+        // Clean name (removes Br, Prof, Ing, CI numbers, etc.)
+        $name = $this->cleanName($name);
+
+        // 2. Map of known aliases/variants to normalized names
+        $normalizationMap = [
+            // Tutors
+            'requena cesar' => 'César Requena',
+            'cesar requena' => 'César Requena',
+            'oswald marin' => 'Oswald Marín',
+            'oswald marín' => 'Oswald Marín',
+            'madeline rodriguez' => 'Madeline Rodríguez',
+            'madeline rodríguez' => 'Madeline Rodríguez',
+            'mariano garcia' => 'Mariano García',
+            'mariano garcía' => 'Mariano García',
+            'guadalupe malave' => 'Guadalupe Malaver',
+            'guadalupe malavé' => 'Guadalupe Malaver',
+            'guadalupe malaver' => 'Guadalupe Malaver',
+            'guadalupe j malaver n' => 'Guadalupe Malaver',
+            'valentina martinez' => 'Valentina Martínez',
+            'valentina martínez' => 'Valentina Martínez',
+            'joselis totesautt' => 'Joselis Totesautt',
+            'joselis totesautt t' => 'Joselis Totesautt',
+            'joselis totesautt triana' => 'Joselis Totesautt',
+            'rafael millan' => 'Rafael Millán',
+            'rafael millán' => 'Rafael Millán',
+            'hiram gonzalez' => 'Hiram González',
+            'hiram gonzález' => 'Hiram González',
+            'hiram gonzalez gomez' => 'Hiram González',
+            'hiram gonzález gómez' => 'Hiram González',
+            'silvestre cardenas' => 'Silvestre Cárdenas',
+            'silvestre cárdenas' => 'Silvestre Cárdenas',
+            'mariana marval' => 'Mariana Marval',
+
+            // Authors/Students
+            'franklin fuentes' => 'Franklin Fuentes',
+            'fuentes franklin' => 'Franklin Fuentes',
+            'marquina astrid' => 'Astrid Marquina',
+            'noriega norbenys' => 'Norbenys Noriega',
+            'moises antonio petit benitez' => 'Moisés Antonio Petit Benítez',
+            'moises antonio petit benítez' => 'Moisés Antonio Petit Benítez',
+            'williams alas' => 'Williams Alas',
+            'moises alejandro gomez salazar' => 'Moisés Alejandro Gómez Salazar',
+            'moises alejandro gómez salazar' => 'Moisés Alejandro Gómez Salazar',
+            'pedro jose hernandez' => 'Pedro José Hernández',
+            'pedro josé hernández' => 'Pedro José Hernández',
+            'samuel marcano' => 'Samuel Marcano',
+            'angel perez' => 'Ángel Pérez',
+            'jorge silva' => 'Jorge Silva',
+            'abdl taktak' => 'Abdl Taktak',
+            'eduardo sanchez garcia' => 'Eduardo Sánchez García',
+            'eduardo sánchez garcía' => 'Eduardo Sánchez García',
+            'galvys rodriguez' => 'Galvys Rodríguez',
+            'galvys rodríguez' => 'Galvys Rodríguez',
+            'manuel alejandro delgado sandoval' => 'Manuel Alejandro Delgado Sandoval',
+            'oscar enrique vega gomez' => 'Oscar Enrique Vega Gómez',
+            'oscar enrique vega gómez' => 'Oscar Enrique Vega Gómez',
+            'grecia alejandra valerio moussa' => 'Grecia Alejandra Valerio Moussa',
+            'daniel alarcon' => 'Daniel Alarcón',
+            'daniel alarcón' => 'Daniel Alarcón',
+            'estefania garcia' => 'Estefanía García',
+            'estefanía garcía' => 'Estefanía García',
+            'gilberto jimenez marcano' => 'Gilberto Jiménez Marcano',
+            'gilberto jiménez marcano' => 'Gilberto Jiménez Marcano',
+            'mariselys a. fuentes k' => 'Mariselys Fuentes',
+            'mariselys a. fuentes k c.i' => 'Mariselys Fuentes',
+            'mariselys fuentes' => 'Mariselys Fuentes',
+            'teilor aguilar' => 'Teilor Aguilar',
+            'barbara t. padilla lopez' => 'Bárbara T. Padilla López',
+            'barbara t. padilla lópez' => 'Bárbara T. Padilla López',
+            'nicol rodriguez' => 'Nicol Rodríguez',
+            'nicol rodríguez' => 'Nicol Rodríguez',
+            'daniel mendoza' => 'Daniel Mendoza',
+            'luis cordova' => 'Luis Córdova',
+            'luis córdova' => 'Luis Córdova',
+        ];
+
+        // Clean accents and lower case for key matching
+        $key = strtolower(preg_replace('/[\x{0300}-\x{036f}]/u', '', iconv('UTF-8', 'ASCII//TRANSLIT', $name)));
+        // Remove multiple spaces
+        $key = preg_replace('/\s+/', ' ', $key);
+        $key = trim($key, " \t\n\r\0\x0B:-.,;()[]/?");
+
+        if (isset($normalizationMap[$key])) {
+            return $normalizationMap[$key];
+        }
+
+        return $name;
+    }
+
+    /**
      * Extracts the title from the cover page text.
      */
     public function extractTitle(string $text): ?string
@@ -312,6 +438,7 @@ class MetadataExtractorService
             '/(?:\n\s*|:\s*|,\s*)Integrante(?:s)?\b/iu',
             '/(?:\n\s*|:\s*|,\s*)Alumno(?:s)?\b/iu',
             '/Por:/iu',
+            '/Tutor(?:a)?(?:es)?\b/iu',
         ];
 
         $endPos = min(mb_strlen($text), 5000);
@@ -434,7 +561,7 @@ class MetadataExtractorService
                 foreach ($parts as $part) {
                     $lines = explode("\n", $part);
                     foreach ($lines as $line) {
-                        $author = $this->cleanName($line);
+                        $author = $this->normalizeName($line);
                         if (strlen($author) > 2 && strlen($author) < 100 && ! str_contains($author, '....') && $this->isValidName($author)) {
                             $authorsList[] = $author;
                         }
@@ -467,7 +594,7 @@ class MetadataExtractorService
                 foreach ($parts as $part) {
                     $lines = explode("\n", $part);
                     foreach ($lines as $line) {
-                        $tutor = $this->cleanName($line);
+                        $tutor = $this->normalizeName($line);
                         if (strlen($tutor) > 2 && strlen($tutor) < 100 && ! str_contains($tutor, '....') && $this->isValidName($tutor)) {
                             $tutorsList[] = $tutor;
                         }
@@ -484,7 +611,7 @@ class MetadataExtractorService
 
         if (preg_match_all($patternBefore, $coverText, $matches)) {
             foreach ($matches[1] as $match) {
-                $tutor = $this->cleanName($match);
+                $tutor = $this->normalizeName($match);
                 if (strlen($tutor) > 2 && strlen($tutor) < 100 && ! str_contains($tutor, '....') && $this->isValidName($tutor)) {
                     return $tutor;
                 }
@@ -797,5 +924,51 @@ class MetadataExtractorService
         $firstChar = mb_substr($name, 0, 1);
 
         return mb_strtoupper($firstChar) === $firstChar && mb_strtolower($firstChar) !== $firstChar;
+    }
+
+    /**
+     * Detects if the first page of the PDF contains ONLY "UNIVERSIDAD DE MARGARITA"
+     * and removes it using Ghostscript if true.
+     */
+    public function removeExtraUnimarCoverPage(string $filePath): void
+    {
+        try {
+            if (! file_exists($filePath) || filesize($filePath) === 0) {
+                return;
+            }
+
+            // Only run on PDF files
+            $extension = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
+            if ($extension !== 'pdf') {
+                return;
+            }
+
+            // Extract text from page 1 only
+            $page1Text = (new Pdf)
+                ->setPdf($filePath)
+                ->setOptions(['f 1', 'l 1'])
+                ->text();
+
+            $cleanText = trim(preg_replace('/\s+/', ' ', $page1Text));
+
+            // Check if page 1 text is exactly "UNIVERSIDAD DE MARGARITA" (case-insensitive)
+            if (strcasecmp($cleanText, 'UNIVERSIDAD DE MARGARITA') === 0) {
+                $tempOutput = tempnam(sys_get_temp_dir(), 'pdf_clean_').'.pdf';
+
+                // Use Ghostscript to copy from page 2 to the end
+                $command = '/usr/bin/gs -sDEVICE=pdfwrite -dNOPAUSE -dBATCH -dSAFER -dFirstPage=2 -sOutputFile='.escapeshellarg($tempOutput).' '.escapeshellarg($filePath).' 2>&1';
+                exec($command, $output, $resultCode);
+
+                if ($resultCode === 0 && file_exists($tempOutput) && filesize($tempOutput) > 0) {
+                    copy($tempOutput, $filePath);
+                    @unlink($tempOutput);
+                    Log::info('Successfully removed blank cover page from PDF: '.$filePath);
+                } else {
+                    Log::error('Ghostscript failed to remove first page: '.implode("\n", $output));
+                }
+            }
+        } catch (\Exception $e) {
+            Log::error('Error checking/removing first page of PDF: '.$e->getMessage());
+        }
     }
 }

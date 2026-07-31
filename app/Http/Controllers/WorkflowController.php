@@ -6,6 +6,8 @@ use App\Http\Requests\WorkflowTransitionRequest;
 use App\Models\Production;
 use App\Services\WorkflowService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\View\View;
 
 class WorkflowController extends Controller
 {
@@ -38,6 +40,7 @@ class WorkflowController extends Controller
                 'approved' => '¡Producción científica aprobada con éxito!',
                 'rejected' => 'La producción científica ha sido rechazada.',
                 'published' => '¡Producción científica publicada exitosamente en el repositorio!',
+                'rejection_proposed' => 'Se ha propuesto el rechazo del documento a Coordinación.',
             ];
 
             $msg = $messages[$targetState] ?? 'Estado actualizado correctamente.';
@@ -46,5 +49,24 @@ class WorkflowController extends Controller
         } catch (\Exception $e) {
             return back()->with('error', 'Ocurrió un error al procesar el cambio de estado: '.$e->getMessage());
         }
+    }
+
+    /**
+     * View list of active rejection proposals.
+     */
+    public function rejectionProposals(Request $request): View
+    {
+        if (! $request->user()->hasRole(['Coordinador', 'Super Admin', 'Decano'])) {
+            abort(403, 'No tienes permiso para acceder a esta sección.');
+        }
+
+        $productions = Production::where('workflow_state', 'rejection_proposed')
+            ->with(['academicProgram', 'academicPeriod', 'users'])
+            ->latest()
+            ->paginate(15);
+
+        return view('pages.coordination.rejections', [
+            'productions' => $productions,
+        ]);
     }
 }

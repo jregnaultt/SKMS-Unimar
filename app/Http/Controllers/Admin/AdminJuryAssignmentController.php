@@ -19,7 +19,7 @@ class AdminJuryAssignmentController extends Controller
     public function index(Request $request): View
     {
         $query = Production::whereHas('subject', function ($q) {
-            $q->where('code', 'TRI1206441'); // Only Trabajo de Investigación II
+            $q->where('code', 'like', 'TRI12%');
         })->with(['subject', 'academicPeriod', 'users']);
 
         // Filter by academic period
@@ -53,7 +53,23 @@ class AdminJuryAssignmentController extends Controller
             });
         }
 
-        $productions = $query->latest()->paginate(10);
+        // Apply Sorting
+        $sortBy = $request->input('sort_by', 'subject_id');
+        $sortDir = $request->input('sort_direction', 'asc');
+        $allowedSorts = ['title', 'authors', 'workflow_state', 'subject_id', 'created_at'];
+        if (! in_array($sortBy, $allowedSorts)) {
+            $sortBy = 'subject_id';
+        }
+        if (! in_array($sortDir, ['asc', 'desc'])) {
+            $sortDir = 'asc';
+        }
+
+        $query->orderBy($sortBy, $sortDir);
+        if ($sortBy !== 'title') {
+            $query->orderBy('title', 'asc');
+        }
+
+        $productions = $query->paginate(10)->withQueryString();
         $juries = User::role('Jurado')->orderBy('name')->get();
         $periods = AcademicPeriod::orderBy('end_date', 'desc')->get();
 
@@ -69,6 +85,17 @@ class AdminJuryAssignmentController extends Controller
             'jury_1_id' => 'nullable|exists:users,id|different:jury_2_id',
             'jury_2_id' => 'nullable|exists:users,id|different:jury_1_id',
         ]);
+
+        $tutorId = $production->users()->wherePivot('role', 'tutor')->value('users.id');
+
+        if ($tutorId) {
+            if ($request->input('jury_1_id') == $tutorId) {
+                return redirect()->back()->withInput()->withErrors(['jury_1_id' => 'El tutor asignado al trabajo no puede ser jurado del mismo.']);
+            }
+            if ($request->input('jury_2_id') == $tutorId) {
+                return redirect()->back()->withInput()->withErrors(['jury_2_id' => 'El tutor asignado al trabajo no puede ser jurado del mismo.']);
+            }
+        }
 
         DB::transaction(function () use ($request, $production) {
             // Remove existing jury role for this production

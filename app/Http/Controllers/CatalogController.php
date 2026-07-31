@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AcademicPeriod;
 use App\Models\AcademicProgram;
 use App\Models\Production;
 use App\Models\ProductionType;
@@ -35,6 +36,22 @@ class CatalogController extends Controller
         }
 
         // Sidebar filters
+        $request->validate([
+            'period' => 'nullable|integer|exists:academic_periods,id',
+            'author' => 'nullable|string|max:255',
+            'program' => 'nullable|integer',
+            'line' => 'nullable|integer',
+            'year' => 'nullable|integer',
+            'type' => 'nullable|integer',
+            'tutor' => 'nullable|string',
+        ]);
+
+        if ($request->filled('period')) {
+            $query->where('academic_period_id', $request->input('period'));
+        }
+        if ($request->filled('author')) {
+            $query->where('authors', 'like', "%{$request->input('author')}%");
+        }
         if ($request->filled('program')) {
             $query->where('academic_program_id', $request->input('program'));
         }
@@ -51,11 +68,12 @@ class CatalogController extends Controller
             $query->where('tutor', $request->input('tutor'));
         }
 
-        $productions = $query->orderBy('published_at', 'desc')->paginate(10);
+        $productions = $query->orderBy('published_at', 'desc')->paginate(10)->withQueryString();
 
         $programs = AcademicProgram::where('is_active', true)->orderBy('name')->get();
         $lines = ResearchLine::where('is_active', true)->orderBy('name')->get();
         $productionTypes = ProductionType::orderBy('name')->get();
+        $periods = AcademicPeriod::orderBy('end_date', 'desc')->get();
 
         // Get distinct tutor names from published productions to populate filter
         $tutors = Production::published()
@@ -66,10 +84,10 @@ class CatalogController extends Controller
             ->pluck('tutor');
 
         if (auth()->check()) {
-            return view('catalog.index', compact('productions', 'programs', 'lines', 'productionTypes', 'tutors'));
+            return view('catalog.index', compact('productions', 'programs', 'lines', 'productionTypes', 'tutors', 'periods'));
         }
 
-        return view('catalog.public-index', compact('productions', 'programs', 'lines', 'productionTypes', 'tutors'));
+        return view('catalog.public-index', compact('productions', 'programs', 'lines', 'productionTypes', 'tutors', 'periods'));
     }
 
     /**
@@ -129,6 +147,8 @@ class CatalogController extends Controller
             ->with(['academicProgram', 'researchLine', 'productionType', 'keywords'])
             ->firstOrFail();
 
+        $production->increment('views_count');
+
         return view('catalog.show', compact('production'));
     }
 
@@ -140,6 +160,8 @@ class CatalogController extends Controller
         $production = Production::where('uuid', $uuid)
             ->published()
             ->firstOrFail();
+
+        $production->increment('downloads_count');
 
         $media = $production->getFirstMedia('documento');
 

@@ -54,6 +54,7 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
+    Route::get('/productions', [ProductionController::class, 'index'])->name('productions.index');
     Route::get('/productions/create', [ProductionController::class, 'create'])->name('productions.create');
     Route::post('/productions/extract', [ProductionController::class, 'extractMetadata'])->name('productions.extract');
     Route::post('/productions/extract-google', [ProductionController::class, 'extractGoogleMetadata'])->name('productions.extract-google');
@@ -69,6 +70,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/productions/{production}/request-jury-review', [ProductionController::class, 'requestJuryReview'])->name('productions.request-jury-review');
     Route::delete('/productions/{production}', [ProductionController::class, 'destroy'])->name('productions.destroy');
     Route::post('/productions/{production}/transition', [WorkflowController::class, 'transition'])->name('productions.transition');
+    Route::get('/coordinacion/propuestas-rechazo', [WorkflowController::class, 'rejectionProposals'])->name('coordinator.rejections.index');
+    Route::post('/productions/{production}/appeal', [ProductionController::class, 'appeal'])->name('productions.appeal');
 
     // Claims routes
     Route::post('/claims', [ProductionClaimController::class, 'store'])->name('claims.store');
@@ -81,6 +84,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/comments/{comment}/reply', [CommentController::class, 'reply'])->name('comments.reply');
     Route::patch('/comments/{comment}/status', [CommentController::class, 'updateStatus'])->name('comments.update-status');
     Route::post('/comments/{comment}/verify', [CommentController::class, 'verify'])->name('comments.verify');
+    Route::post('/comments/{comment}/toggle-featured', [CommentController::class, 'toggleFeatured'])->name('comments.toggle-featured');
     Route::delete('/comments/{comment}', [CommentController::class, 'destroy'])->name('comments.destroy');
 
     // Progress tracking routes (Module 5)
@@ -103,6 +107,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/productions/import/upload', [BulkProductionController::class, 'upload'])->name('productions.import.upload');
         Route::get('/productions/import/status', [BulkProductionController::class, 'checkStatus'])->name('productions.import.status');
         Route::post('/productions/import/store', [BulkProductionController::class, 'storeBatch'])->name('productions.import.store');
+        Route::post('/productions/import/store-single', [BulkProductionController::class, 'storeSingle'])->name('productions.import.store-single');
 
         Route::resource('programs', AdminAcademicProgramController::class);
         Route::resource('lines', AdminResearchLineController::class);
@@ -126,6 +131,7 @@ Route::middleware('auth')->group(function () {
         Route::get('approvals', [AdminApprovalsController::class, 'index'])->name('approvals.index');
 
         Route::get('audit-logs', [AdminAuditLogController::class, 'index'])->name('audit-logs.index');
+        Route::get('audit-logs/export', [AdminAuditLogController::class, 'export'])->name('audit-logs.export');
         Route::get('audit-logs/{auditLog}', [AdminAuditLogController::class, 'show'])->name('audit-logs.show');
 
         // Reports (Module 8)

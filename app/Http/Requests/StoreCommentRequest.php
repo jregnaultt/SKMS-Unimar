@@ -11,6 +11,22 @@ class StoreCommentRequest extends FormRequest
         return auth()->check();
     }
 
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('annotation_position')) {
+            $pos = $this->input('annotation_position');
+            if (is_array($pos)) {
+                $hasPage = isset($pos['page']) && $pos['page'] !== '';
+                $hasX = isset($pos['x']) && $pos['x'] !== '';
+                $hasY = isset($pos['y']) && $pos['y'] !== '';
+
+                if (! $hasPage && ! $hasX && ! $hasY) {
+                    $this->offsetUnset('annotation_position');
+                }
+            }
+        }
+    }
+
     public function rules(): array
     {
         return [

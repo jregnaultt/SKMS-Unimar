@@ -147,6 +147,22 @@ class BibliometricService
     }
 
     /**
+     * Total views across all productions.
+     */
+    public function totalViews(): int
+    {
+        return (int) Production::whereIn('workflow_state', ['approved', 'published'])->sum('views_count');
+    }
+
+    /**
+     * Total downloads across all productions.
+     */
+    public function totalDownloads(): int
+    {
+        return (int) Production::whereIn('workflow_state', ['approved', 'published'])->sum('downloads_count');
+    }
+
+    /**
      * Consolidated dashboard payload.
      *
      * @return array<string, mixed>
@@ -155,6 +171,8 @@ class BibliometricService
     {
         return [
             'total_published' => $this->totalPublished(),
+            'total_views' => $this->totalViews(),
+            'total_downloads' => $this->totalDownloads(),
             'by_period' => $this->productivityByPeriod(),
             'by_program' => $this->productivityByProgram(),
             'by_research_line' => $this->productivityByResearchLine(),

@@ -12,6 +12,10 @@ use Illuminate\Support\Facades\Storage;
 
 class WorkflowService
 {
+    public function __construct(
+        protected MetadataExtractorService $metadataExtractorService
+    ) {}
+
     /**
      * Map of valid state transitions.
      *
@@ -19,13 +23,14 @@ class WorkflowService
      */
     protected array $validTransitions = [
         'draft' => ['under_tutor_review'],
-        'under_tutor_review' => ['needs_corrections', 'under_jury_review', 'under_coordinator_review', 'rejected'],
-        'under_jury_review' => ['needs_corrections', 'approved', 'rejected'],
-        'under_coordinator_review' => ['needs_corrections', 'approved', 'rejected'],
+        'under_tutor_review' => ['needs_corrections', 'under_jury_review', 'under_coordinator_review', 'rejection_proposed'],
+        'under_jury_review' => ['needs_corrections', 'approved', 'rejection_proposed'],
+        'under_coordinator_review' => ['needs_corrections', 'approved', 'rejected', 'rejection_proposed'],
         'needs_corrections' => ['under_tutor_review'],
         'approved' => ['published'],
         'published' => [],
-        'rejected' => [],
+        'rejection_proposed' => ['rejected', 'needs_corrections', 'under_tutor_review', 'under_jury_review', 'under_coordinator_review'],
+        'rejected' => ['draft'],
     ];
 
     /**
@@ -56,6 +61,13 @@ class WorkflowService
             return true;
         }
 
+        // Appeal transition check (Author can appeal exactly once)
+        if ($currentState === 'rejected' && $targetState === 'draft') {
+            return $this->isProductionUser($production, $user, 'author')
+                && $user->hasRole('Estudiante')
+                && $production->appeals_count < 1;
+        }
+
         // 3. Check role-conditioned transitions for normal users
         // Students (Authors) can submit drafts or resubmit corrections
         if ($currentState === 'draft' && $targetState === 'under_tutor_review') {
@@ -68,7 +80,7 @@ class WorkflowService
 
         // Tutors review under_tutor_review
         if ($currentState === 'under_tutor_review') {
-            $allowedTutorStates = ['needs_corrections', 'rejected'];
+            $allowedTutorStates = ['needs_corrections', 'rejection_proposed'];
             if ($isSubjectWithoutJury) {
                 $allowedTutorStates[] = 'under_coordinator_review';
             } else {
@@ -81,7 +93,7 @@ class WorkflowService
 
         // Juries review under_jury_review
         if ($currentState === 'under_jury_review') {
-            if (in_array($targetState, ['needs_corrections', 'approved', 'rejected'])) {
+            if (in_array($targetState, ['needs_corrections', 'approved', 'rejection_proposed'])) {
                 return $this->isProductionUser($production, $user, 'jury') && $user->hasRole('Jurado');
             }
         }
@@ -124,6 +136,10 @@ class WorkflowService
 
             if ($targetState === 'under_tutor_review' && $previousState === 'draft') {
                 $updateData['submission_date'] = now();
+            }
+
+            if ($previousState === 'rejected' && $targetState === 'draft') {
+                $updateData['appeals_count'] = $production->appeals_count + 1;
             }
 
             if ($targetState === 'approved') {
@@ -244,6 +260,8 @@ class WorkflowService
         }
 
         $tempFullPath = Storage::disk('local')->path($relativePath);
+
+        $this->metadataExtractorService->removeExtraUnimarCoverPage($tempFullPath);
 
         // Get the latest version number
         $latestVersion = DocumentVersion::where('production_id', $production->id)

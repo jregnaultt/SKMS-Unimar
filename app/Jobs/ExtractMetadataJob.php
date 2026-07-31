@@ -8,6 +8,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class ExtractMetadataJob implements ShouldQueue
 {
@@ -39,19 +40,42 @@ class ExtractMetadataJob implements ShouldQueue
      */
     public function handle(MetadataExtractorService $extractorService): void
     {
+        $fullPath = Storage::disk('local')->path($this->pdfPath);
+
         try {
-            $metadata = $extractorService->extractMetadata($this->pdfPath);
+            $extractorService->removeExtraUnimarCoverPage($fullPath);
+            $metadata = $extractorService->extractMetadata($fullPath);
+
+            $payload = [
+                'status' => 'completed',
+                'metadata' => $metadata,
+            ];
 
             // Cache the extracted metadata for 2 hours to support the bulk import hybrid state recovery
-            Cache::put("metadata_{$this->fileId}", $metadata, now()->addHours(2));
+            Cache::put("metadata_{$this->fileId}", $payload, now()->addHours(2));
 
-            event(new MetadataExtracted($this->userId, $this->fileId, $metadata));
+            event(new MetadataExtracted($this->userId, $this->fileId, $payload));
         } catch (\Exception $e) {
             Log::error('Failed to extract metadata: '.$e->getMessage());
-            throw $e;
+
+            $errorPayload = [
+                'status' => 'error',
+                'error_message' => 'Falla en la extracción: '.$e->getMessage(),
+                'metadata' => [
+                    'title' => basename($fullPath),
+                    'abstract' => '',
+                    'authors' => '',
+                    'tutor' => '',
+                    'keywords' => '',
+                ],
+            ];
+
+            Cache::put("metadata_{$this->fileId}", $errorPayload, now()->addHours(2));
+
+            event(new MetadataExtracted($this->userId, $this->fileId, $errorPayload));
         } finally {
-            if ($this->deleteAfterExtraction && file_exists($this->pdfPath)) {
-                @unlink($this->pdfPath);
+            if ($this->deleteAfterExtraction && file_exists($fullPath)) {
+                @unlink($fullPath);
             }
         }
     }

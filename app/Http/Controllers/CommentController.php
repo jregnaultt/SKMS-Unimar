@@ -7,6 +7,7 @@ use App\Http\Requests\StoreCommentRequest;
 use App\Http\Requests\UpdateCommentStatusRequest;
 use App\Models\Comment;
 use App\Models\Production;
+use App\Models\User;
 use App\Services\CommentService;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\RedirectResponse;
@@ -101,5 +102,31 @@ class CommentController extends Controller
         }
 
         return back()->with('success', 'Observación eliminada.');
+    }
+
+    /**
+     * Toggle the featured status of a comment (Coordinators or assigned Tutor/Jury only).
+     */
+    public function toggleFeatured(Comment $comment): RedirectResponse
+    {
+        /** @var User $user */
+        $user = auth()->user();
+        if (! $user) {
+            abort(403, 'Usuario no autenticado.');
+        }
+
+        $production = $comment->production;
+        $isAssigned = $production->users()->where('user_id', $user->id)->whereIn('role', ['tutor', 'jury'])->exists();
+        $isCoordinator = $user->hasRole(['Coordinador', 'Super Admin', 'Decano']);
+
+        if (! $isAssigned && ! $isCoordinator) {
+            abort(403, 'No estás autorizado para destacar comentarios en este trabajo.');
+        }
+
+        $comment->update(['is_featured' => ! $comment->is_featured]);
+
+        $message = $comment->is_featured ? 'Observación destacada.' : 'Observación desmarcada como destacada.';
+
+        return back()->with('success', $message);
     }
 }
