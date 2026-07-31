@@ -247,4 +247,66 @@ class BulkProductionImportTest extends TestCase
         $this->assertCount(1, $suggested);
         $this->assertEquals('SISTEMA DE GESTIÓN DE CONOCIMIENTO CIENTÍFICO SKMS', $suggested->first()->title);
     }
+
+    public function test_coordinator_can_store_single_import_production(): void
+    {
+        $fileId = 'test-single-uuid-111';
+        Storage::disk('local')->put("temp_pdfs/{$fileId}.pdf", 'Fake Single PDF Content');
+
+        $payload = [
+            'file_id' => $fileId,
+            'title' => 'Tesis Histórica Individual Inteligente',
+            'abstract' => 'Resumen de la tesis de grado del estudiante individual.',
+            'authors' => 'María Pérez',
+            'tutor' => 'Profesor Tutor Individual',
+            'academic_program_id' => $this->program->id,
+            'research_line_id' => $this->line->id,
+            'production_type_id' => $this->type->id,
+            'academic_period_id' => $this->period->id,
+            'keywords' => 'Individual, Histórica, UNIMAR',
+        ];
+
+        $response = $this->actingAs($this->coordinator)
+            ->post(route('admin.productions.import.store-single'), $payload);
+
+        $response->assertRedirect(route('dashboard'));
+        $response->assertSessionHas('success');
+
+        // Assert database records
+        $this->assertDatabaseHas('productions', [
+            'title' => 'Tesis Histórica Individual Inteligente',
+            'authors' => 'María Pérez',
+            'tutor' => 'Profesor Tutor Individual',
+            'workflow_state' => 'published',
+            'academic_program_id' => $this->program->id,
+            'research_line_id' => $this->line->id,
+        ]);
+
+        $production = Production::where('title', 'Tesis Histórica Individual Inteligente')->first();
+        $this->assertNotNull($production);
+
+        // Verify media collection
+        $this->assertCount(1, $production->getMedia('documento'));
+
+        // Verify keywords
+        $this->assertDatabaseHas('keywords', ['name' => 'Individual']);
+        $this->assertDatabaseHas('keywords', ['name' => 'Histórica']);
+
+        // Verify cache and temp files are cleared
+        $this->assertFalse(Cache::has("metadata_{$fileId}"));
+        Storage::disk('local')->assertMissing("temp_pdfs/{$fileId}.pdf");
+    }
+
+    public function test_coordinator_cannot_upload_file_larger_than_5mb(): void
+    {
+        $file = UploadedFile::fake()->create('huge_thesis.pdf', 6000); // ~6MB PDF
+
+        $response = $this->actingAs($this->coordinator)
+            ->postJson(route('admin.productions.import.upload'), [
+                'file' => $file,
+            ]);
+
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors(['file']);
+    }
 }

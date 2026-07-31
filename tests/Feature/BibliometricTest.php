@@ -32,6 +32,8 @@ class BibliometricTest extends TestCase
 
         Role::firstOrCreate(['name' => 'Estudiante']);
         Role::firstOrCreate(['name' => 'Coordinador']);
+        Role::firstOrCreate(['name' => 'Tutor']);
+        Role::firstOrCreate(['name' => 'Jurado']);
 
         $this->program = AcademicProgram::create([
             'name' => 'Ingeniería de Sistemas',
@@ -137,6 +139,63 @@ class BibliometricTest extends TestCase
         $this->assertCount(2, $evolution);
         $this->assertEquals(2025, $evolution[0]['year']);
         $this->assertEquals(2026, $evolution[1]['year']);
+    }
+
+    public function test_service_total_views_and_downloads_excludes_non_approved_non_published(): void
+    {
+        // 1. Draft (should be excluded)
+        $this->createProduction('draft', ['views_count' => 10, 'downloads_count' => 5]);
+
+        // 2. Approved (should be included)
+        $this->createProduction('approved', ['views_count' => 20, 'downloads_count' => 10]);
+
+        // 3. Published (should be included)
+        $this->createProduction('published', ['views_count' => 30, 'downloads_count' => 15]);
+
+        $service = new BibliometricService;
+
+        $this->assertEquals(50, $service->totalViews());
+        $this->assertEquals(25, $service->totalDownloads());
+    }
+
+    public function test_views_not_incremented_for_draft_on_show_route(): void
+    {
+        $coordinator = User::factory()->create();
+        $coordinator->assignRole('Coordinador');
+
+        $production = $this->createProduction('draft', ['views_count' => 0]);
+
+        $response = $this->actingAs($coordinator)->get(route('productions.show', $production));
+
+        $response->assertStatus(200);
+        $this->assertEquals(0, $production->fresh()->views_count);
+    }
+
+    public function test_views_incremented_for_published_on_show_route(): void
+    {
+        $coordinator = User::factory()->create();
+        $coordinator->assignRole('Coordinador');
+
+        $production = $this->createProduction('published', ['views_count' => 0]);
+
+        $response = $this->actingAs($coordinator)->get(route('productions.show', $production));
+
+        $response->assertStatus(200);
+        $this->assertEquals(1, $production->fresh()->views_count);
+    }
+
+    public function test_downloads_not_incremented_for_draft_on_download_route_when_forbidden(): void
+    {
+        $student = User::factory()->create();
+        $student->assignRole('Estudiante');
+
+        // Draft is not published, and student is not associated, so it should abort 403 and NOT increment download
+        $production = $this->createProduction('draft', ['downloads_count' => 0]);
+
+        $response = $this->actingAs($student)->get(route('productions.document', $production));
+
+        $response->assertStatus(403);
+        $this->assertEquals(0, $production->fresh()->downloads_count);
     }
 
     protected function createProduction(string $state, array $overrides = []): Production

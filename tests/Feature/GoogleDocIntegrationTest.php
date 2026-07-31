@@ -150,7 +150,7 @@ class GoogleDocIntegrationTest extends TestCase
             'google_drive_file_id' => 'google-file-id',
         ]);
 
-        $service = new GoogleDriveService;
+        $service = app(GoogleDriveService::class);
         $result = $service->exportToPdf($production, 'google-file-id', 'test-token');
 
         $this->assertTrue($result);

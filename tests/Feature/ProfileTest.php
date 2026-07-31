@@ -24,6 +24,7 @@ class ProfileTest extends TestCase
     public function test_profile_information_can_be_updated(): void
     {
         $user = User::factory()->create();
+        $originalEmail = $user->email;
 
         $response = $this
             ->actingAs($user)
@@ -40,9 +41,8 @@ class ProfileTest extends TestCase
         $user->refresh();
 
         $this->assertSame('Test User', $user->name);
-        $this->assertSame('test@unimar.edu.ve', $user->email);
+        $this->assertSame($originalEmail, $user->email);
         $this->assertSame('+584123456789', $user->telefono);
-        $this->assertNull($user->email_verified_at);
     }
 
     public function test_email_verification_status_is_unchanged_when_the_email_address_is_unchanged(): void
@@ -53,7 +53,7 @@ class ProfileTest extends TestCase
             ->actingAs($user)
             ->patch('/profile', [
                 'name' => 'Test User',
-                'email' => $user->email,
+                'email' => 'new-email@unimar.edu.ve',
                 'telefono' => $user->telefono ?? '+584123456789',
             ]);
 
@@ -64,7 +64,7 @@ class ProfileTest extends TestCase
         $this->assertNotNull($user->refresh()->email_verified_at);
     }
 
-    public function test_user_can_delete_their_account(): void
+    public function test_user_cannot_delete_their_account(): void
     {
         $user = User::factory()->create();
 
@@ -74,15 +74,11 @@ class ProfileTest extends TestCase
                 'password' => 'password',
             ]);
 
-        $response
-            ->assertSessionHasNoErrors()
-            ->assertRedirect('/');
-
-        $this->assertGuest();
-        $this->assertNull($user->fresh());
+        $response->assertStatus(403);
+        $this->assertNotNull($user->fresh());
     }
 
-    public function test_correct_password_must_be_provided_to_delete_account(): void
+    public function test_delete_account_returns_403_regardless_of_password(): void
     {
         $user = User::factory()->create();
 
@@ -93,14 +89,11 @@ class ProfileTest extends TestCase
                 'password' => 'wrong-password',
             ]);
 
-        $response
-            ->assertSessionHasErrorsIn('userDeletion', 'password')
-            ->assertRedirect('/profile');
-
+        $response->assertStatus(403);
         $this->assertNotNull($user->fresh());
     }
 
-    public function test_email_must_use_unimar_edu_ve_domain(): void
+    public function test_email_parameter_is_ignored_and_raises_no_validation_errors(): void
     {
         $user = User::factory()->create();
 
@@ -112,12 +105,7 @@ class ProfileTest extends TestCase
                 'telefono' => '+584123456789',
             ]);
 
-        $response->assertSessionHasErrors(['email']);
-
-        $errors = session('errors');
-        $this->assertEquals(
-            'mira porfa tiene que ser ese tipo de correo nada mas',
-            $errors->get('email')[0]
-        );
+        $response->assertSessionHasNoErrors();
+        $this->assertSame($user->email, $user->fresh()->email);
     }
 }

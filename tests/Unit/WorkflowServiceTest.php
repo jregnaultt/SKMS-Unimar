@@ -79,8 +79,8 @@ class WorkflowServiceTest extends TestCase
         // Attach student as author
         $this->production->users()->attach($this->student->id, ['role' => 'author']);
 
-        // Instantiate service
-        $this->workflowService = new WorkflowService;
+        // Instantiate service from container
+        $this->workflowService = app(WorkflowService::class);
 
         Storage::fake('local');
     }
@@ -136,7 +136,8 @@ class WorkflowServiceTest extends TestCase
         // Tutor checks
         $this->assertTrue($this->workflowService->canTransition($this->production, 'needs_corrections', $this->tutorUser));
         $this->assertTrue($this->workflowService->canTransition($this->production, 'under_jury_review', $this->tutorUser));
-        $this->assertTrue($this->workflowService->canTransition($this->production, 'rejected', $this->tutorUser));
+        $this->assertFalse($this->workflowService->canTransition($this->production, 'rejected', $this->tutorUser));
+        $this->assertTrue($this->workflowService->canTransition($this->production, 'rejection_proposed', $this->tutorUser));
 
         // Tutor cannot transition to approved directly (must go to jury first)
         $this->assertFalse($this->workflowService->canTransition($this->production, 'approved', $this->tutorUser));
@@ -148,7 +149,8 @@ class WorkflowServiceTest extends TestCase
         // Jury checks
         $this->assertTrue($this->workflowService->canTransition($this->production, 'needs_corrections', $this->juryUser));
         $this->assertTrue($this->workflowService->canTransition($this->production, 'approved', $this->juryUser));
-        $this->assertTrue($this->workflowService->canTransition($this->production, 'rejected', $this->juryUser));
+        $this->assertFalse($this->workflowService->canTransition($this->production, 'rejected', $this->juryUser));
+        $this->assertTrue($this->workflowService->canTransition($this->production, 'rejection_proposed', $this->juryUser));
 
         // Execute transition to approved by jury
         $this->workflowService->transition($this->production, 'approved', $this->juryUser);

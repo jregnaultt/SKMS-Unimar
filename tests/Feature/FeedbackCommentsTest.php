@@ -311,4 +311,24 @@ class FeedbackCommentsTest extends TestCase
             'production_id' => $this->production->id,
         ]);
     }
+
+    public function test_it_allows_storing_comment_with_empty_annotation_position_fields(): void
+    {
+        $this->actingAs($this->tutor)
+            ->post(route('comments.store', $this->production), [
+                'content' => 'Esta es una observación normal sin anotación en coordenadas.',
+                'annotation_position' => [
+                    'page' => '',
+                    'x' => '',
+                    'y' => '',
+                ],
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('comments', [
+            'production_id' => $this->production->id,
+            'content' => 'Esta es una observación normal sin anotación en coordenadas.',
+            'annotation_position' => null,
+        ]);
+    }
 }
