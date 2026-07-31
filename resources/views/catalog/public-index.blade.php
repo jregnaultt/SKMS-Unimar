@@ -28,6 +28,29 @@
                             Filtros de Búsqueda
                         </h3>
 
+                        <!-- Author Filter -->
+                        <div class="space-y-1.5">
+                            <label for="author-filter" class="block text-sm font-bold text-slate-600 uppercase tracking-wider">
+                                Autor
+                            </label>
+                            <input type="text" id="author-filter" name="author" value="{{ request('author') }}" placeholder="Buscar por autor..." class="w-full h-11 text-sm rounded-xl border-slate-200 focus:ring-[#0d4d98] focus:border-[#0d4d98] bg-white text-slate-700">
+                        </div>
+
+                        <!-- Academic Period Filter -->
+                        <div class="space-y-1.5">
+                            <label for="period-filter" class="block text-sm font-bold text-slate-600 uppercase tracking-wider">
+                                Período Académico
+                            </label>
+                            <select id="period-filter" name="period" onchange="this.form.submit()" class="w-full h-11 text-sm rounded-xl border-slate-200 focus:ring-[#0d4d98] focus:border-[#0d4d98] cursor-pointer bg-white text-slate-700">
+                                <option value="">Todos los Períodos</option>
+                                @foreach($periods as $p)
+                                    <option value="{{ $p->id }}" {{ request('period') == $p->id ? 'selected' : '' }}>
+                                        {{ $p->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
                         <!-- Academic Program Filter -->
                         <div class="space-y-1.5">
                             <label for="program-filter" class="block text-sm font-bold text-slate-600 uppercase tracking-wider">
@@ -108,7 +131,7 @@
                             <button type="submit" id="btn-apply-filters" class="w-full h-11 bg-[#0d4d98] hover:bg-[#0b3d78] text-white rounded-xl text-sm font-bold uppercase tracking-wider transition shadow-sm hover:shadow-md">
                                 Aplicar Filtros
                             </button>
-                            @if(request()->anyFilled(['q', 'program', 'line', 'year', 'type', 'tutor']))
+                            @if(request()->anyFilled(['q', 'program', 'line', 'year', 'type', 'tutor', 'period', 'author']))
                                 <a href="{{ route('catalog.index') }}" id="btn-clear-filters" class="w-full h-11 flex items-center justify-center bg-slate-50 hover:bg-slate-100 text-slate-700 rounded-xl text-sm font-bold border border-slate-200 transition block">
                                     Limpiar Filtros
                                 </a>
@@ -209,7 +232,15 @@
                                             <svg aria-hidden="true" class="w-4 h-4 mr-2 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                                             </svg>
-                                            <span class="truncate">Autores: <strong class="text-slate-700 font-semibold">{{ $production->authors }}</strong></span>
+                                            <span class="truncate flex items-center gap-1 flex-wrap">Autores: 
+                                                @foreach(array_map('trim', explode(',', $production->authors ?? '')) as $author)
+                                                    @if(!empty($author))
+                                                        <span class="inline-block bg-slate-100 text-slate-800 text-xs px-2 py-0.5 rounded-md font-semibold font-sans">
+                                                            {{ $author }}
+                                                        </span>
+                                                    @endif
+                                                @endforeach
+                                            </span>
                                         </div>
                                         <div class="flex items-center truncate">
                                             <svg aria-hidden="true" class="w-4 h-4 mr-2 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">

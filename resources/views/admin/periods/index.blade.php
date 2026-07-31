@@ -16,7 +16,7 @@
         </div>
 
         <!-- Encabezado de Pestañas Compartidas -->
-        <div class="border-b border-slate-200 bg-white p-4 rounded-2xl shadow-sm border flex flex-col sm:flex-row justify-between items-center gap-4">
+        <div id="admin-config-tabs" class="border-b border-slate-200 bg-white p-4 rounded-2xl shadow-sm border flex flex-col sm:flex-row justify-between items-center gap-4">
             <div class="flex space-x-2 border-b border-slate-100 w-full sm:w-auto">
                 <a href="{{ route('admin.programs.index') }}"
                    class="py-3 px-4 text-base font-bold uppercase tracking-wider border-b-2 {{ Request::routeIs('admin.programs.*') ? 'border-unimar-gold text-unimar-blue' : 'border-transparent text-slate-600 hover:text-slate-800' }} transition duration-150">
@@ -63,7 +63,7 @@
         @endif
 
         <!-- Listado de Períodos -->
-        <div class="bg-white border border-slate-200/80 shadow-sm rounded-2xl overflow-hidden">
+        <div id="admin-config-table-card" class="bg-white border border-slate-200/80 shadow-sm rounded-2xl overflow-hidden">
             <div class="p-6 border-b border-slate-100">
                 <h3 class="text-lg font-bold text-slate-800 font-sans">Listado de Períodos Académicos</h3>
                 <p class="text-base text-slate-550 mt-0.5 font-bold uppercase tracking-wider">Administra los períodos lectivos o trimestres/semestres de la institución</p>

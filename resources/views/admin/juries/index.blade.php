@@ -84,7 +84,7 @@
         </div>
 
         <!-- Main Content Table Card -->
-        <div class="bg-white border border-slate-200/80 shadow-sm rounded-2xl overflow-hidden">
+        <div id="admin-juries-table-card" class="bg-white border border-slate-200/80 shadow-sm rounded-2xl overflow-hidden">
             <div class="p-6 border-b border-slate-100 bg-slate-50/50">
                 <h3 class="text-lg font-bold text-slate-800 font-sans">Listado de Trabajos de Investigación II</h3>
                 <p class="text-sm text-slate-500 mt-0.5 font-medium">Asigna el jurado evaluador correspondiente para el proceso formal de revisión y pre-defensa</p>
@@ -103,32 +103,67 @@
                     <table class="w-full text-left border-collapse min-w-[900px]">
                         <thead>
                             <tr class="bg-slate-50 border-b border-slate-200 text-sm font-bold uppercase tracking-wider text-slate-500">
-                                <th class="px-6 py-4">Obra / Tesis</th>
-                                <th class="px-6 py-4">Autor(es)</th>
+                                <th class="px-6 py-4">
+                                    <a href="{{ route('admin.juries.index', array_merge(request()->query(), ['sort_by' => 'title', 'sort_direction' => request('sort_direction') === 'asc' && request('sort_by') === 'title' ? 'desc' : 'asc'])) }}" class="flex items-center gap-1 hover:text-slate-800">
+                                        Obra / Tesis
+                                        @if(request('sort_by') === 'title')
+                                            <span class="text-xs">{!! request('sort_direction') === 'asc' ? '&#9650;' : '&#9660;' !!}</span>
+                                        @else
+                                            <span class="text-slate-300">&#8597;</span>
+                                        @endif
+                                    </a>
+                                </th>
+                                <th class="px-6 py-4">
+                                    <a href="{{ route('admin.juries.index', array_merge(request()->query(), ['sort_by' => 'authors', 'sort_direction' => request('sort_direction') === 'asc' && request('sort_by') === 'authors' ? 'desc' : 'asc'])) }}" class="flex items-center gap-1 hover:text-slate-800">
+                                        Autor(es)
+                                        @if(request('sort_by') === 'authors')
+                                            <span class="text-xs">{!! request('sort_direction') === 'asc' ? '&#9650;' : '&#9660;' !!}</span>
+                                        @else
+                                            <span class="text-slate-300">&#8597;</span>
+                                        @endif
+                                    </a>
+                                </th>
                                 <th class="px-6 py-4">Tutor Asignado</th>
                                 <th class="px-6 py-4">Asignación de Jurado</th>
                                 <th class="px-6 py-4 text-right">Acciones</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100 bg-white text-base">
+                            @php $currentSubjectId = null; @endphp
                             @foreach ($productions as $prod)
                                 @php
                                     $assignedTutorUser = $prod->users()->wherePivot('role', 'tutor')->first();
                                     $assignedJuryUser = $prod->users()->wherePivot('role', 'jury')->first();
                                     $studentName = $prod->authors ?: 'No especificado';
                                 @endphp
+                                
+                                {{-- Group header row if we are grouped by subject --}}
+                                @if (request('sort_by', 'subject_id') === 'subject_id' && $prod->subject_id !== $currentSubjectId)
+                                    @php $currentSubjectId = $prod->subject_id; @endphp
+                                    <tr class="bg-slate-100/80 text-xs font-bold uppercase tracking-wider text-slate-700">
+                                        <td colspan="5" class="px-6 py-3 border-y border-slate-200">
+                                            Materia: {{ $prod->subject->name ?? 'Sin Asignatura' }} ({{ $prod->subject->code ?? '' }})
+                                        </td>
+                                    </tr>
+                                @endif
+
                                 <tr class="hover:bg-slate-50/40 transition duration-150">
                                     <!-- Title & Subject Info -->
-                                    <td class="px-6 py-5 max-w-md">
+                                    <td class="px-6 py-5 max-w-md min-w-[300px]">
                                         <div class="font-bold text-slate-800 leading-snug line-clamp-2" title="{{ $prod->title }}">
                                             {{ $prod->title }}
                                         </div>
-                                        <div class="flex items-center gap-2 mt-1.5">
-                                            <span class="px-2 py-0.5 text-[11px] font-extrabold rounded-md bg-indigo-50 text-indigo-700 border border-indigo-100/50 uppercase tracking-wider">
+                                        <div class="flex flex-wrap items-center gap-1.5 mt-2">
+                                            @if (request('sort_by') !== 'subject_id')
+                                                <span class="px-2 py-0.5 text-[10px] font-extrabold rounded-md bg-slate-100 text-slate-600 border border-slate-200 uppercase tracking-wider whitespace-nowrap shrink-0">
+                                                    {{ $prod->subject->name ?? 'Sin Asignatura' }}
+                                                </span>
+                                            @endif
+                                            <span class="px-2 py-0.5 text-[11px] font-extrabold rounded-md bg-indigo-50 text-indigo-700 border border-indigo-100/50 uppercase tracking-wider whitespace-nowrap shrink-0">
                                                 {{ $prod->academicPeriod->name }}
                                             </span>
-                                            <span class="px-2 py-0.5 text-[11px] font-extrabold rounded-md bg-amber-50 text-amber-700 border border-amber-150 uppercase tracking-wider">
-                                                {{ $prod->workflow_state }}
+                                            <span class="px-2 py-0.5 text-[11px] font-extrabold rounded-md border uppercase tracking-wider whitespace-nowrap shrink-0 {{ $prod->getStatusColorClass() }}">
+                                                {{ $prod->getStatusLabel() }}
                                             </span>
                                         </div>
                                     </td>
@@ -137,7 +172,7 @@
                                     <td class="px-6 py-5 font-semibold text-slate-700 whitespace-nowrap">
                                         {{ $studentName }}
                                     </td>
-
+ 
                                     <!-- Tutor -->
                                     <td class="px-6 py-5 whitespace-nowrap">
                                         @if ($assignedTutorUser)
@@ -147,40 +182,51 @@
                                             <span class="text-slate-400 italic text-sm font-medium">Sin tutor asignado</span>
                                         @endif
                                     </td>
-
+ 
                                     <!-- Jury Assignment Dropdown -->
-                                    <td class="px-6 py-5 whitespace-nowrap">
+                                    <td class="px-6 py-5 whitespace-nowrap min-w-[420px]">
                                         @php
                                             $assignedJuries = $prod->users()->wherePivot('role', 'jury')->get();
                                             $jury1 = $assignedJuries->get(0);
                                             $jury2 = $assignedJuries->get(1);
                                         @endphp
-                                        <form action="{{ route('admin.juries.assign', $prod) }}" method="POST" class="flex items-center gap-3">
+                                        <form action="{{ route('admin.juries.assign', $prod) }}" method="POST" class="flex flex-col gap-2">
                                             @csrf
-                                            <div class="flex flex-col sm:flex-row gap-2">
-                                                <select name="jury_1_id" class="w-44 text-xs rounded-xl border-slate-200 focus:ring-unimar-blue focus:border-unimar-blue">
-                                                    <option value="">-- Jurado 1 --</option>
-                                                    @foreach ($juries as $j)
-                                                        <option value="{{ $j->id }}" {{ $jury1 && $jury1->id === $j->id ? 'selected' : '' }}>
-                                                            {{ $j->name }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                                <select name="jury_2_id" class="w-44 text-xs rounded-xl border-slate-200 focus:ring-unimar-blue focus:border-unimar-blue">
-                                                    <option value="">-- Jurado 2 --</option>
-                                                    @foreach ($juries as $j)
-                                                        <option value="{{ $j->id }}" {{ $jury2 && $jury2->id === $j->id ? 'selected' : '' }}>
-                                                            {{ $j->name }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
+                                            <div class="flex items-center gap-3">
+                                                <div class="flex flex-col sm:flex-row gap-2">
+                                                    <select name="jury_1_id" class="w-40 text-xs rounded-xl border-slate-200 focus:ring-unimar-blue focus:border-unimar-blue">
+                                                        <option value="">-- Jurado 1 --</option>
+                                                        @foreach ($juries as $j)
+                                                            @if (! $assignedTutorUser || $assignedTutorUser->id !== $j->id)
+                                                                <option value="{{ $j->id }}" {{ $jury1 && $jury1->id === $j->id ? 'selected' : '' }}>
+                                                                    {{ $j->name }}
+                                                                </option>
+                                                            @endif
+                                                        @endforeach
+                                                    </select>
+                                                    <select name="jury_2_id" class="w-40 text-xs rounded-xl border-slate-200 focus:ring-unimar-blue focus:border-unimar-blue">
+                                                        <option value="">-- Jurado 2 --</option>
+                                                        @foreach ($juries as $j)
+                                                            @if (! $assignedTutorUser || $assignedTutorUser->id !== $j->id)
+                                                                <option value="{{ $j->id }}" {{ $jury2 && $jury2->id === $j->id ? 'selected' : '' }}>
+                                                                    {{ $j->name }}
+                                                                </option>
+                                                            @endif
+                                                        @endforeach
+                                                    </select>
+                                                </div>
+                                                <button type="submit" class="px-3 py-2 bg-[#0d4d98] hover:bg-[#0b3d78] text-white font-bold text-xs rounded-xl shadow transition duration-150 shrink-0 uppercase tracking-wider cursor-pointer">
+                                                    Asignar
+                                                </button>
                                             </div>
-                                            <button type="submit" class="px-3 py-2 bg-[#0d4d98] hover:bg-[#0b3d78] text-white font-bold text-xs rounded-xl shadow transition duration-150 shrink-0 uppercase tracking-wider cursor-pointer">
-                                                Asignar
-                                            </button>
+                                            @if($errors->any() && old('jury_1_id') && request()->route('production') && request()->route('production')->id == $prod->id)
+                                                <div class="text-[10px] font-bold text-rose-600">
+                                                    {{ $errors->first() }}
+                                                </div>
+                                            @endif
                                         </form>
                                     </td>
-
+ 
                                     <!-- View Details Action -->
                                     <td class="px-6 py-5 text-right whitespace-nowrap">
                                         <a href="{{ $prod->show_url }}" class="inline-flex items-center space-x-1.5 px-4 py-2 bg-slate-100 hover:bg-[#0d4d98] hover:text-white text-slate-700 rounded-xl text-xs font-bold transition duration-150">

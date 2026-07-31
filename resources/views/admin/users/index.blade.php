@@ -77,7 +77,7 @@
         <div class="relative flex flex-col lg:flex-row gap-4 items-start">
 
             <!-- Tabla de Usuarios (Ocupa el ancho completo o 2/3 si el drawer está abierto) -->
-            <div class="w-full transition-all duration-300 bg-white border border-slate-200/80 shadow-sm rounded-2xl overflow-hidden"
+            <div id="admin-users-table-card" class="w-full transition-all duration-300 bg-white border border-slate-200/80 shadow-sm rounded-2xl overflow-hidden"
                  :class="openDrawer ? 'lg:w-2/3' : 'w-full'">
 
                 <div class="p-6 border-b border-slate-100">
@@ -174,7 +174,7 @@
             </div>
 
             <!-- Panel Lateral Deslizable (Side-Drawer) -->
-            <div x-show="openDrawer"
+            <div id="admin-users-drawer-card" x-show="openDrawer"
                  x-transition:enter="transition ease-out duration-300"
                  x-transition:enter-start="translate-x-full opacity-0"
                  x-transition:enter-end="translate-x-0 opacity-100"

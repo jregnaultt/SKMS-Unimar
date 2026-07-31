@@ -67,7 +67,7 @@
             </div>
 
             <!-- Table Card -->
-            <div class="bg-white rounded-2xl shadow-[0_10px_30px_rgba(13,77,152,0.03)] border border-slate-200 overflow-hidden">
+            <div id="admin-approvals-table-card" class="bg-white rounded-2xl shadow-[0_10px_30px_rgba(13,77,152,0.03)] border border-slate-200 overflow-hidden">
                 @if ($productions->isEmpty())
                     <div class="p-12 text-center">
                         <svg class="mx-auto h-12 w-12 text-slate-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

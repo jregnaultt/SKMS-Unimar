@@ -1,3 +1,22 @@
+@php
+    $dynamicKeywords = cache()->remember('landing_keywords', 3600, function() {
+        try {
+            if (! \Illuminate\Support\Facades\Schema::hasTable('keywords')) {
+                return [];
+            }
+            return \App\Models\Keyword::whereHas('productions', fn($q) => $q->published())
+                ->take(5)
+                ->pluck('name')
+                ->toArray();
+        } catch (\Throwable $e) {
+            return [];
+        }
+    });
+
+    if (empty($dynamicKeywords)) {
+        $dynamicKeywords = ['Sistemas', 'Industrial', 'Naval', 'Investigación', 'Tesis'];
+    }
+@endphp
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="scroll-smooth">
     <head>
@@ -17,6 +36,7 @@
             @vite(['resources/css/app.css', 'resources/js/app.js'])
         @else
             <script src="https://cdn.tailwindcss.com"></script>
+            <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
             <script>
                 tailwind.config = {
                     theme: {
@@ -141,9 +161,12 @@
         <!-- Dynamic Counts and Queries Setup -->
         @php
             // Safe dynamic counts for programs
-            $counts = ['sistemas' => 0, 'civil' => 0, 'industrial' => 0, 'quimica' => 0];
+            $counts = ['sistemas' => 0, 'industrial' => 0, 'naval' => 0];
             $publicaciones = [];
             $lineasInvestigacion = [];
+            $programSistemas = null;
+            $programIndustrial = null;
+            $programNaval = null;
             
             try {
                 if (class_exists(\App\Models\Production::class) && class_exists(\App\Models\AcademicProgram::class)) {
@@ -151,8 +174,12 @@
                     $publicaciones = \App\Models\Production::where('workflow_state', 'published')
                         ->with(['academicProgram', 'academicPeriod'])
                         ->latest('published_at')
-                        ->take(3)
+                        ->take(10)
                         ->get();
+
+                    $programSistemas = \App\Models\AcademicProgram::where('code', 'ING-SIS')->first();
+                    $programIndustrial = \App\Models\AcademicProgram::where('code', 'ING-IND')->first();
+                    $programNaval = \App\Models\AcademicProgram::where('code', 'TEC-NAV')->first();
 
                     // Calculate live counts per program
                     $programs = \App\Models\AcademicProgram::all();
@@ -164,12 +191,10 @@
 
                         if (str_contains($code, 'sis') || str_contains(strtolower($prog->name), 'sistemas')) {
                             $counts['sistemas'] = $count;
-                        } elseif (str_contains($code, 'civ') || str_contains(strtolower($prog->name), 'civil')) {
-                            $counts['civil'] = $count;
                         } elseif (str_contains($code, 'ind') || str_contains(strtolower($prog->name), 'industrial')) {
                             $counts['industrial'] = $count;
-                        } elseif (str_contains($code, 'qui') || str_contains(strtolower($prog->name), 'química') || str_contains(strtolower($prog->name), 'quimica')) {
-                            $counts['quimica'] = $count;
+                        } elseif (str_contains($code, 'nav') || str_contains(strtolower($prog->name), 'naval')) {
+                            $counts['naval'] = $count;
                         }
                     }
                 }
@@ -178,19 +203,17 @@
                     // Fetch live active research lines
                     $lineasInvestigacion = \App\Models\ResearchLine::where('is_active', true)
                         ->with('academicProgram')
-                        ->take(4)
                         ->get();
                 }
             } catch (\Exception $e) {
                 // Safe fallback if database tables do not exist yet
             }
 
-            // Fallback display texts
+            // Real counts display texts
             $displayCounts = [
-                'sistemas' => $counts['sistemas'] > 0 ? $counts['sistemas'] . ' Publicaciones' : '124 Publicaciones',
-                'civil' => $counts['civil'] > 0 ? $counts['civil'] . ' Publicaciones' : '86 Publicaciones',
-                'industrial' => $counts['industrial'] > 0 ? $counts['industrial'] . ' Publicaciones' : '98 Publicaciones',
-                'quimica' => $counts['quimica'] > 0 ? $counts['quimica'] . ' Publicaciones' : '42 Publicaciones',
+                'sistemas' => $counts['sistemas'] . ' Publicaciones',
+                'industrial' => $counts['industrial'] . ' Publicaciones',
+                'naval' => $counts['naval'] . ' Publicaciones',
             ];
         @endphp
 
@@ -244,10 +267,11 @@
                 <!-- Popular Search Tags (Utilizing space beautifully) -->
                 <div class="flex flex-wrap items-center justify-center gap-2.5 text-sm text-white/80 max-w-xl">
                     <span class="font-semibold text-white/60">Filtros rápidos:</span>
-                    <a href="{{ route('catalog.index') }}?q=Sistemas" class="px-3 py-1 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 hover:text-white transition-all">Sistemas</a>
-                    <a href="{{ route('catalog.index') }}?q=Civil" class="px-3 py-1 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 hover:text-white transition-all">Civil</a>
-                    <a href="{{ route('catalog.index') }}?q=Industrial" class="px-3 py-1 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 hover:text-white transition-all">Industrial</a>
-                    <a href="{{ route('catalog.index') }}?q=Tesis" class="px-3 py-1 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 hover:text-white transition-all">Tesis de Grado</a>
+                    @foreach($dynamicKeywords as $keyword)
+                        <a href="{{ route('catalog.index') }}?q={{ urlencode($keyword) }}" class="px-3 py-1 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 hover:text-white transition-all">
+                            {{ $keyword }}
+                        </a>
+                    @endforeach
                 </div>
 
             </div>
@@ -265,31 +289,17 @@
                 </div>
 
                 <!-- Career Cards Grid -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                     <!-- Sistemas -->
                     <x-program-card 
                         title="Ingeniería de Sistemas"
                         description="Computación, inteligencia artificial, desarrollo de software y sistemas de información de alto rendimiento."
                         :count="$displayCounts['sistemas']"
-                        :link="route('catalog.index') . '?program=sistemas'"
+                        :link="route('catalog.index') . '?program=' . ($programSistemas?->id ?? '')"
                     >
                         <x-slot name="icon">
                             <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
-                            </svg>
-                        </x-slot>
-                    </x-program-card>
-
-                    <!-- Civil -->
-                    <x-program-card 
-                        title="Ingeniería Civil"
-                        description="Diseño estructural, vialidad, hidráulica, geotecnia y planificación urbana sostenible."
-                        :count="$displayCounts['civil']"
-                        :link="route('catalog.index') . '?program=civil'"
-                    >
-                        <x-slot name="icon">
-                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
                             </svg>
                         </x-slot>
                     </x-program-card>
@@ -299,7 +309,7 @@
                         title="Ingeniería Industrial"
                         description="Optimización de recursos corporativos, gestión de procesos de producción, logística e higiene."
                         :count="$displayCounts['industrial']"
-                        :link="route('catalog.index') . '?program=industrial'"
+                        :link="route('catalog.index') . '?program=' . ($programIndustrial?->id ?? '')"
                     >
                         <x-slot name="icon">
                             <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -309,16 +319,16 @@
                         </x-slot>
                     </x-program-card>
 
-                    <!-- Química -->
+                    <!-- Tecnología Naval -->
                     <x-program-card 
-                        title="Ingeniería Química"
-                        description="Diseño de procesos químicos industriales, termodinámica y desarrollo de nuevos materiales."
-                        :count="$displayCounts['quimica']"
-                        :link="route('catalog.index') . '?program=quimica'"
+                        title="Tecnología Naval"
+                        description="Diseño y construcción de embarcaciones, sistemas de propulsión marina, mantenimiento naval y operaciones marítimas."
+                        :count="$displayCounts['naval']"
+                        :link="route('catalog.index') . '?program=' . ($programNaval?->id ?? '')"
                     >
                         <x-slot name="icon">
                             <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8V22m0 0H9m3 0h3M12 8a3 3 0 100-6 3 3 0 000 6zm-7 6a7 7 0 0014 0"></path>
                             </svg>
                         </x-slot>
                     </x-program-card>
@@ -357,13 +367,6 @@
                         />
 
                         <x-research-line-card 
-                            program="Ingeniería Civil"
-                            title="Infraestructura Vial y Estructuras Sismorresistentes"
-                            description="Modelado y optimización sismo-resistente de edificaciones costeras, diseño geométrico de vías terrestres, y mezclas asfálticas modificadas para climas tropicales."
-                            link="#"
-                        />
-
-                        <x-research-line-card 
                             program="Ingeniería Industrial"
                             title="Gestión de Operaciones y Eco-Eficiencia Industrial"
                             description="Desarrollo de cadenas de suministro verdes, optimización de flujos de producción en la manufactura regional y simulación de sistemas logísticos humanitarios."
@@ -371,9 +374,9 @@
                         />
 
                         <x-research-line-card 
-                            program="Ingeniería Química"
-                            title="Bioprocesos y Tecnología de Materiales Sustentables"
-                            description="Extracción supercrítica de aceites esenciales de plantas nativas, síntesis de biopolímeros degradables a partir de residuos marinos y tratamiento de aguas."
+                            program="Tecnología Naval"
+                            title="Sistemas de Propulsión y Diseño de Buques"
+                            description="Investigación en diseño hidrodinámico, eficiencia energética de motores marinos, estabilidad de embarcaciones costeras y materiales de construcción naval."
                             link="#"
                         />
                     @endif
@@ -392,49 +395,102 @@
                     </p>
                 </div>
 
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    @if(count($publicaciones) > 0)
-                        @foreach($publicaciones as $pub)
-                            <x-publication-card 
-                                :title="$pub->title"
-                                :author="$pub->authors ?? 'Investigador'"
-                                :tutor="$pub->tutor ?? 'No asignado'"
-                                :program="$pub->academicProgram ? $pub->academicProgram->name : 'Ingeniería'"
-                                :period="$pub->academicPeriod ? $pub->academicPeriod->name : 'Periodo Activo'"
-                                :link="$pub->show_url"
-                                :showPdf="$pub->hasMedia('documento')"
-                                :pdfLink="$pub->pdf_url"
-                            />
-                        @endforeach
-                    @else
-                        <!-- Mockup fallback cards (Montserrat, UNIMAR blue, only shown if database has 0 published works) -->
-                        <x-publication-card 
-                            title="Optimización de Algoritmos de Búsqueda sobre Conectividad Variable en el Valle del Espíritu Santo"
-                            author="Jesús Regnault"
-                            tutor="Prof. Alejandro Silva"
-                            program="Ingeniería de Sistemas"
-                            period="Período 2025-I"
-                            link="#"
-                        />
+                <div x-data="{ 
+                    activeCard: 0, 
+                    totalCards: {{ count($publicaciones) > 0 ? count($publicaciones) : 3 }},
+                    cardsPerPage: 3,
+                    updateCardsPerPage() {
+                        if (window.innerWidth >= 1024) {
+                            this.cardsPerPage = 3;
+                        } else if (window.innerWidth >= 640) {
+                            this.cardsPerPage = 2;
+                        } else {
+                            this.cardsPerPage = 1;
+                        }
+                    },
+                    next() {
+                        if (this.activeCard < this.totalCards - this.cardsPerPage) {
+                            this.activeCard++;
+                        } else {
+                            this.activeCard = 0;
+                        }
+                    },
+                    prev() {
+                        if (this.activeCard > 0) {
+                            this.activeCard--;
+                        } else {
+                            this.activeCard = Math.max(0, this.totalCards - this.cardsPerPage);
+                        }
+                    }
+                }" x-init="updateCardsPerPage(); window.addEventListener('resize', () => updateCardsPerPage())" class="space-y-6">
 
-                        <x-publication-card 
-                            title="Propuesta de Diseño Estructural del Puente El Toporo utilizando Modelado Numérico Avanzado"
-                            author="María Valentina Gómez"
-                            tutor="Ing. Carlos Rodríguez"
-                            program="Ingeniería Civil"
-                            period="Período 2024-II"
-                            link="#"
-                        />
+                    <!-- Carousel Controls (Buttons on top/right) -->
+                    <div class="flex justify-end space-x-3 mb-4">
+                        <button type="button" @click="prev()" class="w-11 h-11 rounded-full border border-slate-200 bg-white hover:bg-slate-50 hover:text-unimar-blue transition flex items-center justify-center text-slate-600 shadow-sm">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path>
+                            </svg>
+                        </button>
+                        <button type="button" @click="next()" class="w-11 h-11 rounded-full border border-slate-200 bg-white hover:bg-slate-50 hover:text-unimar-blue transition flex items-center justify-center text-slate-600 shadow-sm">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path>
+                            </svg>
+                        </button>
+                    </div>
 
-                        <x-publication-card 
-                            title="Diseño de un Sistema de Gestión del Conocimiento Científico para el Decanato de Ingeniería"
-                            author="Ricardo Bermúdez"
-                            tutor="Prof. Luis M. Marcano"
-                            program="Ingeniería de Sistemas"
-                            period="Período 2024-II"
-                            link="#"
-                        />
-                    @endif
+                    <!-- Carousel Window -->
+                    <div class="relative overflow-hidden w-full px-1">
+                        <div class="flex transition-transform duration-500 ease-out -mx-4" :style="'transform: translateX(-' + (activeCard * (100 / cardsPerPage)) + '%)'">
+                            @if(count($publicaciones) > 0)
+                                @foreach($publicaciones as $pub)
+                                    <div class="px-4 shrink-0" :style="'width: ' + (100 / cardsPerPage) + '%'">
+                                        <x-publication-card 
+                                            :title="$pub->title"
+                                            :author="$pub->authors ?? 'Investigador'"
+                                            :tutor="$pub->tutor ?? 'No asignado'"
+                                            :program="$pub->academicProgram ? $pub->academicProgram->name : 'Ingeniería'"
+                                            :period="$pub->academicPeriod ? $pub->academicPeriod->name : 'Periodo Activo'"
+                                            :link="$pub->show_url"
+                                            :showPdf="$pub->hasMedia('documento')"
+                                            :pdfLink="$pub->pdf_url"
+                                        />
+                                    </div>
+                                @endforeach
+                            @else
+                                <!-- Mockup fallback cards -->
+                                <div class="px-4 shrink-0" :style="'width: ' + (100 / cardsPerPage) + '%'">
+                                    <x-publication-card 
+                                        title="Optimización de Algoritmos de Búsqueda sobre Conectividad Variable en el Valle del Espíritu Santo"
+                                        author="Jesús Regnault"
+                                        tutor="Prof. Alejandro Silva"
+                                        program="Ingeniería de Sistemas"
+                                        period="Período 2025-I"
+                                        link="#"
+                                    />
+                                </div>
+                                <div class="px-4 shrink-0" :style="'width: ' + (100 / cardsPerPage) + '%'">
+                                    <x-publication-card 
+                                        title="Diseño e Implementación de un Modelo de Simulación Logística para la Distribución Regional de Insumos"
+                                        author="Mariana Mouhamed"
+                                        tutor="Ing. Santiago Rodríguez"
+                                        program="Ingeniería Industrial"
+                                        period="Período 2024-II"
+                                        link="#"
+                                    />
+                                </div>
+                                <div class="px-4 shrink-0" :style="'width: ' + (100 / cardsPerPage) + '%'">
+                                    <x-publication-card 
+                                        title="Propuesta de Diseño Hidrodinámico de Embarcaciones Pesqueras de Bajo Calado para la Isla de Margarita"
+                                        author="Ricardo Bermúdez"
+                                        tutor="Prof. Luis M. Marcano"
+                                        program="Tecnología Naval"
+                                        period="Período 2024-II"
+                                        link="#"
+                                    />
+                                </div>
+                            @endif
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>

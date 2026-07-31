@@ -126,7 +126,7 @@
         </div>
 
         <!-- Tarjeta del Generador -->
-        <div class="bg-white border border-slate-200/80 shadow-sm rounded-2xl overflow-hidden">
+        <div id="admin-reports-form-card" class="bg-white border border-slate-200/80 shadow-sm rounded-2xl overflow-hidden">
             <div class="p-6 border-b border-slate-100 bg-slate-50/50">
                 <h3 class="text-lg font-bold text-slate-800 font-sans">Parámetros de Filtrado</h3>
                 <p class="text-base text-slate-500 mt-0.5 font-medium">Especifica los filtros para segmentar la producción académica y generar el consolidado de datos</p>

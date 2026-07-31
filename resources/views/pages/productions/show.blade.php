@@ -3,30 +3,8 @@
     $activeRole = session('active_dashboard_role', auth()->user()->getRoleNames()->first() ?? 'Estudiante');
     $roles = auth()->user()->getRoleNames()->toArray();
 
-    $statusColors = [
-        'draft' => 'bg-slate-100 text-slate-700 border-slate-200',
-        'under_review' => 'bg-yellow-50 text-yellow-800 border-yellow-200',
-        'under_tutor_review' => 'bg-yellow-50 text-yellow-800 border-yellow-200',
-        'under_jury_review' => 'bg-purple-50 text-purple-800 border-purple-200',
-        'under_coordinator_review' => 'bg-indigo-50 text-indigo-800 border-indigo-200',
-        'needs_corrections' => 'bg-orange-50 text-orange-800 border-orange-200',
-        'approved' => 'bg-emerald-50 text-emerald-800 border-emerald-200',
-        'published' => 'bg-blue-50 text-blue-800 border-blue-200',
-        'rejected' => 'bg-rose-50 text-rose-800 border-rose-200',
-    ];
-    $statusLabels = [
-        'draft' => 'Borrador',
-        'under_review' => 'En Revisión',
-        'under_tutor_review' => 'En Revisión (Tutor)',
-        'under_jury_review' => 'En Revisión (Jurado)',
-        'under_coordinator_review' => 'En Revisión (Coordinación)',
-        'needs_corrections' => 'Requiere Correcciones',
-        'approved' => 'Aprobado',
-        'published' => 'Publicado',
-        'rejected' => 'Rechazado',
-    ];
-    $colorClass = $statusColors[$production->workflow_state] ?? 'bg-slate-100 text-slate-800';
-    $label = $statusLabels[$production->workflow_state] ?? $production->workflow_state;
+    $colorClass = $production->getStatusColorClass();
+    $label = $production->getStatusLabel();
 
     $user = auth()->user();
     $isAuthor = $production->users()->where('user_id', $user->id)->wherePivot('role', 'author')->exists();
@@ -222,6 +200,11 @@
         handleFileSelect(event) {
             const file = event.target.files[0];
             if (file) {
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('El archivo supera el tamaño máximo permitido de 5MB. Por favor, comprímelo o reduce su tamaño antes de subir.');
+                    event.target.value = '';
+                    return;
+                }
                 this.isUploading = true;
                 this.statusMessage = 'Subiendo documento corregido...';
                 this.uploadProgress = 0;
@@ -270,29 +253,6 @@
                 </span>
             </div>
         </div>
-
-        <!-- Notification Alerts -->
-        @if (session('success'))
-            <div class="p-4 bg-emerald-50 border-l-4 border-emerald-500 rounded-r-xl shadow-sm text-emerald-800">
-                <div class="flex items-center">
-                    <svg class="w-5 h-5 mr-3 text-emerald-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                    <span class="font-bold text-xs uppercase tracking-wider">{{ session('success') }}</span>
-                </div>
-            </div>
-        @endif
-
-        @if (session('error'))
-            <div class="p-4 bg-rose-50 border-l-4 border-rose-500 rounded-r-xl shadow-sm text-rose-800">
-                <div class="flex items-center">
-                    <svg class="w-5 h-5 mr-3 text-rose-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                    <span class="font-bold text-xs uppercase tracking-wider">{{ session('error') }}</span>
-                </div>
-            </div>
-        @endif
 
         @if ($errors->any())
             <div class="p-4 bg-rose-50 border-l-4 border-rose-500 rounded-r-xl shadow-sm text-rose-800">
@@ -562,6 +522,7 @@
             <!-- Right Side: Metrics and Citations (1/3 width) -->
             <div class="space-y-6">
                 <!-- Impact Metrics Card -->
+                @if(in_array($production->workflow_state, ['approved', 'published']))
                 <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-[0_10px_30px_rgba(13,77,152,0.03)] space-y-4">
                     <div class="border-b border-slate-100 pb-2">
                         <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider">
@@ -571,8 +532,8 @@
                     </div>
 
                     @php
-                        $visits = (($production->id * 17) % 150) + 12;
-                        $downloads = (($production->id * 7) % 45) + 3;
+                        $visits = $production->views_count;
+                        $downloads = $production->downloads_count;
                     @endphp
 
                     <div class="grid grid-cols-2 gap-4">
@@ -598,6 +559,7 @@
                         </div>
                     </div>
                 </div>
+                @endif
 
                 <!-- Citation Generator Card -->
                 <div x-data="{ citationStyle: 'apa' }" class="bg-white rounded-2xl p-5 border border-slate-200 shadow-[0_10px_30px_rgba(13,77,152,0.03)] space-y-4">
@@ -810,7 +772,7 @@
                     </template>
 
                     <!-- Versions selector -->
-                    @if ($versions->isNotEmpty())
+                    @if (($isAuthor || $isTutor || $isJury || $isCoordinator) && $versions->isNotEmpty())
                         <div class="flex items-center space-x-1.5">
                             <span class="text-xs font-bold text-slate-400 uppercase">Versión:</span>
                             <div class="inline-flex rounded-lg shadow-sm bg-slate-50 p-0.5 border border-slate-200">
@@ -895,7 +857,7 @@
                             <!-- Top Bar Controls -->
                             <div class="p-3 bg-white border-b border-slate-200 flex items-center justify-between z-20 shrink-0">
                                 <div class="flex items-center space-x-2">
-                                    @if ($production->documentVersions->count() > 1)
+                                    @if (($isAuthor || $isTutor || $isJury || $isCoordinator) && $production->documentVersions->count() > 1)
                                         <button type="button" 
                                                 @click="toggleCompareMode()"
                                                 class="px-3.5 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition border flex items-center space-x-1.5"
@@ -988,6 +950,7 @@
         </div>
 
         <!-- BOTTOM ROW: Comments Observation Board & Timeline / Decisions -->
+        @if ($isAuthor || $isTutor || $isJury || $isCoordinator)
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
             
             <!-- Left Side: Comments / Observations Board (2/3 width) -->
@@ -999,18 +962,62 @@
                 $inProgressCount = $rootComments->where('status.value', 'in_progress')->count();
                 $addressedCount = $rootComments->where('status.value', 'addressed')->count();
 
-                $isAuthor = $production->users->where('id', auth()->id())->where('pivot.role', 'author')->isNotEmpty();
-                $isTutorOrJury = $production->users->where('id', auth()->id())->whereIn('pivot.role', ['tutor', 'jury'])->isNotEmpty();
+                $isTutorOrJury = $isTutor || $isJury;
             @endphp
 
             <div class="lg:col-span-2 space-y-6">
-                <div class="bg-white rounded-2xl shadow-[0_10px_30px_rgba(13,77,152,0.03)] border border-slate-200 overflow-hidden"
+                <div id="observations-panel" class="bg-white rounded-2xl shadow-[0_10px_30px_rgba(13,77,152,0.03)] border border-slate-200 overflow-hidden"
                      x-data="{
                          showNewObservation: false,
                          showReplyModal: false,
                          replyToId: null,
                          replyToRef: '',
-                         expandedComments: {}
+                         expandedComments: {},
+                         filterStatus: 'all',
+                         filterFeatured: false,
+                         currentPage: 1,
+                         perPage: 5,
+                         totalFiltered: 0,
+                         totalPages: 1,
+                         init() {
+                             this.updateCommentsList();
+                             this.$watch('filterStatus', () => { this.currentPage = 1; this.updateCommentsList(); });
+                             this.$watch('filterFeatured', () => { this.currentPage = 1; this.updateCommentsList(); });
+                         },
+                         updateCommentsList() {
+                             let items = Array.from(document.querySelectorAll('[data-comment-id]'));
+                             let filtered = items.filter(el => {
+                                 let statusMatch = this.filterStatus === 'all' || el.getAttribute('data-comment-status') === this.filterStatus;
+                                 let featuredMatch = !this.filterFeatured || el.getAttribute('data-comment-featured') === 'true';
+                                 return statusMatch && featuredMatch;
+                             });
+                             
+                             let start = (this.currentPage - 1) * this.perPage;
+                             let end = start + this.perPage;
+                             
+                             items.forEach(el => {
+                                 el.style.display = 'none';
+                             });
+                             
+                             filtered.slice(start, end).forEach(el => {
+                                 el.style.display = 'block';
+                             });
+                             
+                             this.totalFiltered = filtered.length;
+                             this.totalPages = Math.ceil(filtered.length / this.perPage) || 1;
+                         },
+                         nextPage() {
+                             if (this.currentPage < this.totalPages) {
+                                 this.currentPage++;
+                                 this.updateCommentsList();
+                             }
+                         },
+                         prevPage() {
+                             if (this.currentPage > 1) {
+                                 this.currentPage--;
+                                 this.updateCommentsList();
+                             }
+                         }
                      }">
 
                     <!-- Panel Header -->
@@ -1037,6 +1044,28 @@
                                     {{ $addressedCount }} Atendida{{ $addressedCount > 1 ? 's' : '' }}
                                 </span>
                             @endif
+                        </div>
+                    </div>
+
+                    <!-- Panel Filters -->
+                    <div class="px-6 py-3 bg-slate-50 border-b border-slate-200 flex flex-wrap gap-4 items-center justify-between">
+                        <div class="flex items-center gap-3 flex-wrap">
+                            <div class="flex items-center space-x-1.5">
+                                <label for="obs-status-filter" class="text-xs font-bold text-slate-550 uppercase tracking-wider">Estado:</label>
+                                <select id="obs-status-filter" x-model="filterStatus" class="h-9 text-xs rounded-xl border-slate-200 focus:ring-[#0d4d98] focus:border-[#0d4d98] bg-white text-slate-700">
+                                    <option value="all">Todas</option>
+                                    <option value="pending">Pendientes</option>
+                                    <option value="in_progress">En Progreso</option>
+                                    <option value="addressed">Atendidas</option>
+                                </select>
+                            </div>
+                            <label class="flex items-center space-x-1.5 cursor-pointer select-none">
+                                <input type="checkbox" x-model="filterFeatured" class="rounded border-slate-300 text-[#0d4d98] focus:ring-[#0d4d98]">
+                                <span class="text-xs font-bold text-slate-600 uppercase tracking-wider">★ Destacados</span>
+                            </label>
+                        </div>
+                        <div class="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                            Filtrados: <span x-text="totalFiltered"></span> de {{ $rootComments->count() }} observaciones
                         </div>
                     </div>
 
@@ -1067,8 +1096,17 @@
                         @endif
 
                         @foreach ($rootComments as $observation)
-                            @php $reply = $comments->firstWhere('parent_id', $observation->id); @endphp
-                            <div class="rounded-xl border bg-slate-50 border-slate-200 overflow-hidden shadow-sm">
+                            @php
+                                $reply = $comments->firstWhere('parent_id', $observation->id);
+                                $canFeature = auth()->check() && (
+                                    auth()->user()->hasRole(['Coordinador', 'Super Admin', 'Decano']) ||
+                                    $production->users->where('id', auth()->id())->whereIn('pivot.role', ['tutor', 'jury'])->isNotEmpty()
+                                );
+                            @endphp
+                            <div class="rounded-xl border bg-slate-50 border-slate-200 overflow-hidden shadow-sm transition-all duration-200"
+                                 data-comment-id="{{ $observation->id }}"
+                                 data-comment-status="{{ $observation->status->value }}"
+                                 data-comment-featured="{{ $observation->is_featured ? 'true' : 'false' }}">
 
                                 <!-- Observation header -->
                                 <div class="px-4 pt-4 pb-3">
@@ -1084,6 +1122,22 @@
                                                 <span class="text-xs text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-md border border-blue-100 font-bold uppercase tracking-wider">
                                                     📍 {{ $observation->reference_section }}
                                                 </span>
+                                            @endif
+
+                                            <!-- Star/Feature button -->
+                                            @if ($canFeature)
+                                                <form action="{{ route('comments.toggle-featured', $observation) }}" method="POST" class="inline">
+                                                    @csrf
+                                                    <button type="submit" class="text-slate-400 hover:text-amber-500 transition duration-150 inline-flex items-center" title="{{ $observation->is_featured ? 'Quitar destacado' : 'Marcar como destacado' }}">
+                                                        <svg class="w-4 h-4 {{ $observation->is_featured ? 'text-amber-500 fill-amber-500' : '' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.907c.961 0 1.36 1.252.583 1.828l-3.9 2.828a1 1 0 00-.364 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.9-2.828a1 1 0 00-1.175 0l-3.9 2.828c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.364-1.118l-3.9-2.828c-.778-.577-.378-1.828.582-1.828h4.908a1 1 0 00.951-.69l1.519-4.674z"/>
+                                                        </svg>
+                                                    </button>
+                                                </form>
+                                            @elseif ($observation->is_featured)
+                                                <svg class="w-4 h-4 text-amber-500 fill-amber-500 inline-block align-middle" fill="none" stroke="currentColor" viewBox="0 0 24 24" title="Destacado">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.907c.961 0 1.36 1.252.583 1.828l-3.9 2.828a1 1 0 00-.364 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.9-2.828a1 1 0 00-1.175 0l-3.9 2.828c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.364-1.118l-3.9-2.828c-.778-.577-.378-1.828.582-1.828h4.908a1 1 0 00.951-.69l1.519-4.674z"/>
+                                                </svg>
                                             @endif
                                         </div>
                                         <span class="text-xs text-slate-400 font-semibold" title="{{ $observation->created_at }}">
@@ -1174,10 +1228,21 @@
                                         @endif
                                     </div>
                                 @endif
-
-
                             </div>
                         @endforeach
+
+                        <!-- Alpine Pagination Controls -->
+                        <div x-show="totalPages > 1" class="flex items-center justify-between border-t border-slate-200 pt-4 flex-wrap gap-2" x-cloak>
+                            <button type="button" @click="prevPage()" :disabled="currentPage === 1" class="px-3 py-1.5 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition disabled:opacity-50 disabled:cursor-not-allowed">
+                                &laquo; Anterior
+                            </button>
+                            <span class="text-xs text-slate-500 font-bold">
+                                Página <span x-text="currentPage"></span> de <span x-text="totalPages"></span>
+                            </span>
+                            <button type="button" @click="nextPage()" :disabled="currentPage === totalPages" class="px-3 py-1.5 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition disabled:opacity-50 disabled:cursor-not-allowed">
+                                Siguiente &raquo;
+                            </button>
+                        </div>
 
                         <!-- New Observation Button (Tutor/Jury only, active states) -->
                         @if ($isTutorOrJury && ! $isReadOnly)
@@ -1280,7 +1345,7 @@
             <!-- Right Side: Decisions Panels & Revisions Timeline (1/3 width) -->
             <div class="space-y-6">
                 <!-- Action / Decisions Panel Card -->
-                <div class="bg-white rounded-2xl p-6 shadow-[0_10px_30px_rgba(13,77,152,0.03)] border border-slate-200 space-y-4">
+                <div id="decision-actions-panel" class="bg-white rounded-2xl p-6 shadow-[0_10px_30px_rgba(13,77,152,0.03)] border border-slate-200 space-y-4">
                     <h3 class="text-sm font-bold text-slate-800 border-b border-slate-100 pb-3 flex items-center uppercase tracking-wider">
                         <svg class="w-5 h-5 mr-2 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
@@ -1336,18 +1401,25 @@
                                     Solicitar Correcciones
                                 </button>
 
-                                <!-- Reject Trigger -->
+                                <!-- Reject Trigger (Proposed to Coordinator) -->
                                 <button type="button" @click="showRejectModal = true" class="w-full py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow transition duration-150 flex items-center justify-center">
-                                    <svg class="w-4 h-4 mr-1.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
-                                    Rechazar Documento
+                                    <svg aria-hidden="true" class="w-4 h-4 mr-1.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                    Proponer Rechazo
                                 </button>
                             </div>
                         @elseif ($isAuthor)
-                            @if (!$production->jury_review_requested)
+                            @php
+                                $hasPendingComments = $production->comments()->whereIn('status', [\App\Enums\CommentStatus::Pending, \App\Enums\CommentStatus::InProgress])->exists();
+                            @endphp
+                            @if ($hasPendingComments)
+                                <div class="bg-amber-50 border border-amber-200/60 text-amber-800 p-4 rounded-xl text-xs font-semibold text-center leading-normal">
+                                    No puedes enviar la solicitud de jurado todavía. Debes esperar a que tu tutor valide las observaciones pendientes.
+                                </div>
+                            @elseif (!$production->jury_review_requested)
                                 <form action="{{ route('productions.request-jury-review', $production) }}" method="POST">
                                     @csrf
                                     <button type="submit" class="w-full py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow transition duration-150 flex items-center justify-center">
-                                        <svg class="w-4 h-4 mr-1.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+                                        <svg aria-hidden="true" class="w-4 h-4 mr-1.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
                                         Solicitar Revisión del Jurado
                                     </button>
                                 </form>
@@ -1380,10 +1452,10 @@
                                     Solicitar Correcciones
                                 </button>
 
-                                <!-- Reject Trigger -->
+                                <!-- Reject Trigger (Proposed to Coordinator) -->
                                 <button type="button" @click="showRejectModal = true" class="w-full py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow transition duration-150 flex items-center justify-center">
-                                    <svg class="w-4 h-4 mr-1.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
-                                    Rechazar Documento
+                                    <svg aria-hidden="true" class="w-4 h-4 mr-1.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                    Proponer Rechazo
                                 </button>
                             </div>
                         @else
@@ -1444,6 +1516,47 @@
                             </div>
                         @else
                             <p class="text-xs text-slate-400 text-center py-2 italic font-medium">Tesis en revisión formal por la Coordinación.</p>
+                        @endif
+
+                    <!-- Action: Coordinator resolves rejection proposal -->
+                    @elseif ($production->workflow_state === 'rejection_proposed')
+                        @if ($isCoordinator)
+                            <div class="space-y-3">
+                                <div class="bg-rose-50 border border-rose-200 text-rose-800 p-3.5 rounded-xl text-xs leading-normal">
+                                    <p class="font-bold mb-1">Propuesta de Rechazo Activa</p>
+                                    <p class="mb-2">El tutor o jurado ha solicitado el rechazo de este documento.</p>
+                                    @php
+                                        $lastRejectRevision = $production->revisions()->where('new_state', 'rejection_proposed')->latest()->first();
+                                    @endphp
+                                    @if ($lastRejectRevision && $lastRejectRevision->comment)
+                                        <div class="bg-white/60 p-2.5 rounded-lg border border-rose-100 mt-2 font-medium">
+                                            <strong>Motivo expuesto:</strong> "{{ $lastRejectRevision->comment }}"
+                                        </div>
+                                    @endif
+                                </div>
+
+                                <!-- Confirm Rejection -->
+                                <form action="{{ route('productions.transition', $production) }}" method="POST" onsubmit="return confirm('¿Estás seguro de CONFIRMAR el rechazo definitivo de este trabajo?')">
+                                    @csrf
+                                    <input type="hidden" name="target_state" value="rejected">
+                                    <textarea name="comment" required rows="2" class="w-full rounded-xl border-slate-200 text-xs focus:ring-[#0d4d98] focus:border-[#0d4d98] mb-2" placeholder="Agrega un comentario o ratificación del rechazo..."></textarea>
+                                    <button type="submit" class="w-full py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow transition duration-150 flex items-center justify-center cursor-pointer">
+                                        Confirmar Rechazo
+                                    </button>
+                                </form>
+
+                                <!-- Dismiss proposal and return to previous state -->
+                                <form action="{{ route('productions.transition', $production) }}" method="POST" onsubmit="return confirm('¿Deseas desestimar la propuesta de rechazo y devolver la tesis a revisión?')">
+                                    @csrf
+                                    <input type="hidden" name="target_state" value="{{ $production->subject?->code === 'SMI1004341' || $production->subject?->code === 'TRI1106341' ? 'under_tutor_review' : 'under_jury_review' }}">
+                                    <textarea name="comment" required rows="2" class="w-full rounded-xl border-slate-200 text-xs focus:ring-[#0d4d98] focus:border-[#0d4d98] mb-2" placeholder="Explica la razón por la cual desestimas el rechazo..."></textarea>
+                                    <button type="submit" class="w-full py-2.5 bg-slate-600 hover:bg-slate-700 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow transition duration-150 flex items-center justify-center cursor-pointer">
+                                        Desestimar y Devolver a Revisión
+                                    </button>
+                                </form>
+                            </div>
+                        @else
+                            <p class="text-xs text-slate-400 text-center py-2 italic font-medium">Rechazo propuesto. Esperando decisión de la Coordinación.</p>
                         @endif
 
                     <!-- Action: Student resubmits after needs_corrections -->
@@ -1517,7 +1630,7 @@
                                     <div class="space-y-1">
                                         <div class="flex items-center justify-between flex-wrap">
                                             <span class="font-bold text-slate-800">
-                                                {{ $statusLabels[$rev->new_state] ?? $rev->new_state }}
+                                                {{ App\Models\Production::getStatusLabelFor($rev->new_state) }}
                                             </span>
                                             <span class="text-xs text-slate-400 font-semibold" title="{{ $rev->created_at }}">
                                                 {{ $rev->created_at->diffForHumans() }}
@@ -1526,9 +1639,9 @@
                                         <p class="text-xs text-slate-500">
                                             Por: <strong class="text-slate-600">{{ $rev->user->name ?? 'Sistema' }}</strong> ({{ $rev->rol }})
                                         </p>
-                                        @if ($rev->comentario)
+                                        @if ($rev->comment)
                                             <p class="text-xs bg-slate-50 p-2.5 rounded-lg border border-slate-100 text-slate-600 mt-1.5 italic leading-normal">
-                                                "{{ $rev->comentario }}"
+                                                "{{ $rev->comment }}"
                                             </p>
                                         @endif
                                     </div>
@@ -1539,6 +1652,7 @@
                 </div>
             </div>
         </div>
+        @endif
 
         <!-- Needs Corrections Modal (Tutor/Jury only) -->
         <div x-show="showCorrectionModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" style="display: none;" x-transition>
@@ -1564,24 +1678,30 @@
             </div>
         </div>
 
-        <!-- Reject Modal (Tutor/Jury only) -->
+        <!-- Reject Modal -->
         <div x-show="showRejectModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" style="display: none;" x-transition>
             <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200" @click.outside="showRejectModal = false">
-                <h3 class="text-sm font-bold text-rose-600 mb-2">Rechazar Documento Académico</h3>
-                <p class="text-xs text-slate-400 mb-4 leading-normal">Ingresa la justificación oficial para rechazar esta obra. Esta acción es irreversible y finaliza el ciclo del trabajo.</p>
+                <h3 class="text-sm font-bold text-rose-600 mb-2">
+                    {{ $isCoordinator ? 'Rechazar Documento Académico' : 'Proponer Rechazo de Tesis' }}
+                </h3>
+                <p class="text-xs text-slate-400 mb-4 leading-normal">
+                    {{ $isCoordinator 
+                        ? 'Ingresa el motivo, razón y circunstancias oficiales para rechazar esta obra. Esta acción es irreversible.' 
+                        : 'Ingresa la justificación, razón y motivos detallados para proponer el rechazo de esta obra a la Coordinación.' }}
+                </p>
                 
                 <form action="{{ route('productions.transition', $production) }}" method="POST">
                     @csrf
-                    <input type="hidden" name="target_state" value="rejected">
+                    <input type="hidden" name="target_state" value="{{ $isCoordinator ? 'rejected' : 'rejection_proposed' }}">
                     
-                    <textarea name="comment" required rows="4" class="w-full rounded-xl border-slate-200 text-xs focus:ring-[#0d4d98] focus:border-[#0d4d98] mb-4" placeholder="Escribe la justificación del rechazo..."></textarea>
+                    <textarea name="comment" required rows="4" class="w-full rounded-xl border-slate-200 text-xs focus:ring-[#0d4d98] focus:border-[#0d4d98] mb-4" placeholder="{{ $isCoordinator ? 'Escribe la justificación, razón y motivos del rechazo...' : 'Escribe las razones, motivos y circunstancias para proponer el rechazo...' }}"></textarea>
                     
                     <div class="flex justify-end space-x-2 text-xs font-bold">
                         <button type="button" @click="showRejectModal = false" class="px-4 py-2 bg-slate-100 text-slate-600 rounded-xl hover:bg-slate-200 transition uppercase tracking-wider">
                             Cancelar
                         </button>
                         <button type="submit" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl shadow transition uppercase tracking-wider">
-                            Rechazar Obra
+                            {{ $isCoordinator ? 'Rechazar Obra' : 'Enviar Propuesta de Rechazo' }}
                         </button>
                     </div>
                 </form>

@@ -11,6 +11,7 @@
 
     <div x-data="Object.assign(documentUpload({{ $researchLines->toJson() }}), {
         sourceType: 'google',
+        showUploadTipModal: true,
         googleDriveFileId: '',
         googleDocumentTitle: '',
         googleAccessToken: '',
@@ -188,7 +189,7 @@
         @endif
 
         <!-- Formulario General de Registro -->
-        <form method="POST" action="{{ route('productions.store') }}" @submit="submitForm($event)" class="space-y-8">
+        <form id="production-upload-form" method="POST" action="{{ route('productions.store') }}" @submit="submitForm($event)" class="space-y-8">
             @csrf
             
             <!-- Parámetros Ocultos -->
@@ -207,13 +208,13 @@
 
                 <!-- Selector de Tipo de Origen -->
                 <div class="flex space-x-2 border-b border-slate-200 bg-slate-50/50 p-1 rounded-xl w-fit">
-                    <button type="button" 
+                    <button id="tab-local-file" type="button" 
                             @click="sourceType = 'local'" 
                             :class="sourceType === 'local' ? 'bg-white text-unimar-blue font-bold shadow-sm' : 'text-slate-600 hover:text-slate-800'" 
                             class="py-2.5 px-4 rounded-lg text-sm font-bold transition duration-150 uppercase tracking-wider">
-                        Archivo Local (PDF / DOCX)
+                         Archivo Local (PDF / DOCX)
                     </button>
-                    <button type="button" 
+                    <button id="tab-google-drive" type="button" 
                             @click="sourceType = 'google'" 
                             :class="sourceType === 'google' ? 'bg-white text-unimar-blue font-bold shadow-sm' : 'text-slate-600 hover:text-slate-800'" 
                             class="py-2.5 px-4 rounded-lg text-sm font-bold transition duration-150 uppercase tracking-wider flex items-center space-x-2">
@@ -264,7 +265,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h7a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"></path>
                             </svg>
                         </div>
-                        <button type="button" @click="handleGoogleAuth" class="inline-flex items-center justify-center py-3 px-6 bg-unimar-blue hover:bg-unimar-blue/95 text-white font-bold rounded-xl text-sm uppercase tracking-wider transition shadow-sm hover:shadow-md focus:outline-none h-11">
+                        <button id="btn-google-drive-search" type="button" @click="handleGoogleAuth" class="inline-flex items-center justify-center py-3 px-6 bg-unimar-blue hover:bg-unimar-blue/95 text-white font-bold rounded-xl text-sm uppercase tracking-wider transition shadow-sm hover:shadow-md focus:outline-none h-11">
                             <svg aria-hidden="true" class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
                             </svg>
@@ -513,6 +514,52 @@
                 </button>
             </div>
         </form>
+
+        @if(auth()->user()->hasRole('Estudiante'))
+            <!-- Info Modal for Students -->
+            <div x-show="showUploadTipModal" 
+                 class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm" 
+                 x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="opacity-0"
+                 x-transition:enter-end="opacity-100"
+                 x-transition:leave="transition ease-in duration-200"
+                 x-transition:leave-start="opacity-100"
+                 x-transition:leave-end="opacity-0"
+                 style="display: none;">
+                <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100 transform transition-all flex flex-col items-center text-center space-y-4"
+                     @click.outside="showUploadTipModal = false"
+                     x-transition:enter="transition ease-out duration-300"
+                     x-transition:enter-start="opacity-0 scale-95"
+                     x-transition:enter-end="opacity-100 scale-100"
+                     x-transition:leave="transition ease-in duration-200"
+                     x-transition:leave-start="opacity-100 scale-100"
+                     x-transition:leave-end="opacity-0 scale-95">
+                    
+                    <!-- Google/Material Info Icon -->
+                    <div class="w-14 h-14 rounded-full bg-blue-50 text-[#0d4d98] flex items-center justify-center border border-blue-100/50 shadow-sm">
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+
+                    <div class="space-y-3">
+                        <h3 class="text-lg font-bold text-slate-800">Información de Registro</h3>
+                        <p class="text-sm text-slate-550 leading-relaxed font-medium">
+                            Al cargar tu archivo, la Inteligencia Artificial del sistema intentará extraer automáticamente el título, resumen y tutor del documento.
+                        </p>
+                        <p class="text-sm text-slate-650 leading-relaxed font-medium">
+                            <strong>No te preocupes si el resumen, palabras clave o algún otro campo no se extraen completos inmediatamente</strong>. Podrás editarlos, corregirlos y agregar cualquier detalle faltante más adelante desde tu panel de control antes de enviar tu trabajo a revisión formal.
+                        </p>
+                    </div>
+
+                    <button type="button" 
+                            @click="showUploadTipModal = false" 
+                            class="w-full py-2.5 bg-[#0d4d98] hover:bg-[#09356b] text-white font-bold rounded-xl text-sm uppercase tracking-wider transition shadow-sm hover:shadow-md h-11 flex items-center justify-center">
+                        Entendido, continuar
+                    </button>
+                </div>
+            </div>
+        @endif
 
     </div>
 </x-dashboard-layout>

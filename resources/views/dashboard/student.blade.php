@@ -2,6 +2,7 @@
     $myProductions = $data['myProductions'] ?? collect();
     $suggestedProductions = $data['suggestedProductions'] ?? collect();
     $activeProduction = $data['activeProduction'] ?? null;
+    $rejectedProduction = $data['rejectedProduction'] ?? null;
     $progressData = $data['progressData'] ?? [];
     $progressPercentage = $progressData['progress_percentage'] ?? 0;
     $milestones = $progressData['milestones'] ?? collect();
@@ -12,6 +13,55 @@
 @endphp
 
 <div class="space-y-4">
+    <!-- Rejected Production / Appeal Alert -->
+    @if ($rejectedProduction)
+        @php
+            $lastRevision = $rejectedProduction->revisions()->where('estado_nuevo', 'rejected')->latest()->first();
+            $rejectionReason = $lastRevision ? $lastRevision->comment : 'No se especificó un motivo.';
+            $canAppeal = $rejectedProduction->appeals_count < 1;
+        @endphp
+        <div class="bg-gradient-to-r from-rose-500/15 via-pink-500/10 to-transparent border border-rose-200 rounded-2xl p-5 shadow-sm">
+            <div class="flex items-start space-x-3 text-rose-800">
+                <svg class="w-6 h-6 text-rose-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <div class="space-y-2 flex-1">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <h3 class="text-base font-extrabold uppercase tracking-wide">Trabajo Científico Rechazado</h3>
+                        <span class="inline-flex px-2 py-0.5 bg-rose-100 text-rose-800 text-xs font-bold rounded-lg uppercase tracking-wider">
+                            {{ $rejectedProduction->productionType->name ?? 'Trabajo' }}
+                        </span>
+                    </div>
+                    <p class="text-sm font-bold text-slate-800 leading-normal">
+                        Título: <span class="font-semibold text-slate-700 italic">"{{ $rejectedProduction->title }}"</span>
+                    </p>
+                    <div class="p-3.5 bg-rose-50/50 border border-rose-100 rounded-xl text-xs text-rose-900 leading-relaxed font-semibold">
+                        <strong class="block text-rose-950 mb-1 font-bold uppercase tracking-wider">Motivo del rechazo:</strong>
+                        {{ $rejectionReason }}
+                    </div>
+                    
+                    <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
+                        <p class="text-xs text-rose-700 font-semibold max-w-xl">
+                            @if ($canAppeal)
+                                De acuerdo con las normativas del Decanato, tienes la posibilidad de apelar esta decisión <strong class="font-bold text-rose-950">una única vez</strong> para retornar tu trabajo al estado de borrador y realizar las correcciones necesarias.
+                            @else
+                                Has agotado tu límite de apelación para este trabajo de investigación. Comunícate con la Coordinación para más información.
+                            @endif
+                        </p>
+                        
+                        @if ($canAppeal)
+                            <form action="{{ route('productions.appeal', $rejectedProduction) }}" method="POST" class="inline" onsubmit="return confirm('¿Seguro que deseas iniciar el recurso de apelación? Esto regresará tu trabajo a estado de borrador para que puedas corregir y reenviar.')">
+                                @csrf
+                                <button type="submit" class="px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow-md hover:shadow-lg transition cursor-pointer">
+                                    Iniciar Apelación
+                                </button>
+                            </form>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
     <!-- Transition to Trabajo I Banner -->
     @if ($data['showTransitionToTrabajoI'] ?? false)
         <div class="bg-gradient-to-r from-emerald-500/15 via-teal-500/10 to-transparent border border-emerald-200 rounded-2xl p-5 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -21,7 +71,7 @@
                     <h3 class="text-base font-extrabold uppercase tracking-wide">¡Seminario Metodológico Aprobado!</h3>
                 </div>
                 <p class="text-xs font-semibold text-emerald-900 leading-normal max-w-2xl">
-                    ¡Felicidades! Tu Seminario ha sido aprobado formalmente por la Coordinación. Ya estás habilitado para cursar e inscribir tu **Trabajo de Investigación I**.
+                    ¡Felicidades! Tu Seminario ha sido aprobado formalmente por la Coordinación. Ya estás habilitado para cursar e inscribir tu <strong class="font-bold text-emerald-950">Trabajo de Investigación I</strong>.
                 </p>
             </div>
             <div class="shrink-0">
@@ -42,7 +92,7 @@
                     <h3 class="text-base font-extrabold uppercase tracking-wide">¡Trabajo de Investigación I Aprobado!</h3>
                 </div>
                 <p class="text-xs font-semibold text-emerald-900 leading-normal max-w-2xl">
-                    ¡Felicidades! Tu Trabajo I ha sido aprobado formalmente por la Coordinación. Ya estás habilitado para cursar e inscribir tu **Trabajo de Investigación II**.
+                    ¡Felicidades! Tu Trabajo I ha sido aprobado formalmente por la Coordinación. Ya estás habilitado para cursar e inscribir tu <strong class="font-bold text-emerald-950">Trabajo de Investigación II</strong>.
                 </p>
             </div>
             <div class="shrink-0">
@@ -86,11 +136,11 @@
                             </div>
                         </div>
                         <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-end space-x-2">
-                            <form action="{{ route('claims.store') }}" method="POST" onsubmit="return confirm('¿Reclamar autoría como estudiante de este trabajo?')">
+                            <form id="claim-form-{{ $prod->id }}" action="{{ route('claims.store') }}" method="POST">
                                 @csrf
                                 <input type="hidden" name="production_id" value="{{ $prod->id }}">
                                 <input type="hidden" name="role" value="author">
-                                <button type="submit" class="px-4 py-2.5 bg-[#0d4d98] hover:bg-[#0b3d78] text-white rounded-lg text-sm font-bold transition">
+                                <button type="button" onclick="confirmClaim('{{ $prod->id }}', 'estudiante')" class="px-4 py-2.5 bg-[#0d4d98] hover:bg-[#0b3d78] text-white rounded-lg text-sm font-bold transition">
                                     Reclamar Autoría
                                 </button>
                             </form>
@@ -104,7 +154,7 @@
     <!-- Active Production Details -->
     @if ($activeProduction)
         <!-- Title and General Info -->
-        <div class="bg-white border border-slate-100 rounded-2xl p-4 md:p-5 shadow-[0_10px_30px_rgba(13,77,152,0.03)] flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div id="active-production-card" class="bg-white border border-slate-100 rounded-2xl p-4 md:p-5 shadow-[0_10px_30px_rgba(13,77,152,0.03)] flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div class="space-y-2">
                 <div class="flex flex-wrap gap-2 items-center">
                     <span class="px-2.5 py-0.5 text-sm font-bold rounded-full bg-[#0d4d98]/10 text-[#0d4d98] uppercase tracking-wider">
@@ -115,8 +165,10 @@
                         {{ $activeProduction->academicProgram->name ?? '' }}
                     </span>
                 </div>
-                <h3 class="text-xl font-extrabold text-slate-800 leading-tight">
-                    {{ $activeProduction->title }}
+                <h3 class="text-xl font-extrabold text-slate-800 leading-tight hover:text-unimar-blue transition duration-150">
+                    <a href="{{ route('productions.show', $activeProduction) }}">
+                        {{ $activeProduction->title }}
+                    </a>
                 </h3>
                 <p class="text-sm text-slate-600">
                     Tutor asignado: <strong class="text-slate-700">{{ $activeProduction->tutor ?? 'No especificado' }}</strong>
@@ -126,28 +178,8 @@
             <!-- Workflow State Badge -->
             <div class="shrink-0 flex flex-col items-start md:items-end space-y-1.5">
                 <p class="text-sm text-slate-550 font-bold uppercase tracking-wider">Estado actual</p>
-                @php
-                    $statusColors = [
-                        'draft' => 'bg-slate-100 text-slate-800 border-slate-200',
-                        'under_review' => 'bg-amber-50 text-amber-800 border-amber-200/60',
-                        'needs_corrections' => 'bg-orange-50 text-orange-800 border-orange-200/60',
-                        'approved' => 'bg-emerald-50 text-emerald-800 border-emerald-200/60',
-                        'published' => 'bg-blue-50 text-blue-800 border-blue-200/60',
-                        'rejected' => 'bg-rose-50 text-rose-800 border-rose-200/60',
-                    ];
-                    $statusLabels = [
-                        'draft' => 'Borrador',
-                        'under_review' => 'En Revisión',
-                        'needs_corrections' => 'Requiere Correcciones',
-                        'approved' => 'Aprobado',
-                        'published' => 'Publicado',
-                        'rejected' => 'Rechazado',
-                    ];
-                    $colorClass = $statusColors[$activeProduction->workflow_state] ?? 'bg-slate-100 text-slate-800';
-                    $label = $statusLabels[$activeProduction->workflow_state] ?? $activeProduction->workflow_state;
-                @endphp
-                <span class="px-3.5 py-1.5 inline-flex text-sm leading-5 font-extrabold rounded-full border {{ $colorClass }}">
-                    {{ $label }}
+                <span class="px-3.5 py-1.5 inline-flex text-sm leading-5 font-extrabold rounded-full border {{ $activeProduction->getStatusColorClass() }}">
+                    {{ $activeProduction->getStatusLabel() }}
                 </span>
             </div>
         </div>
@@ -162,15 +194,15 @@
 
                 @php
                     $states = [
-                        ['state' => 'draft', 'label' => 'Borrador', 'step' => 1],
-                        ['state' => 'under_review', 'label' => 'En Revisión', 'step' => 2],
-                        ['state' => 'needs_corrections', 'label' => 'Correcciones', 'step' => 3],
-                        ['state' => 'approved', 'label' => 'Aprobado', 'step' => 4],
-                        ['state' => 'published', 'label' => 'Publicado', 'step' => 5]
+                        ['states' => ['draft'], 'label' => 'Borrador', 'step' => 1],
+                        ['states' => ['under_review', 'under_tutor_review', 'under_jury_review', 'under_coordinator_review', 'rejection_proposed'], 'label' => 'En Revisión', 'step' => 2],
+                        ['states' => ['needs_corrections'], 'label' => 'Correcciones', 'step' => 3],
+                        ['states' => ['approved'], 'label' => 'Aprobado', 'step' => 4],
+                        ['states' => ['published'], 'label' => 'Publicado', 'step' => 5]
                     ];
                     $currentStateIndex = 0;
                     foreach ($states as $index => $s) {
-                        if ($activeProduction->workflow_state === $s['state']) {
+                        if (in_array($activeProduction->workflow_state, $s['states'])) {
                             $currentStateIndex = $index;
                         }
                     }
@@ -181,7 +213,7 @@
 
                 @foreach ($states as $index => $s)
                     @php
-                        $isCurrent = $activeProduction->workflow_state === $s['state'];
+                        $isCurrent = in_array($activeProduction->workflow_state, $s['states']);
                         $isCompleted = $currentStateIndex > $index;
                         
                         // Icon & circle color classes
@@ -216,7 +248,7 @@
             
             <!-- Left Column: Buzón de Observaciones (2/3 width) -->
             <div class="lg:col-span-2 space-y-6">
-                <div class="bg-white border border-slate-100 rounded-2xl p-4 md:p-5 shadow-[0_10px_30px_rgba(13,77,152,0.03)]">
+                <div id="student-observations-inbox" class="bg-white border border-slate-100 rounded-2xl p-4 md:p-5 shadow-[0_10px_30px_rgba(13,77,152,0.03)]">
                     <div class="flex items-center justify-between mb-6">
                         <div>
                             <h4 class="text-base font-extrabold text-slate-800">Buzón de Observaciones</h4>
@@ -330,7 +362,7 @@
             <!-- Right Column: Estado de Entrega y Carga de PDF (1/3 width) -->
             <div class="space-y-4">
                 <!-- Correction Progress Chart -->
-                <div class="bg-white border border-slate-100 rounded-2xl p-4 md:p-5 shadow-[0_10px_30px_rgba(13,77,152,0.03)] text-center space-y-4">
+                <div id="student-progress-card" class="bg-white border border-slate-100 rounded-2xl p-4 md:p-5 shadow-[0_10px_30px_rgba(13,77,152,0.03)] text-center space-y-4">
                     <h4 class="text-base font-bold text-slate-600 uppercase tracking-wider">Avance del Proyecto</h4>
                     
                     <!-- Circular progress bar via inline CSS/SVG -->
@@ -382,12 +414,24 @@
                     </div>
 
                     @if ($activeProduction->workflow_state === 'needs_corrections' || $activeProduction->workflow_state === 'draft')
-                        <a href="{{ route('productions.edit', $activeProduction) }}" class="w-full flex items-center justify-center space-x-2 px-4 py-2.5 bg-unimar-blue hover:bg-[#0b3d78] text-white rounded-xl text-sm font-bold uppercase tracking-wider transition shadow-sm hover:shadow-md h-11">
-                            <svg aria-hidden="true" class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                            </svg>
-                            <span>Abrir Editor SKMS</span>
-                        </a>
+                        <div class="space-y-2">
+                            <a href="{{ route('productions.edit', $activeProduction) }}" class="w-full flex items-center justify-center space-x-2 px-4 py-2.5 bg-unimar-blue hover:bg-[#0b3d78] text-white rounded-xl text-sm font-bold uppercase tracking-wider transition shadow-sm hover:shadow-md h-11">
+                                <svg aria-hidden="true" class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                </svg>
+                                <span>Abrir Editor SKMS</span>
+                            </a>
+
+                            @if ($activeProduction->workflow_state === 'draft')
+                                <form action="{{ route('productions.transition', $activeProduction) }}" method="POST" class="w-full">
+                                    @csrf
+                                    <input type="hidden" name="target_state" value="under_tutor_review">
+                                    <button type="submit" class="w-full flex items-center justify-center px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-bold uppercase tracking-wider transition shadow-sm hover:shadow-md h-11 cursor-pointer">
+                                        <span>Enviar a Revisión del Tutor</span>
+                                    </button>
+                                </form>
+                            @endif
+                        </div>
                     @else
                         <button disabled class="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-slate-100 text-slate-400 rounded-xl text-sm font-bold border border-slate-200 cursor-not-allowed">
                             <svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -416,12 +460,24 @@
                     </div>
 
                     @if ($activeProduction->workflow_state === 'needs_corrections' || $activeProduction->workflow_state === 'draft')
-                        <button @click="open = true" class="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-[#0d4d98] hover:bg-[#0b3d78] text-white rounded-xl text-sm font-bold shadow-md hover:shadow-lg transition-all duration-200">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
-                            </svg>
-                            <span>Subir Nueva Versión (PDF)</span>
-                        </button>
+                        <div class="space-y-2">
+                            <button @click="open = true" class="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-[#0d4d98] hover:bg-[#0b3d78] text-white rounded-xl text-sm font-bold shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+                                </svg>
+                                <span>Subir Nueva Versión (PDF)</span>
+                            </button>
+
+                            @if ($activeProduction->workflow_state === 'draft')
+                                <form action="{{ route('productions.transition', $activeProduction) }}" method="POST" class="w-full">
+                                    @csrf
+                                    <input type="hidden" name="target_state" value="under_tutor_review">
+                                    <button type="submit" class="w-full flex items-center justify-center px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-bold uppercase tracking-wider transition shadow-sm hover:shadow-md h-11 cursor-pointer">
+                                        <span>Enviar a Revisión del Tutor</span>
+                                    </button>
+                                </form>
+                            @endif
+                        </div>
                     @else
                         <button disabled class="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-slate-100 text-slate-400 rounded-xl text-sm font-bold border border-slate-200 cursor-not-allowed">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -569,3 +625,35 @@
         </div>
     @endif
 </div>
+
+<script>
+function confirmClaim(prodId, roleText) {
+    const form = document.getElementById('claim-form-' + prodId);
+    if (!form) return;
+
+    if (typeof Swal !== 'undefined') {
+        Swal.fire({
+            title: '¿Confirmar reclamo?',
+            text: `¿Estás seguro de que deseas reclamar la autoría de este trabajo como ${roleText}?`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#0d4d98',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Sí, reclamar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const btn = form.querySelector('button[type="button"]');
+                if (btn) btn.disabled = true;
+                form.submit();
+            }
+        });
+    } else {
+        if (confirm(`¿Estás seguro de que deseas reclamar la autoría de este trabajo como ${roleText}?`)) {
+            const btn = form.querySelector('button[type="button"]');
+            if (btn) btn.disabled = true;
+            form.submit();
+        }
+    }
+}
+</script>

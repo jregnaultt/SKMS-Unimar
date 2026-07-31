@@ -76,8 +76,8 @@
                     </svg>
                 </div>
                 <h4 class="text-base font-bold text-slate-800">¿Por qué conectar tu cuenta?</h4>
-                <p class="text-sm text-slate-500 leading-relaxed max-w-sm">
-                    Al conectar tu cuenta de Google, agendaremos tus entregas y defensas en tu **Google Calendar** e invitaremos a tus tutores. También activaremos la **sincronización automática de comentarios y observaciones** directamente desde tus documentos vinculados de **Google Docs**.
+                <p class="text-base text-slate-800 leading-relaxed max-w-sm">
+                    Al conectar tu cuenta de Google, agendaremos tus entregas y defensas en tu <strong class="font-bold text-unimar-blue">Google Calendar</strong> e invitaremos a tus tutores. También activaremos la <strong class="font-bold text-unimar-blue">sincronización automática de comentarios y observaciones</strong> directamente desde tus documentos vinculados de <strong class="font-bold text-unimar-blue">Google Docs</strong>.
                 </p>
                 <div class="w-full bg-slate-50 p-3 rounded-xl border border-slate-100 flex items-center space-x-2 text-left">
                     <span class="text-emerald-500 shrink-0">
@@ -92,7 +92,7 @@
             <!-- Contenido del Paso 2: Consentimiento Google Mockup -->
             <div x-show="currentStep === 2" class="p-6 flex-1 flex flex-col items-center text-center space-y-4">
                 <h4 class="text-base font-bold text-slate-800">Paso 2: Conceder los permisos de Google</h4>
-                <p class="text-sm text-slate-500 leading-relaxed max-w-sm">
+                <p class="text-base text-slate-800 leading-relaxed max-w-sm">
                     Durante la vinculación de la cuenta, Google te solicitará permiso para gestionar tu calendario y leer tus documentos.
                 </p>
                 
@@ -156,7 +156,7 @@
                     </svg>
                 </div>
                 <h4 class="text-base font-bold text-slate-800">¡Todo listo para conectar!</h4>
-                <p class="text-sm text-slate-500 leading-relaxed max-w-sm">
+                <p class="text-base text-slate-800 leading-relaxed max-w-sm">
                     Al presionar el botón de abajo, serás redirigido de forma segura a Google para iniciar la sincronización. ¡No te tomará más de un minuto!
                 </p>
                 <div class="w-full pt-2">

@@ -22,7 +22,7 @@
     <!-- Contenedor Unificado con Pestañas Alpine.js -->
     <div x-data="{ tab: 'personal' }" class="bg-white border border-slate-200/80 shadow-sm rounded-2xl overflow-hidden transition-all duration-300">
         <!-- Barra de Navegación de Pestañas -->
-        <div class="flex flex-wrap border-b border-slate-200 bg-slate-50/50">
+        <div id="profile-tabs-navigator" class="flex flex-wrap border-b border-slate-200 bg-slate-50/50">
             <!-- Pestaña: Datos Personales -->
             <button @click="tab = 'personal'"
                     :class="tab === 'personal' ? 'border-b-2 border-unimar-blue text-unimar-blue font-bold bg-white' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100/50 border-b-2 border-transparent'"
@@ -56,7 +56,7 @@
         </div>
 
         <!-- Cuerpo del Contenedor de Pestañas -->
-        <div class="p-8 sm:p-10">
+        <div id="profile-tab-content" class="p-8 sm:p-10">
             <!-- Sección: Datos Personales (Editable) -->
             <div x-show="tab === 'personal'" x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0 transform translate-y-1" x-transition:enter-end="opacity-100 transform translate-y-0" class="max-w-5xl mx-auto">
                 @include('profile.partials.update-profile-information-form')
@@ -66,10 +66,6 @@
             <div x-show="tab === 'security'" x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0 transform translate-y-1" x-transition:enter-end="opacity-100 transform translate-y-0" class="max-w-5xl mx-auto space-y-10" style="display: none;">
                 <div>
                     @include('profile.partials.update-password-form')
-                </div>
-                <hr class="border-slate-200" />
-                <div class="bg-rose-50/50 border border-rose-100/80 rounded-2xl p-4 md:p-5 sm:p-8">
-                    @include('profile.partials.delete-user-form')
                 </div>
             </div>
 

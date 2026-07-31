@@ -107,12 +107,29 @@
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>Universidad de Margarita</h1>
-        <h2>Decanato de Ingeniería y Afines</h2>
-        <h1>Reporte de Productividad Científica</h1>
-        <p>Sistema de Gestión del Conocimiento Científico (SKMS-Unimar)</p>
-    </div>
+    @php
+        $logoPath = public_path('images/logo-1.png');
+        $logoBase64 = '';
+        if (file_exists($logoPath) && function_exists('imagecreatefrompng')) {
+            $logoBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath));
+        }
+    @endphp
+
+    <table style="width: 100%; border-bottom: 2px solid #0d4d98; padding-bottom: 10px; margin-bottom: 20px;">
+        <tr>
+            <td style="width: 80px; vertical-align: middle;">
+                @if($logoBase64)
+                    <img src="{{ $logoBase64 }}" alt="Logo UNIMAR" style="height: 60px; display: block;">
+                @endif
+            </td>
+            <td style="padding-left: 15px; vertical-align: middle; text-align: left;">
+                <h1 style="color: #0d4d98; font-size: 15px; margin: 0 0 3px 0; text-transform: uppercase; font-weight: bold; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">Universidad de Margarita</h1>
+                <h2 style="color: #4a5568; font-size: 11px; margin: 0 0 3px 0; font-weight: bold; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">Decanato de Ingeniería y Afines</h2>
+                <h3 style="color: #1a202c; font-size: 13px; margin: 0; font-weight: bold; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">Reporte de Productividad Científica</h3>
+                <p style="margin: 3px 0 0 0; color: #718096; font-size: 9px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">Sistema de Gestión del Conocimiento Científico (SKMS-Unimar)</p>
+            </td>
+        </tr>
+    </table>
 
     <table class="meta-info">
         <tr>
@@ -159,7 +176,7 @@
                             @elseif($p->workflow_state === 'under_review') badge-review
                             @else badge-draft
                             @endif">
-                            {{ $p->workflow_state }}
+                            {{ $p->getStatusLabel() }}
                         </span>
                     </td>
                 </tr>

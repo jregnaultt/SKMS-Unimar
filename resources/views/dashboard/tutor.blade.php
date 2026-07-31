@@ -38,11 +38,11 @@
                             </div>
                         </div>
                         <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-end space-x-2">
-                            <form action="{{ route('claims.store') }}" method="POST" onsubmit="return confirm('¿Reclamar rol de tutor de este trabajo?')">
+                            <form id="claim-form-{{ $prod->id }}" action="{{ route('claims.store') }}" method="POST">
                                 @csrf
                                 <input type="hidden" name="production_id" value="{{ $prod->id }}">
                                 <input type="hidden" name="role" value="tutor">
-                                <button type="submit" class="px-4 py-2.5 bg-[#0d4d98] hover:bg-[#0b3d78] text-white rounded-lg text-sm font-bold transition">
+                                <button type="button" onclick="confirmClaim('{{ $prod->id }}', 'tutor')" class="px-4 py-2.5 bg-[#0d4d98] hover:bg-[#0b3d78] text-white rounded-lg text-sm font-bold transition">
                                     Reclamar Tutoría
                                 </button>
                             </form>
@@ -101,7 +101,7 @@
         
         <!-- Left: Bandeja de Evaluaciones Activas (2/3 width) -->
         <div class="lg:col-span-2 space-y-6">
-            <div class="bg-white border border-slate-100 rounded-2xl p-5 md:p-6 shadow-[0_10px_30px_rgba(13,77,152,0.03)]">
+            <div @if($roleLabel === 'Tutor') id="tutor-assigned-table" @else id="juror-assigned-table" @endif class="bg-white border border-slate-100 rounded-2xl p-5 md:p-6 shadow-[0_10px_30px_rgba(13,77,152,0.03)]">
                 <div class="mb-5">
                     <h3 class="text-lg font-extrabold text-slate-800">
                         {{ $roleLabel === 'Tutor' ? 'Bandeja de Tutorías Activas' : 'Bandeja de Evaluaciones (Jurado)' }}
@@ -146,23 +146,6 @@
                                             }
                                         }
                                         
-                                        $stateColors = [
-                                            'draft' => 'bg-slate-50 text-slate-700 border-slate-200',
-                                            'under_review' => 'bg-amber-50 text-amber-800 border-amber-200/60',
-                                            'needs_corrections' => 'bg-orange-50 text-orange-850 border-orange-200/60',
-                                            'approved' => 'bg-emerald-50 text-emerald-800 border-emerald-200/60',
-                                            'published' => 'bg-blue-50 text-blue-800 border-blue-200/60',
-                                            'rejected' => 'bg-rose-50 text-rose-800 border-rose-200/60',
-                                        ];
-                                        $stateLabels = [
-                                            'draft' => 'Borrador',
-                                            'under_review' => 'En Revisión',
-                                            'needs_corrections' => 'Requiere Correcciones',
-                                            'approved' => 'Aprobado',
-                                            'published' => 'Publicado',
-                                            'rejected' => 'Rechazado',
-                                        ];
-
                                         // Initials for avatar
                                         $initials = '';
                                         $words = explode(' ', $studentName);
@@ -198,17 +181,13 @@
                                             </div>
                                         </td>
                                         <td class="px-4 py-4 whitespace-nowrap">
-                                            <span class="inline-flex items-center px-2.5 py-1 text-xs font-bold rounded-full border {{ $stateColors[$prod->workflow_state] ?? 'bg-slate-50 text-slate-700 border-slate-200' }}">
-                                                <span class="w-1.5 h-1.5 rounded-full mr-1.5 {{ 
-                                                    $prod->workflow_state === 'approved' || $prod->workflow_state === 'published' ? 'bg-emerald-500' : (
-                                                    $prod->workflow_state === 'under_review' || $prod->workflow_state === 'needs_corrections' ? 'bg-amber-500' : (
-                                                    $prod->workflow_state === 'rejected' ? 'bg-rose-500' : 'bg-slate-400'))
-                                                }}"></span>
-                                                {{ $stateLabels[$prod->workflow_state] ?? $prod->workflow_state }}
-                                            </span>
+                                             <span class="inline-flex items-center px-2.5 py-1 text-xs font-bold rounded-full border {{ $prod->getStatusColorClass() }}">
+                                                 <span class="w-1.5 h-1.5 rounded-full mr-1.5 {{ $prod->getStatusBulletColorClass() }}"></span>
+                                                 {{ $prod->getStatusLabel() }}
+                                             </span>
                                         </td>
                                         <td class="px-4 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            <a href="{{ $prod->show_url }}" class="inline-flex items-center space-x-1.5 px-3.5 py-2 bg-[#0d4d98] hover:bg-[#0b3d78] text-white rounded-xl text-sm font-bold transition shadow-sm hover:shadow hover:-translate-y-0.5 duration-150">
+                                            <a href="{{ $prod->show_url }}" class="btn-evaluate-production inline-flex items-center space-x-1.5 px-3.5 py-2 bg-[#0d4d98] hover:bg-[#0b3d78] text-white rounded-xl text-sm font-bold transition shadow-sm hover:shadow hover:-translate-y-0.5 duration-150">
                                                 <svg aria-hidden="true" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
@@ -443,3 +422,35 @@
         </div>
     </div>
 </div>
+
+<script>
+function confirmClaim(prodId, roleText) {
+    const form = document.getElementById('claim-form-' + prodId);
+    if (!form) return;
+
+    if (typeof Swal !== 'undefined') {
+        Swal.fire({
+            title: '¿Confirmar reclamo?',
+            text: `¿Estás seguro de que deseas reclamar el rol de ${roleText} para este trabajo?`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#0d4d98',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Sí, reclamar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const btn = form.querySelector('button[type="button"]');
+                if (btn) btn.disabled = true;
+                form.submit();
+            }
+        });
+    } else {
+        if (confirm(`¿Estás seguro de que deseas reclamar el rol de ${roleText} para este trabajo?`)) {
+            const btn = form.querySelector('button[type="button"]');
+            if (btn) btn.disabled = true;
+            form.submit();
+        }
+    }
+}
+</script>

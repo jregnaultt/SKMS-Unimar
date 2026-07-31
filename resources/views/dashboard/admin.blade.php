@@ -4,7 +4,7 @@
 
 <div class="space-y-4">
     <!-- Summary KPI Cards for Admin -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div id="admin-dashboard-kpis" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <!-- Active Users -->
         <div class="bg-white border border-slate-100 rounded-2xl p-4 shadow-[0_10px_30px_rgba(13,77,152,0.03)] flex items-center space-x-4">
             <div class="p-3 bg-blue-50 text-[#0d4d98] rounded-xl">
@@ -50,7 +50,7 @@
         
         <!-- Left: Audit Logs (2/3 width) -->
         <div class="lg:col-span-2 space-y-6">
-             <div class="bg-white border border-slate-100 rounded-2xl p-4 md:p-5 shadow-[0_10px_30px_rgba(13,77,152,0.03)]">
+             <div id="admin-dashboard-audit-card" class="bg-white border border-slate-100 rounded-2xl p-4 md:p-5 shadow-[0_10px_30px_rgba(13,77,152,0.03)]">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                     <div>
                         <h3 class="text-base font-extrabold text-slate-800">Logs de Auditoría en Tiempo Real</h3>
@@ -83,8 +83,8 @@
                                             {{ $log->user->name ?? 'Sistema/Anónimo' }}
                                         </td>
                                         <td class="px-4 py-3 whitespace-nowrap">
-                                            <span class="px-2 py-0.5 rounded font-bold uppercase text-sm bg-slate-100 text-slate-700">
-                                                {{ $log->action }}
+                                            <span class="px-2 py-0.5 rounded font-bold uppercase text-xs bg-slate-100 text-slate-700">
+                                                {{ $log->getActionLabel() }}
                                             </span>
                                         </td>
                                         <td class="px-4 py-3 whitespace-nowrap font-mono text-sm">
@@ -108,7 +108,7 @@
         <!-- Right: Mantenimiento y Configuración (1/3 width) -->
         <div class="space-y-4">
             <!-- Consola de Mantenimiento -->
-            <div class="bg-white border border-slate-100 rounded-2xl p-4 shadow-[0_10px_30px_rgba(13,77,152,0.03)] space-y-4">
+            <div id="admin-dashboard-maintenance-card" class="bg-white border border-slate-100 rounded-2xl p-4 shadow-[0_10px_30px_rgba(13,77,152,0.03)] space-y-4">
                 <h4 class="text-base font-bold text-slate-600 uppercase tracking-wider">Mantenimiento del Sistema</h4>
                 
                 <p class="text-sm text-slate-600 font-semibold leading-normal">

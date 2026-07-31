@@ -18,8 +18,10 @@
 
     <!-- Scripts and Styles -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
-<body x-data="{ sidebarOpen: false }" class="dashboard-system-layout font-sans antialiased bg-unimar-matte text-unimar-dark min-h-screen flex relative overflow-x-hidden">
+<body x-data="skmsTours" class="dashboard-system-layout font-sans antialiased bg-unimar-matte text-unimar-dark min-h-screen flex relative overflow-x-hidden">
 
     <!-- Sidebar Fijo Izquierdo -->
     <x-sidebar :roles="$roles" :activeRole="$activeRole" />
@@ -132,7 +134,7 @@
                             console.error('Error marking all notifications as read:', e);
                         }
                     }
-                }" x-init="fetchNotifications(); setInterval(() => fetchNotifications(), 30000)" @click.outside="open = false" class="relative">
+                 }" x-init="fetchNotifications(); setInterval(() => fetchNotifications(), 30000)" @click.outside="open = false" class="relative">
                     <button @click="open = !open" aria-label="Abrir menú de notificaciones" class="relative p-2 bg-white hover:bg-slate-50 text-slate-600 hover:text-slate-800 rounded-xl border border-slate-200/60 transition-all focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-[#0d4d98]">
                         <svg aria-hidden="true" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
@@ -141,22 +143,22 @@
                     </button>
 
                     <!-- Dropdown de Notificaciones -->
-                    <div x-show="open" x-transition:enter="transition ease-out duration-100" x-transition:enter-start="transform opacity-0 scale-95" x-transition:enter-end="transform opacity-100 scale-100" x-transition:leave="transition ease-in duration-75" x-transition:leave-start="transform opacity-100 scale-100" x-transition:leave-end="transform opacity-0 scale-95" class="absolute right-0 mt-2.5 w-80 bg-white rounded-xl border border-slate-200 shadow-xl overflow-hidden z-50" style="display: none;">
+                    <div x-show="open" x-transition:enter="transition ease-out duration-100" x-transition:enter-start="transform opacity-0 scale-95" x-transition:enter-end="transform opacity-100 scale-100" x-transition:leave="transition ease-in duration-75" x-transition:leave-start="transform opacity-100 scale-100" x-transition:leave-end="transform opacity-0 scale-95" class="absolute right-0 mt-2.5 w-80 sm:w-[400px] md:w-[480px] bg-white rounded-2xl border border-slate-200 shadow-2xl overflow-hidden z-50" style="display: none;">
                         <div class="p-4 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
                             <span class="text-sm font-bold text-slate-800">Notificaciones</span>
                             <button @click="markAllRead()" x-show="unreadCount > 0" class="text-xs text-[#0d4d98] hover:underline font-bold">Marcar todo como leído</button>
                         </div>
                         
-                        <div class="max-h-64 overflow-y-auto divide-y divide-slate-100">
+                        <div class="max-h-96 overflow-y-auto divide-y divide-slate-100">
                             <template x-for="n in notifications" :key="n.id">
-                                <div class="p-3.5 hover:bg-slate-50 transition duration-150 flex flex-col space-y-1 cursor-pointer" @click="markRead(n.id)">
+                                <div class="p-4 transition duration-150 flex flex-col space-y-1.5 cursor-pointer" :class="n.read_at ? 'bg-white hover:bg-slate-50/80' : 'bg-[#0d4d98]/5 hover:bg-[#0d4d98]/10'" @click="markRead(n.id)">
                                     <div class="flex items-center justify-between">
                                         <!-- Tipo de alerta visual -->
-                                        <span class="w-2 h-2 rounded-full" :class="n.read_at ? 'bg-slate-300' : 'bg-blue-500'"></span>
-                                        <span class="text-[9px] text-slate-400 font-semibold" x-text="new Date(n.created_at).toLocaleDateString('es-ES', {month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'})"></span>
+                                        <span class="w-2.5 h-2.5 rounded-full" :class="n.read_at ? 'bg-slate-300' : 'bg-blue-500'"></span>
+                                        <span class="text-[11px] text-slate-500 font-bold uppercase tracking-wider" x-text="new Date(n.created_at).toLocaleDateString('es-ES', {month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'})"></span>
                                     </div>
-                                    <h4 class="text-sm font-bold text-slate-800" x-text="n.data.title || 'Actualización de obra'"></h4>
-                                    <p class="text-[11px] text-slate-550 leading-tight" x-text="n.data.message || 'Hay una nueva actividad en tu producción científica.'"></p>
+                                    <h4 class="text-base font-extrabold text-slate-900 leading-snug" x-text="n.data.title || 'Actualización de obra'"></h4>
+                                    <p class="text-xs md:text-sm text-slate-600 leading-relaxed" x-text="n.data.message || 'Hay una nueva actividad en tu producción científica.'"></p>
                                 </div>
                             </template>
                             <div x-show="notifications.length === 0" class="p-6 text-center text-sm text-slate-400">
@@ -202,6 +204,8 @@
                 <p>&copy; {{ date('Y') }} Decanato de Ingeniería y Afines - Universidad de Margarita. Todos los derechos reservados.</p>
                 <div class="flex space-x-4">
                     <a href="https://unimar.edu.ve" target="_blank" class="hover:text-slate-600 transition">Portal UNIMAR</a>
+                    <span>•</span>
+                    <a href="{{ asset('manual-usuario.html') }}" target="_blank" class="hover:text-slate-600 transition">Manual de Usuario</a>
                     <span>•</span>
                     <span class="font-semibold text-[#0d4d98]">SKMS v2.0</span>
                 </div>

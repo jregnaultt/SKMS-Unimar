@@ -27,7 +27,7 @@
             <div x-data="{ activeTab: 'tutores', search: '' }" class="space-y-5">
                 <!-- Selectores de Pestañas e Input de Búsqueda -->
                 <div class="flex flex-col md:flex-row gap-4 justify-between items-center bg-white border border-slate-100 rounded-2xl p-4 shadow-[0_10px_30px_rgba(13,77,152,0.02)]">
-                    <div class="flex space-x-2 w-full md:w-auto">
+                    <div id="directivo-tabs-switcher" class="flex space-x-2 w-full md:w-auto">
                         <button @click="activeTab = 'tutores'" 
                                 :class="activeTab === 'tutores' ? 'bg-[#0d4d98] text-white' : 'bg-slate-50 text-slate-600 hover:bg-slate-100'"
                                 class="flex-1 md:flex-none px-5 py-2.5 rounded-xl text-xs font-bold transition duration-200 cursor-pointer">
@@ -47,7 +47,8 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                             </svg>
                         </span>
-                        <input x-model="search" 
+                        <input id="tutor-search-input"
+                               x-model="search" 
                                type="text" 
                                placeholder="Buscar profesor por nombre..." 
                                class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#0d4d98]/20 focus:border-[#0d4d98] transition">
@@ -55,7 +56,7 @@
                 </div>
 
                 <!-- Contenedor Pestaña Tutores -->
-                <div x-show="activeTab === 'tutores'" class="space-y-3" x-transition>
+                <div id="tutors-list-container" x-show="activeTab === 'tutores'" class="space-y-3" x-transition>
                     @if($tutors->isEmpty())
                         <div class="text-center py-12 bg-white border border-slate-100 rounded-2xl">
                             <p class="text-xs text-slate-500 font-medium">No hay tutores registrados en el sistema.</p>
@@ -120,14 +121,6 @@
                                                                         break;
                                                                     }
                                                                 }
-                                                                $stateLabels = [
-                                                                    'draft' => 'Borrador',
-                                                                    'under_review' => 'En Revisión',
-                                                                    'needs_corrections' => 'Requiere Correcciones',
-                                                                    'approved' => 'Aprobado',
-                                                                    'published' => 'Publicado',
-                                                                    'rejected' => 'Rechazado',
-                                                                ];
                                                             @endphp
                                                             <tr class="hover:bg-slate-50/30 transition duration-150">
                                                                 <td class="px-4 py-3 text-xs font-bold text-slate-800 max-w-xs truncate" title="{{ $prod->title }}">
@@ -137,10 +130,8 @@
                                                                     {{ $studentName }}
                                                                 </td>
                                                                 <td class="px-4 py-3 whitespace-nowrap">
-                                                                    <span class="px-2 py-0.5 rounded-full text-xs font-bold border 
-                                                                        {{ $prod->workflow_state === 'approved' || $prod->workflow_state === 'published' ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : (
-                                                                        $prod->workflow_state === 'under_review' || $prod->workflow_state === 'needs_corrections' ? 'bg-amber-50 text-amber-800 border-amber-200' : 'bg-slate-50 text-slate-600 border-slate-200') }}">
-                                                                        {{ $stateLabels[$prod->workflow_state] ?? $prod->workflow_state }}
+                                                                    <span class="px-2 py-0.5 rounded-full text-xs font-bold border {{ $prod->getStatusColorClass() }}">
+                                                                        {{ $prod->getStatusLabel() }}
                                                                     </span>
                                                                 </td>
                                                                 <td class="px-4 py-3 text-right whitespace-nowrap">
@@ -227,14 +218,6 @@
                                                                         break;
                                                                     }
                                                                 }
-                                                                $stateLabels = [
-                                                                    'draft' => 'Borrador',
-                                                                    'under_review' => 'En Revisión',
-                                                                    'needs_corrections' => 'Requiere Correcciones',
-                                                                    'approved' => 'Aprobado',
-                                                                    'published' => 'Publicado',
-                                                                    'rejected' => 'Rechazado',
-                                                                ];
                                                             @endphp
                                                             <tr class="hover:bg-slate-50/30 transition duration-150">
                                                                 <td class="px-4 py-3 text-xs font-bold text-slate-800 max-w-xs truncate" title="{{ $prod->title }}">
@@ -244,10 +227,8 @@
                                                                     {{ $studentName }}
                                                                 </td>
                                                                 <td class="px-4 py-3 whitespace-nowrap">
-                                                                    <span class="px-2 py-0.5 rounded-full text-xs font-bold border 
-                                                                        {{ $prod->workflow_state === 'approved' || $prod->workflow_state === 'published' ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : (
-                                                                        $prod->workflow_state === 'under_review' || $prod->workflow_state === 'needs_corrections' ? 'bg-amber-50 text-amber-800 border-amber-200' : 'bg-slate-50 text-slate-600 border-slate-200') }}">
-                                                                        {{ $stateLabels[$prod->workflow_state] ?? $prod->workflow_state }}
+                                                                    <span class="px-2 py-0.5 rounded-full text-xs font-bold border {{ $prod->getStatusColorClass() }}">
+                                                                        {{ $prod->getStatusLabel() }}
                                                                     </span>
                                                                 </td>
                                                                 <td class="px-4 py-3 text-right whitespace-nowrap">
@@ -275,7 +256,7 @@
                 <!-- Contenido Principal: Bandejas (2/3 de ancho) -->
                 <div class="lg:col-span-2 space-y-5">
                     <!-- Selector de Pestañas -->
-                    <div class="flex space-x-2 bg-white border border-slate-100 rounded-2xl p-2 shadow-[0_10px_30px_rgba(13,77,152,0.02)]">
+                    <div id="docente-tabs-switcher" class="flex space-x-2 bg-white border border-slate-100 rounded-2xl p-2 shadow-[0_10px_30px_rgba(13,77,152,0.02)]">
                         <button @click="activeTab = 'tutorias'" 
                                 :class="activeTab === 'tutorias' ? 'bg-[#0d4d98] text-white font-bold shadow-md shadow-[#0d4d98]/10' : 'text-slate-650 hover:bg-slate-50'"
                                 class="flex-1 px-4 py-3 rounded-xl text-xs font-bold transition duration-150 cursor-pointer">
@@ -289,7 +270,7 @@
                     </div>
 
                     <!-- Tabla de Tutorías -->
-                    <div x-show="activeTab === 'tutorias'" class="bg-white border border-slate-100 rounded-2xl p-5 md:p-6 shadow-[0_10px_30px_rgba(13,77,152,0.03)]" x-transition>
+                    <div id="docente-tutorias-container" x-show="activeTab === 'tutorias'" class="bg-white border border-slate-100 rounded-2xl p-5 md:p-6 shadow-[0_10px_30px_rgba(13,77,152,0.03)]" x-transition>
                         <div class="mb-5">
                             <h3 class="text-base font-extrabold text-slate-800">Trabajos bajo Tutoría</h3>
                             <p class="text-[11px] text-slate-400 font-medium">Lista de tesis y proyectos científicos que estás asesorando actualmente</p>
@@ -321,22 +302,6 @@
                                                         break;
                                                     }
                                                 }
-                                                $stateColors = [
-                                                    'draft' => 'bg-slate-50 text-slate-700 border-slate-200',
-                                                    'under_review' => 'bg-amber-50 text-amber-800 border-amber-200/60',
-                                                    'needs_corrections' => 'bg-orange-50 text-orange-850 border-orange-200/60',
-                                                    'approved' => 'bg-emerald-50 text-emerald-800 border-emerald-200/60',
-                                                    'published' => 'bg-blue-50 text-blue-800 border-blue-200/60',
-                                                    'rejected' => 'bg-rose-50 text-rose-800 border-rose-200/60',
-                                                ];
-                                                $stateLabels = [
-                                                    'draft' => 'Borrador',
-                                                    'under_review' => 'En Revisión',
-                                                    'needs_corrections' => 'Requiere Correcciones',
-                                                    'approved' => 'Aprobado',
-                                                    'published' => 'Publicado',
-                                                    'rejected' => 'Rechazado',
-                                                ];
                                             @endphp
                                             <tr class="hover:bg-slate-50/30 transition duration-150">
                                                 <td class="px-4 py-3.5">
@@ -351,8 +316,8 @@
                                                     {{ $studentName }}
                                                 </td>
                                                 <td class="px-4 py-3.5 whitespace-nowrap">
-                                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold border {{ $stateColors[$prod->workflow_state] ?? 'bg-slate-50 text-slate-700' }}">
-                                                        {{ $stateLabels[$prod->workflow_state] ?? $prod->workflow_state }}
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold border {{ $prod->getStatusColorClass() }}">
+                                                        {{ $prod->getStatusLabel() }}
                                                     </span>
                                                 </td>
                                                 <td class="px-4 py-3.5 text-right whitespace-nowrap">
@@ -401,22 +366,6 @@
                                                         break;
                                                     }
                                                 }
-                                                $stateColors = [
-                                                    'draft' => 'bg-slate-50 text-slate-700 border-slate-200',
-                                                    'under_review' => 'bg-amber-50 text-amber-800 border-amber-200/60',
-                                                    'needs_corrections' => 'bg-orange-50 text-orange-850 border-orange-200/60',
-                                                    'approved' => 'bg-emerald-50 text-emerald-800 border-emerald-200/60',
-                                                    'published' => 'bg-blue-50 text-blue-800 border-blue-200/60',
-                                                    'rejected' => 'bg-rose-50 text-rose-800 border-rose-200/60',
-                                                ];
-                                                $stateLabels = [
-                                                    'draft' => 'Borrador',
-                                                    'under_review' => 'En Revisión',
-                                                    'needs_corrections' => 'Requiere Correcciones',
-                                                    'approved' => 'Aprobado',
-                                                    'published' => 'Publicado',
-                                                    'rejected' => 'Rechazado',
-                                                ];
                                             @endphp
                                             <tr class="hover:bg-slate-50/30 transition duration-150">
                                                 <td class="px-4 py-3.5">
@@ -431,8 +380,8 @@
                                                     {{ $studentName }}
                                                 </td>
                                                 <td class="px-4 py-3.5 whitespace-nowrap">
-                                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold border {{ $stateColors[$prod->workflow_state] ?? 'bg-slate-50 text-slate-700' }}">
-                                                        {{ $stateLabels[$prod->workflow_state] ?? $prod->workflow_state }}
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold border {{ $prod->getStatusColorClass() }}">
+                                                        {{ $prod->getStatusLabel() }}
                                                     </span>
                                                 </td>
                                                 <td class="px-4 py-3.5 text-right whitespace-nowrap">

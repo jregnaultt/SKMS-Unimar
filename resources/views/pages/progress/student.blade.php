@@ -26,26 +26,8 @@
             <!-- Estatus de Workflow -->
             <div class="flex items-center shrink-0">
                 @php
-                    $stateColors = [
-                        'draft' => 'bg-slate-100 text-slate-700 border-slate-200',
-                        'under_review' => 'bg-blue-50 text-unimar-blue border-blue-100',
-                        'needs_corrections' => 'bg-amber-50 text-amber-700 border-amber-200',
-                        'approved' => 'bg-emerald-50 text-emerald-700 border-emerald-200',
-                        'published' => 'bg-indigo-50 text-indigo-700 border-indigo-200',
-                        'rejected' => 'bg-rose-50 text-rose-700 border-rose-200',
-                    ];
-
-                    $stateLabels = [
-                        'draft' => 'Borrador',
-                        'under_review' => 'En Revisión',
-                        'needs_corrections' => 'Requiere Correcciones',
-                        'approved' => 'Aprobado',
-                        'published' => 'Publicado',
-                        'rejected' => 'Rechazado',
-                    ];
-
-                    $stateColor = $stateColors[$production->workflow_state] ?? $stateColors['draft'];
-                    $stateLabel = $stateLabels[$production->workflow_state] ?? 'Desconocido';
+                    $stateColor = $production->getStatusColorClass();
+                    $stateLabel = $production->getStatusLabel();
                 @endphp
                 <span class="inline-flex items-center px-4 py-2 rounded-xl text-sm font-bold border {{ $stateColor }} shadow-sm">
                     <span class="w-2 h-2 mr-2 rounded-full bg-current animate-pulse"></span>
@@ -61,7 +43,7 @@
             <div class="lg:col-span-2 space-y-8">
                 
                 <!-- Tarjeta de Porcentaje de Progreso -->
-                <div class="bg-white border border-slate-200/80 shadow-sm rounded-2xl p-4 md:p-5 flex flex-col sm:flex-row items-center gap-4">
+                <div id="milestones-progress-card" class="bg-white border border-slate-200/80 shadow-sm rounded-2xl p-4 md:p-5 flex flex-col sm:flex-row items-center gap-4">
                     <div class="relative w-36 h-36 flex items-center justify-center shrink-0">
                         <!-- SVG Circular Progress Bar -->
                         <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
@@ -103,7 +85,7 @@
                 </div>
 
                 <!-- Tarjeta Hitos Académicos (Stepper Vertical) -->
-                <div class="bg-white border border-slate-200/80 shadow-sm rounded-2xl p-4 md:p-5 sm:p-8 space-y-6" x-data="{ activeMilestone: 0 }">
+                <div id="milestones-timeline-card" class="bg-white border border-slate-200/80 shadow-sm rounded-2xl p-4 md:p-5 sm:p-8 space-y-6" x-data="{ activeMilestone: 0 }">
                     <div>
                         <h3 class="text-lg font-bold text-slate-800">Línea de Tiempo de Hitos Académicos</h3>
                         <p class="text-sm text-slate-500 mt-0.5">Haz clic sobre cualquier hito para expandir los detalles de entrega, comentarios de revisión e historial</p>
@@ -231,7 +213,7 @@
             <div class="space-y-8">
                 
                 <!-- Tarjeta de Versiones del Manuscrito -->
-                <div class="bg-white border border-slate-200/80 shadow-sm rounded-2xl p-4 md:p-5 space-y-4">
+                <div id="milestones-versions-card" class="bg-white border border-slate-200/80 shadow-sm rounded-2xl p-4 md:p-5 space-y-4">
                     <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                         <h3 class="text-base font-bold text-slate-800">Versiones del Manuscrito</h3>
                         <span class="text-sm bg-slate-100 px-2.5 py-0.5 rounded-full text-slate-600 font-bold">
@@ -262,7 +244,7 @@
                                         <span class="text-slate-400 text-xs font-medium">
                                             Por: {{ $version->user->name }}
                                         </span>
-                                        <a href="{{ route('versions.document', $version) }}" class="text-unimar-blue hover:text-unimar-blue/80 font-bold text-xs inline-flex items-center space-x-1 transition">
+                                        <a href="{{ route('versions.document', $version) }}?download=1" class="text-unimar-blue hover:text-unimar-blue/80 font-bold text-xs inline-flex items-center space-x-1 transition">
                                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
                                             </svg>
@@ -276,7 +258,7 @@
                 </div>
 
                 <!-- Tarjeta de Bitácora de Estados -->
-                <div class="bg-white border border-slate-200/80 shadow-sm rounded-2xl p-4 md:p-5 space-y-4">
+                <div id="milestones-status-log" class="bg-white border border-slate-200/80 shadow-sm rounded-2xl p-4 md:p-5 space-y-4">
                     <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                         <h3 class="text-base font-bold text-slate-800">Bitácora de Estados</h3>
                     </div>
@@ -295,7 +277,7 @@
                                     <div class="text-sm space-y-1">
                                         <div class="flex items-center justify-between gap-2">
                                             <span class="font-bold text-slate-800 uppercase tracking-wider text-[9px]">
-                                                {{ $stateLabels[$revision->new_state] ?? $revision->new_state }}
+                                                {{ App\Models\Production::getStatusLabelFor($revision->new_state) }}
                                             </span>
                                             <span class="text-[9px] text-slate-400 font-medium">
                                                 {{ $revision->created_at->format('d/m/Y') }}

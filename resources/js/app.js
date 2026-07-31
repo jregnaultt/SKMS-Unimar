@@ -6,6 +6,7 @@ import { Chart, registerables } from 'chart.js';
 import documentUpload from './components/documentUpload';
 import catalogSearch from './components/catalogSearch';
 import advancedSelect from './components/advancedSelect';
+import skmsTours from './components/skmsTours';
 
 window.Alpine = Alpine;
 window.Chart = Chart;
@@ -14,5 +15,6 @@ Chart.register(...registerables);
 Alpine.data('documentUpload', documentUpload);
 Alpine.data('catalogSearch', catalogSearch);
 Alpine.data('advancedSelect', advancedSelect);
+Alpine.data('skmsTours', skmsTours);
 
 Alpine.start();

@@ -60,6 +60,12 @@ export default (allResearchLines = []) => ({
     handleFileSelect(event) {
         this.file = event.target.files[0];
         if (this.file) {
+            if (this.file.size > 5 * 1024 * 1024) {
+                alert('El archivo supera el tamaño máximo permitido de 5MB. Por favor, comprímelo o reduce su tamaño antes de subir.');
+                event.target.value = '';
+                this.file = null;
+                return;
+            }
             this.uploadAndExtract();
         }
     },

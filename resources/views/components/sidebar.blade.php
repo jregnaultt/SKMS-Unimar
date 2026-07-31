@@ -4,7 +4,7 @@
 <div x-show="sidebarOpen" @click="sidebarOpen = false" class="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-40 lg:hidden transition-opacity" x-transition style="display: none;"></div>
 
 <!-- Sidebar Container -->
-<aside class="fixed inset-y-0 left-0 z-45 w-64 bg-white border-r border-slate-200/60 text-slate-700 flex flex-col justify-between shrink-0 h-screen transition-transform duration-300 ease-in-out transform lg:translate-x-0 lg:sticky lg:top-0 shadow-sm"
+<aside id="sidebar-container" class="fixed inset-y-0 left-0 z-45 w-64 bg-white border-r border-slate-200/60 text-slate-700 flex flex-col justify-between shrink-0 h-screen transition-transform duration-300 ease-in-out transform lg:translate-x-0 lg:sticky lg:top-0 shadow-sm"
        :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'">
     <!-- Sidebar Header -->
     <div class="p-6 border-b border-slate-100 shrink-0 relative">
@@ -26,7 +26,7 @@
             </div>
         </div>
         <div class="mt-4">
-            <span class="text-sm bg-[#0d4d98]/5 text-[#0d4d98] border border-[#0d4d98]/10 px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider">
+            <span class="inline-block text-xs bg-[#0d4d98]/5 text-[#0d4d98] border border-[#0d4d98]/10 px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider whitespace-nowrap">
                 Decanato de Ingeniería
             </span>
         </div>
@@ -41,6 +41,16 @@
             </svg>
             <span class="text-base">Cabina de Control</span>
         </a>
+        
+        <!-- Mis Producciones (Estudiante) -->
+        @if(auth()->user()->hasRole('Estudiante'))
+            <a href="{{ route('productions.index') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-150 {{ request()->routeIs('productions.index') ? 'bg-[#0d4d98] text-white font-bold shadow-md shadow-[#0d4d98]/10' : 'text-slate-600 hover:bg-[#0d4d98] hover:text-white hover:shadow-sm' }}">
+                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                </svg>
+                <span class="text-base">Mis Producciones</span>
+            </a>
+        @endif
 
         <!-- Trabajos Asignados (Tutor, Jurado, Coordinador, Decano) -->
         @if(auth()->user()->hasAnyRole(['Tutor', 'Jurado', 'Coordinador', 'Decano']))
@@ -73,10 +83,27 @@
         <!-- Bibliometría -->
         @if(auth()->user()->hasRole(['Coordinador', 'Super Admin', 'Decano']))
             <a href="{{ route('bibliometrics.index') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-150 {{ request()->routeIs('bibliometrics.*') ? 'bg-[#0d4d98] text-white font-bold shadow-md shadow-[#0d4d98]/10' : 'text-slate-600 hover:bg-[#0d4d98] hover:text-white hover:shadow-sm' }}">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg aria-hidden="true" class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
                 </svg>
                 <span class="text-base">Bibliometría</span>
+            </a>
+
+            @php
+                $proposedRejectionsCount = App\Models\Production::where('workflow_state', 'rejection_proposed')->count();
+            @endphp
+            <a href="{{ route('coordinator.rejections.index') }}" class="flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-150 {{ request()->routeIs('coordinator.rejections.*') ? 'bg-[#0d4d98] text-white font-bold shadow-md shadow-[#0d4d98]/10' : 'text-slate-600 hover:bg-[#0d4d98] hover:text-white hover:shadow-sm' }}">
+                <div class="flex items-center space-x-3">
+                    <svg aria-hidden="true" class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                    </svg>
+                    <span class="text-base">Propuestas de Rechazo</span>
+                </div>
+                @if($proposedRejectionsCount > 0)
+                    <span class="px-2 py-0.5 text-xs font-bold rounded-full {{ request()->routeIs('coordinator.rejections.*') ? 'bg-white text-[#0d4d98]' : 'bg-rose-100 text-rose-700' }}">
+                        {{ $proposedRejectionsCount }}
+                    </span>
+                @endif
             </a>
         @endif
 
@@ -189,6 +216,15 @@
                 @endif
             </div>
         </div>
+        
+        <!-- Guía del Sistema (Tour) -->
+        <button type="button" @click="start('{{ $activeRole }}')" class="w-full flex items-center justify-center space-x-2 px-4 py-2 mb-2 bg-[#0d4d98]/5 hover:bg-[#0d4d98] text-[#0d4d98] hover:text-white border border-[#0d4d98]/10 hover:border-transparent rounded-xl text-sm font-semibold transition-all duration-150 shadow-sm cursor-pointer">
+            <svg aria-hidden="true" class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span>Guía del Sistema</span>
+        </button>
+
         <form method="POST" action="{{ route('logout') }}">
             @csrf
             <button type="submit" class="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-white hover:bg-rose-50 hover:text-rose-600 border border-slate-200 hover:border-rose-200 rounded-xl text-sm font-semibold transition-all duration-150 text-slate-600 shadow-sm hover:shadow-none">

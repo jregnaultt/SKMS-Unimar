@@ -32,8 +32,8 @@
             </div>
         </div>
 
-        <!-- KPI Cards Grid (Three columns, light-only premium design) -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- KPI Cards Grid (Five columns, light-only premium design) -->
+        <div id="bibliometrics-kpis" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4">
             <!-- Metric Card 1: Total Published -->
             <div class="bg-white border border-slate-200 rounded-2xl p-4 md:p-5 shadow-[0_10px_30px_rgba(13,77,152,0.03)] flex items-center space-x-4 border-t-4 border-t-[#0d4d98]">
                 <div class="p-3 bg-[#0d4d98]/10 text-[#0d4d98] rounded-xl">
@@ -42,8 +42,8 @@
                     </svg>
                 </div>
                 <div>
-                    <p class="text-base font-bold text-slate-600 uppercase tracking-wider">Producciones Publicadas</p>
-                    <p class="text-3xl font-black text-slate-800 mt-0.5 leading-tight">{{ $metrics['total_published'] }}</p>
+                    <p class="text-xs font-bold text-slate-650 uppercase tracking-wider">Publicaciones</p>
+                    <p class="text-2xl font-black text-slate-800 mt-0.5 leading-tight">{{ $metrics['total_published'] }}</p>
                 </div>
             </div>
 
@@ -55,8 +55,8 @@
                     </svg>
                 </div>
                 <div>
-                    <p class="text-base font-bold text-slate-600 uppercase tracking-wider">Programas Académicos</p>
-                    <p class="text-3xl font-black text-slate-800 mt-0.5 leading-tight">{{ count($metrics['by_program']) }}</p>
+                    <p class="text-xs font-bold text-slate-650 uppercase tracking-wider">Programas</p>
+                    <p class="text-2xl font-black text-slate-800 mt-0.5 leading-tight">{{ count($metrics['by_program']) }}</p>
                 </div>
             </div>
 
@@ -68,14 +68,41 @@
                     </svg>
                 </div>
                 <div>
-                    <p class="text-base font-bold text-slate-600 uppercase tracking-wider">Líneas de Investigación</p>
-                    <p class="text-3xl font-black text-slate-800 mt-0.5 leading-tight">{{ count($metrics['by_research_line']) }}</p>
+                    <p class="text-xs font-bold text-slate-655 uppercase tracking-wider">Líneas de Inv.</p>
+                    <p class="text-2xl font-black text-slate-800 mt-0.5 leading-tight">{{ count($metrics['by_research_line']) }}</p>
+                </div>
+            </div>
+
+            <!-- Metric Card 4: Total Views -->
+            <div class="bg-white border border-slate-200 rounded-2xl p-4 md:p-5 shadow-[0_10px_30px_rgba(13,77,152,0.03)] flex items-center space-x-4 border-t-4 border-t-indigo-500">
+                <div class="p-3 bg-indigo-500/10 text-indigo-500 rounded-xl">
+                    <svg aria-hidden="true" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                    </svg>
+                </div>
+                <div>
+                    <p class="text-xs font-bold text-slate-650 uppercase tracking-wider">Visitas Totales</p>
+                    <p class="text-2xl font-black text-slate-800 mt-0.5 leading-tight">{{ $metrics['total_views'] }}</p>
+                </div>
+            </div>
+
+            <!-- Metric Card 5: Total Downloads -->
+            <div class="bg-white border border-slate-200 rounded-2xl p-4 md:p-5 shadow-[0_10px_30px_rgba(13,77,152,0.03)] flex items-center space-x-4 border-t-4 border-t-emerald-500">
+                <div class="p-3 bg-emerald-500/10 text-emerald-500 rounded-xl">
+                    <svg aria-hidden="true" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                    </svg>
+                </div>
+                <div>
+                    <p class="text-xs font-bold text-slate-655 uppercase tracking-wider">Descargas Totales</p>
+                    <p class="text-2xl font-black text-slate-800 mt-0.5 leading-tight">{{ $metrics['total_downloads'] }}</p>
                 </div>
             </div>
         </div>
 
         <!-- Central Section: Yearly Evolution Line Chart (Light-only premium card) -->
-        <div class="bg-white border border-slate-200 rounded-2xl p-4 md:p-5 shadow-[0_10px_30px_rgba(13,77,152,0.03)] border-t-4 border-t-[#0d4d98] space-y-4">
+        <div id="bibliometrics-line-chart" class="bg-white border border-slate-200 rounded-2xl p-4 md:p-5 shadow-[0_10px_30px_rgba(13,77,152,0.03)] border-t-4 border-t-[#0d4d98] space-y-4">
             <div class="border-b border-slate-100 pb-2">
                 <h3 class="text-base font-bold text-slate-850 uppercase tracking-wider">Evolución Anual de Publicaciones</h3>
                 <p class="text-base text-slate-550 font-bold uppercase tracking-wider mt-0.5">Histórico temporal de producción científica aprobada</p>
@@ -99,7 +126,7 @@
         </div>
 
         <!-- Bottom Grid: Comparative Bar Charts (Alpine Tabs) & Rankings Tables -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+        <div id="bibliometrics-comparisons" class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
 
             <!-- Left: Comparative Bar Charts with Alpine.js Tabs -->
             <div class="bg-white border border-slate-200 rounded-2xl p-4 md:p-5 shadow-[0_10px_30px_rgba(13,77,152,0.03)] border-t-4 border-t-[#0d4d98] flex flex-col space-y-4"

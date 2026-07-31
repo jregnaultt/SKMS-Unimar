@@ -10,6 +10,7 @@
         logId: null,
         loading: false,
         logData: null,
+        showFilters: {{ request()->anyFilled(['search', 'user_id', 'action_type', 'date_from', 'date_to', 'academic_period_id', 'tutor']) ? 'true' : 'false' }},
         fetchLogDetails(id) {
             this.openDrawer = true;
             this.loading = true;
@@ -72,22 +73,21 @@
                 <p class="text-base text-slate-500 mt-1 font-medium">Historial cronológico de acciones de seguridad, modificaciones de datos y transacciones del sistema</p>
             </div>
 
-            <!-- Buscador Rápido -->
-            <div class="w-full md:w-80 shrink-0">
-                <form action="{{ route('admin.audit-logs.index') }}" method="GET">
-                    <div class="relative">
-                        <input type="text"
-                               name="search"
-                               value="{{ request('search') }}"
-                               placeholder="Buscar por usuario, acción o IP..."
-                               class="block w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-base focus:border-unimar-blue focus:ring focus:ring-unimar-blue/10 transition duration-150 text-slate-700 placeholder-slate-400 font-medium" />
-                        <button type="submit" class="absolute left-3 top-3 text-slate-400 hover:text-unimar-blue transition">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                            </svg>
-                        </button>
-                    </div>
-                </form>
+            <!-- Acciones y Búsqueda -->
+            <div class="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+                <button type="button" @click="showFilters = !showFilters" :class="showFilters ? 'bg-slate-200 text-slate-800 border-slate-300' : 'bg-slate-100 text-slate-700 border-slate-200'" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 h-11 px-4 rounded-xl text-sm font-bold border transition uppercase tracking-wider whitespace-nowrap cursor-pointer">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+                    </svg>
+                    <span>Filtros</span>
+                </button>
+
+                <a href="{{ route('admin.audit-logs.export', request()->query()) }}" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 h-11 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-bold shadow transition uppercase tracking-wider whitespace-nowrap cursor-pointer">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                    </svg>
+                    Exportar Excel
+                </a>
             </div>
         </div>
 
@@ -103,11 +103,127 @@
             </div>
         @endif
 
+        <!-- Collapsible Filters Card -->
+        <div x-show="showFilters" 
+             x-transition:enter="transition ease-out duration-250"
+             x-transition:enter-start="opacity-0 -translate-y-2"
+             x-transition:enter-end="opacity-100 translate-y-0"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100 translate-y-0"
+             x-transition:leave-end="opacity-0 -translate-y-2"
+             class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4"
+             style="display: none;">
+            <form action="{{ route('admin.audit-logs.index') }}" method="GET" class="space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 items-end">
+                    
+                    <!-- Search Input -->
+                    <div class="space-y-1.5">
+                        <label for="filter-search" class="block text-xs font-bold text-slate-650 uppercase tracking-wider">Búsqueda Rápida</label>
+                        <input type="text" 
+                               id="filter-search"
+                               name="search" 
+                               value="{{ request('search') }}" 
+                               placeholder="Usuario, IP, etc..." 
+                               class="w-full h-10 text-xs rounded-xl border-slate-200 focus:ring-unimar-blue/20 focus:border-unimar-blue bg-slate-50/50 text-slate-700">
+                    </div>
+
+                    <!-- Action Type Select -->
+                    <div class="space-y-1.5">
+                        <label for="filter-action" class="block text-xs font-bold text-slate-650 uppercase tracking-wider">Acción</label>
+                        <select id="filter-action" name="action_type" class="w-full h-10 text-xs rounded-xl border-slate-200 focus:ring-unimar-blue/20 focus:border-unimar-blue bg-slate-50/50 text-slate-700 cursor-pointer">
+                            <option value="">Todas las acciones</option>
+                            @foreach($actions as $act)
+                                @php
+                                    $tempLog = new \App\Models\AuditLog();
+                                    $tempLog->action = $act;
+                                    $label = $tempLog->getActionLabel();
+                                @endphp
+                                <option value="{{ $act }}" {{ request('action_type') === $act ? 'selected' : '' }}>
+                                    {{ $label }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <!-- User Select -->
+                    <div class="space-y-1.5">
+                        <label for="filter-user" class="block text-xs font-bold text-slate-650 uppercase tracking-wider">Usuario / Actor</label>
+                        <select id="filter-user" name="user_id" class="w-full h-10 text-xs rounded-xl border-slate-200 focus:ring-unimar-blue/20 focus:border-unimar-blue bg-slate-50/50 text-slate-700 cursor-pointer">
+                            <option value="">Todos los usuarios</option>
+                            @foreach($users as $u)
+                                <option value="{{ $u->id }}" {{ request('user_id') == $u->id ? 'selected' : '' }}>
+                                    {{ $u->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <!-- Academic Period Select -->
+                    <div class="space-y-1.5">
+                        <label for="filter-period" class="block text-xs font-bold text-slate-650 uppercase tracking-wider">Período de Tesis</label>
+                        <select id="filter-period" name="academic_period_id" class="w-full h-10 text-xs rounded-xl border-slate-200 focus:ring-unimar-blue/20 focus:border-unimar-blue bg-slate-50/50 text-slate-700 cursor-pointer">
+                            <option value="">Todos los períodos</option>
+                            @foreach($periods as $p)
+                                <option value="{{ $p->id }}" {{ request('academic_period_id') == $p->id ? 'selected' : '' }}>
+                                    {{ $p->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <!-- Tutor Select -->
+                    <div class="space-y-1.5">
+                        <label for="filter-tutor" class="block text-xs font-bold text-slate-650 uppercase tracking-wider">Tutor de Tesis</label>
+                        <select id="filter-tutor" name="tutor" class="w-full h-10 text-xs rounded-xl border-slate-200 focus:ring-unimar-blue/20 focus:border-unimar-blue bg-slate-50/50 text-slate-700 cursor-pointer">
+                            <option value="">Todos los tutores</option>
+                            @foreach($tutors as $t)
+                                <option value="{{ $t }}" {{ request('tutor') === $t ? 'selected' : '' }}>
+                                    {{ $t }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <!-- Buttons -->
+                    <div class="flex gap-2 h-10">
+                        <button type="submit" class="flex-1 bg-[#0d4d98] hover:bg-[#09356b] text-white rounded-xl text-xs font-bold uppercase tracking-wider transition shadow-sm flex items-center justify-center cursor-pointer">
+                            Filtrar
+                        </button>
+                        @if(request()->anyFilled(['search', 'user_id', 'action_type', 'date_from', 'date_to', 'academic_period_id', 'tutor']))
+                            <a href="{{ route('admin.audit-logs.index') }}" class="px-3 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-bold transition flex items-center justify-center cursor-pointer" title="Limpiar Filtros">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </a>
+                        @endif
+                    </div>
+                </div>
+
+                <!-- Second Row: Date range filters -->
+                <div class="flex flex-wrap items-center gap-4 pt-3 border-t border-slate-100/80">
+                    <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Rango de Fechas:</span>
+                    <div class="flex items-center space-x-2">
+                        <input type="date" 
+                               name="date_from" 
+                               value="{{ request('date_from') }}" 
+                               class="h-9 text-xs rounded-xl border-slate-200 focus:ring-unimar-blue/20 focus:border-unimar-blue bg-slate-50/50 text-slate-700 cursor-pointer" 
+                               placeholder="Desde">
+                        <span class="text-xs font-bold text-slate-400">hasta</span>
+                        <input type="date" 
+                               name="date_to" 
+                               value="{{ request('date_to') }}" 
+                               class="h-9 text-xs rounded-xl border-slate-200 focus:ring-unimar-blue/20 focus:border-unimar-blue bg-slate-50/50 text-slate-700" 
+                               placeholder="Hasta">
+                    </div>
+                </div>
+            </form>
+        </div>
+
         <!-- Grid para la tabla y el panel deslizable -->
         <div class="relative flex flex-col lg:flex-row gap-8 items-start">
 
             <!-- Tabla de Logs de Auditoría -->
-            <div class="w-full transition-all duration-300 bg-white border border-slate-200/80 shadow-sm rounded-2xl overflow-hidden"
+            <div id="admin-audit-logs-table-card" class="w-full transition-all duration-350 bg-white border border-slate-200/80 shadow-sm rounded-2xl overflow-hidden"
                  :class="openDrawer ? 'lg:w-2/3' : 'w-full'">
 
                 <div class="p-6 border-b border-slate-100">
@@ -176,7 +292,7 @@
                                         <td class="p-4 whitespace-nowrap">
                                             <span class="px-2.5 py-0.5 inline-flex items-center text-xs font-bold rounded-xl border {{ $actionClass }}">
                                                 {!! $actionIcon !!}
-                                                {{ $log->action }}
+                                                {{ $log->getActionLabel() }}
                                             </span>
                                         </td>
                                         <td class="p-4 whitespace-nowrap font-mono text-base text-slate-500 font-medium">
@@ -245,7 +361,7 @@
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
                                     <span class="block text-base font-bold uppercase tracking-wider text-slate-550">Acción Realizada</span>
-                                    <span class="block font-bold text-slate-800 mt-1" x-text="logData?.action"></span>
+                                    <span class="block font-bold text-slate-800 mt-1" x-text="logData?.action_label || logData?.action"></span>
                                 </div>
                                 <div>
                                     <span class="block text-base font-bold uppercase tracking-wider text-slate-550">Dirección IP</span>

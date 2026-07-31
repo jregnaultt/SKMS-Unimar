@@ -10,7 +10,7 @@
 
 <div class="space-y-4">
     <!-- Métricas de Resumen (KPI Cards) -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div id="coordinator-stats" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <!-- Total -->
         <div class="bg-white border border-slate-100 rounded-2xl p-4 shadow-[0_10px_30px_rgba(13,77,152,0.03)] flex items-center space-x-4">
             <div class="p-3 bg-slate-100 text-slate-650 rounded-xl">
@@ -132,7 +132,7 @@
             </div>
 
             <!-- Monitoreo Consolidado de Estudiantes -->
-            <div class="bg-white border border-slate-100 rounded-2xl p-4 md:p-5 shadow-[0_10px_30px_rgba(13,77,152,0.03)]">
+            <div id="students-tracking-table" class="bg-white border border-slate-100 rounded-2xl p-4 md:p-5 shadow-[0_10px_30px_rgba(13,77,152,0.03)]">
                 <div class="mb-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
                         <h3 class="text-base font-extrabold text-slate-800">Monitoreo de Estudiantes</h3>
@@ -157,29 +157,11 @@
                 @else
                     <div class="space-y-4">
                         @foreach ($paginatedProductions as $p)
-                            @php
-                                $statusMap = [
-                                    'draft' => 'Borrador',
-                                    'under_review' => 'En Revisión',
-                                    'needs_corrections' => 'Correcciones',
-                                    'approved' => 'Aprobado',
-                                    'published' => 'Publicado',
-                                    'rejected' => 'Rechazado',
-                                ];
-                                $colorMap = [
-                                    'draft' => 'bg-slate-100 text-slate-650',
-                                    'under_review' => 'bg-amber-50 text-amber-800',
-                                    'needs_corrections' => 'bg-orange-50 text-orange-800',
-                                    'approved' => 'bg-emerald-50 text-emerald-800',
-                                    'published' => 'bg-blue-50 text-blue-800',
-                                    'rejected' => 'bg-rose-50 text-rose-800',
-                                ];
-                            @endphp
                             <div class="p-4 border border-slate-100 rounded-xl hover:bg-slate-50/30 transition flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                                 <div class="space-y-1.5 flex-1 min-w-0">
                                     <div class="flex flex-wrap items-center gap-2">
-                                        <span class="px-2 py-0.5 text-sm font-bold rounded-md {{ $colorMap[$p->workflow_state] ?? 'bg-slate-100 text-slate-650' }}">
-                                            {{ $statusMap[$p->workflow_state] ?? $p->workflow_state }}
+                                        <span class="px-2 py-0.5 text-sm font-bold rounded-md {{ $p->getStatusColorClass() }}">
+                                            {{ $p->getStatusLabel() }}
                                         </span>
                                         <span class="text-sm text-slate-550 truncate max-w-xs">{{ $p->academicProgram->name ?? 'Sin programa' }}</span>
                                     </div>
@@ -308,7 +290,7 @@
                 </p>
                 
                 <div class="space-y-2">
-                    <a href="{{ route('admin.productions.import') }}" class="w-full flex items-center justify-between p-3.5 bg-slate-50 hover:bg-[#0d4d98] hover:text-white rounded-xl text-sm font-bold text-slate-700 border border-slate-200/40 transition">
+                    <a id="btn-import-menu" href="{{ route('admin.productions.import') }}" class="w-full flex items-center justify-between p-3.5 bg-slate-50 hover:bg-[#0d4d98] hover:text-white rounded-xl text-sm font-bold text-slate-700 border border-slate-200/40 transition">
                         <span>Importar Históricos</span>
                         <svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>

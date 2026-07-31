@@ -38,7 +38,7 @@
         @endif
 
         <!-- Tabla de Solicitudes -->
-        <div class="bg-white border border-slate-200/80 shadow-sm rounded-2xl overflow-hidden">
+        <div id="admin-claims-table-card" class="bg-white border border-slate-200/80 shadow-sm rounded-2xl overflow-hidden">
             <div class="p-6 border-b border-slate-100 bg-slate-50/50">
                 <h3 class="text-lg font-bold text-slate-800 font-sans">Solicitudes Pendientes de Liberación</h3>
                 <p class="text-base text-slate-550 mt-0.5 font-bold uppercase tracking-wider">Vincula formalmente a los autores en el catálogo de producción científica tras su debida verificación</p>

@@ -202,26 +202,8 @@
                                 @php
                                     $studentUser = $prod->users->where('pivot.role', 'author')->first();
                                     
-                                    $stateColors = [
-                                        'draft' => 'bg-slate-100 text-slate-700 border-slate-200',
-                                        'under_review' => 'bg-blue-50 text-unimar-blue border-blue-100',
-                                        'needs_corrections' => 'bg-amber-50 text-amber-700 border-amber-200',
-                                        'approved' => 'bg-emerald-50 text-emerald-700 border-emerald-200',
-                                        'published' => 'bg-indigo-50 text-indigo-700 border-indigo-200',
-                                        'rejected' => 'bg-rose-50 text-rose-700 border-rose-200',
-                                    ];
-
-                                    $stateLabels = [
-                                        'draft' => 'Borrador',
-                                        'under_review' => 'En Revisión',
-                                        'needs_corrections' => 'Requiere Correcciones',
-                                        'approved' => 'Aprobado',
-                                        'published' => 'Publicado',
-                                        'rejected' => 'Rechazado',
-                                    ];
-
-                                    $stateClass = $stateColors[$prod->workflow_state] ?? $stateColors['draft'];
-                                    $stateLabel = $stateLabels[$prod->workflow_state] ?? 'Borrador';
+                                    $stateClass = $prod->getStatusColorClass();
+                                    $stateLabel = $prod->getStatusLabel();
                                 @endphp
                                 <tr class="hover:bg-slate-50/50 transition duration-150">
                                     
