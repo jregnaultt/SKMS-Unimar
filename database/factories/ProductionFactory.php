@@ -42,6 +42,8 @@ class ProductionFactory extends Factory
             'doi' => '10.'.fake()->numberBetween(1000, 9999).'/'.fake()->lexify('?????'),
             'submission_date' => null,
             'approval_date' => null,
+            'views_count' => 0,
+            'downloads_count' => 0,
         ];
     }
 

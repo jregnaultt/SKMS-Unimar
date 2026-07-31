@@ -151,6 +151,71 @@ class Production extends Model implements HasMedia
     }
 
     /**
+     * Get the human-readable label for a given workflow state.
+     */
+    public static function getStatusLabelFor(string $state): string
+    {
+        $statusLabels = [
+            'draft' => 'Borrador',
+            'under_review' => 'En Revisión',
+            'under_tutor_review' => 'En Revisión (Tutor)',
+            'under_jury_review' => 'En Revisión (Jurado)',
+            'under_coordinator_review' => 'En Revisión (Coordinación)',
+            'needs_corrections' => 'Requiere Correcciones',
+            'approved' => 'Aprobado',
+            'published' => 'Publicado',
+            'rejection_proposed' => 'Propuesta de Rechazo',
+            'rejected' => 'Rechazado',
+        ];
+
+        return $statusLabels[$state] ?? $state;
+    }
+
+    /**
+     * Get the human-readable label for the current workflow state.
+     */
+    public function getStatusLabel(): string
+    {
+        return self::getStatusLabelFor($this->workflow_state);
+    }
+
+    /**
+     * Get the CSS color class for the current workflow state badge.
+     */
+    public function getStatusColorClass(): string
+    {
+        $statusColors = [
+            'draft' => 'bg-slate-100 text-slate-700 border-slate-200',
+            'under_review' => 'bg-yellow-50 text-yellow-800 border-yellow-200',
+            'under_tutor_review' => 'bg-yellow-50 text-yellow-800 border-yellow-200',
+            'under_jury_review' => 'bg-purple-50 text-purple-800 border-purple-200',
+            'under_coordinator_review' => 'bg-indigo-50 text-indigo-800 border-indigo-200',
+            'needs_corrections' => 'bg-orange-50 text-orange-850 border-orange-200',
+            'approved' => 'bg-emerald-50 text-emerald-800 border-emerald-200',
+            'published' => 'bg-blue-50 text-blue-800 border-blue-200',
+            'rejection_proposed' => 'bg-pink-50 text-pink-850 border-pink-200',
+            'rejected' => 'bg-rose-50 text-rose-800 border-rose-200',
+        ];
+
+        return $statusColors[$this->workflow_state] ?? 'bg-slate-105 text-slate-800 border-slate-200';
+    }
+
+    /**
+     * Get the CSS class for the status dot indicator in tables.
+     */
+    public function getStatusBulletColorClass(): string
+    {
+        return match ($this->workflow_state) {
+            'approved', 'published' => 'bg-emerald-500',
+            'under_review', 'under_tutor_review', 'under_coordinator_review', 'needs_corrections' => 'bg-amber-500',
+            'under_jury_review' => 'bg-purple-500',
+            'rejection_proposed' => 'bg-pink-500',
+            'rejected' => 'bg-rose-500',
+            default => 'bg-slate-400',
+        };
+    }
+
+    /**
      * Boot the model.
      */
     protected static function booted(): void

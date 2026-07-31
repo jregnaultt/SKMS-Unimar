@@ -78,4 +78,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(SubjectTutorPeriod::class, 'tutor_id');
     }
+
+    public function auditLogs(): HasMany
+    {
+        return $this->hasMany(AuditLog::class);
+    }
 }

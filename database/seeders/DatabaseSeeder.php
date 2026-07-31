@@ -34,9 +34,9 @@ class DatabaseSeeder extends Seeder
             ['name' => 'Ingeniería Industrial', 'description' => 'Programa de Ingeniería Industrial', 'is_active' => true]
         );
 
-        $derecho = AcademicProgram::firstOrCreate(
-            ['code' => 'DER'],
-            ['name' => 'Derecho', 'description' => 'Programa de Derecho', 'is_active' => true]
+        $naval = AcademicProgram::firstOrCreate(
+            ['code' => 'TEC-NAV'],
+            ['name' => 'Tecnología Naval', 'description' => 'Programa de Tecnología Naval', 'is_active' => true]
         );
 
         // Seed Research Lines
@@ -55,8 +55,13 @@ class DatabaseSeeder extends Seeder
         );
 
         ResearchLine::firstOrCreate(
-            ['academic_program_id' => $derecho->id, 'name' => 'Derechos Humanos'],
-            ['is_active' => true, 'description' => 'Línea de investigación en Derechos Humanos']
+            ['academic_program_id' => $naval->id, 'name' => 'Sistemas de Propulsión y Estructuras Navales'],
+            ['is_active' => true, 'description' => 'Línea de investigación en Sistemas Navales']
+        );
+
+        ResearchLine::firstOrCreate(
+            ['academic_program_id' => $naval->id, 'name' => 'Diseño e Hidrodinámica Naval'],
+            ['is_active' => true, 'description' => 'Línea de investigación en Diseño de Buques']
         );
 
         // Seed Production Types
