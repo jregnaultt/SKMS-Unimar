@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manual de Usuario - SKMS Unimar</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            color: #1e293b;
+            line-height: 1.6;
+        }
+        
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Outfit', sans-serif;
+            color: #0f172a;
+        }
+        
+        .cover-page {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 4rem 2rem;
+            page-break-after: always;
+        }
+        
+        .page-break {
+            page-break-before: always;
+        }
+        
+        /* Prose styling */
+        .prose h1 {
+            font-size: 2.25rem;
+            font-weight: 800;
+            border-bottom: 2px solid #0d4d98;
+            padding-bottom: 0.5rem;
+            margin-top: 3rem;
+            margin-bottom: 1.5rem;
+            color: #0f172a;
+        }
+        
+        .prose h2 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-top: 2.5rem;
+            margin-bottom: 1rem;
+            color: #0d4d98;
+            border-left: 4px solid #0d4d98;
+            padding-left: 0.75rem;
+        }
+        
+        .prose h3 {
+            font-size: 1.35rem;
+            font-weight: 600;
+            margin-top: 2rem;
+            margin-bottom: 0.75rem;
+            color: #1e3a8a;
+        }
+        
+        .prose p {
+            margin-bottom: 1.25rem;
+            text-align: justify;
+            color: #334155;
+        }
+        
+        .prose ul, .prose ol {
+            margin-left: 1.5rem;
+            margin-bottom: 1.25rem;
+        }
+        
+        .prose ul {
+            list-style-type: disc;
+        }
+        
+        .prose ol {
+            list-style-type: decimal;
+        }
+        
+        .prose li {
+            margin-bottom: 0.5rem;
+            color: #334155;
+        }
+        
+        .prose table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .prose th, .prose td {
+            border: 1px solid #cbd5e1;
+            padding: 0.75rem 1rem;
+            text-align: left;
+            font-size: 0.95rem;
+        }
+        
+        .prose th {
+            background-color: #f1f5f9;
+            font-weight: 700;
+            color: #0f172a;
+        }
+        
+        .prose tr:nth-child(even) td {
+            background-color: #f8fafc;
+        }
+        
+        .prose img {
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+            margin: 1.5rem auto;
+            max-width: 100%;
+            border: 1px solid #e2e8f0;
+            display: block;
+        }
+        
+        .prose blockquote {
+            border-left: 4px solid #3b82f6;
+            background-color: #eff6ff;
+            padding: 1rem 1.5rem;
+            font-style: italic;
+            color: #1e3a8a;
+            border-radius: 0 0.5rem 0.5rem 0;
+            margin-bottom: 1.25rem;
+        }
+        
+        .prose code {
+            background-color: #f1f5f9;
+            padding: 0.2rem 0.4rem;
+            border-radius: 0.25rem;
+            font-family: monospace;
+            font-size: 0.9em;
+            color: #0f172a;
+        }
+        
+        .prose pre {
+            background-color: #0f172a;
+            color: #f8fafc;
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            font-family: monospace;
+            margin-bottom: 1.25rem;
+            overflow-x: auto;
+        }
+        
+        .prose pre code {
+            background-color: transparent;
+            color: inherit;
+            padding: 0;
+        }
+        
+        @media print {
+            body {
+                font-size: 11pt;
+                padding: 0;
+            }
+            .no-print {
+                display: none;
+            }
+            @page {
+                margin: 20mm 15mm;
+                @bottom-right {
+                    content: counter(page);
+                }
+            }
+            .prose h1, .prose h2, .prose h3 {
+                page-break-after: avoid;
+            }
+            .prose img {
+                page-break-inside: avoid;
+            }
+            .prose tr {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen py-10 px-4 sm:px-6 md:px-8">
+    <div class="max-w-4xl mx-auto bg-white shadow-xl rounded-2xl border border-slate-100 p-8 sm:p-12 md:p-16">
+        <!-- Cover Page -->
+        <div class="cover-page">
+            <div class="flex items-center justify-between border-b-2 border-slate-100 pb-6">
+                <div class="text-sm font-bold tracking-wider text-slate-400 uppercase">Decanato de Ingeniería y Afines</div>
+                <div class="text-sm font-bold tracking-wider text-slate-400 uppercase">UNIMAR</div>
+            </div>
+            
+            <div class="my-auto space-y-8 py-20">
+                <div class="inline-flex items-center space-x-2 bg-blue-50 text-blue-800 font-bold px-3 py-1 rounded-full text-xs uppercase tracking-wider">
+                    Sistema de Gestión de Conocimiento Científico
+                </div>
+                <h1 class="text-5xl sm:text-6xl font-extrabold tracking-tight text-slate-900 leading-tight">
+                    Manual de Usuario de <span class="text-[#0d4d98]">SKMS-Unimar</span>
+                </h1>
+                <p class="text-lg text-slate-500 max-w-xl">
+                    Guía de uso oficial para estudiantes, tutores, jurados y coordinadores del Decanato de Ingeniería y Afines, Universidad de Margarita.
+                </p>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4 border-t-2 border-slate-100 pt-6 text-sm">
+                <div>
+                    <div class="font-bold text-slate-400 uppercase text-xs tracking-wider">Plataforma</div>
+                    <div class="font-semibold text-slate-700 mt-1">Monolito Laravel 12 / AlpineJS / Tailwind</div>
+                </div>
+                <div class="text-right">
+                    <div class="font-bold text-slate-400 uppercase text-xs tracking-wider">Fecha de Publicación</div>
+                    <div class="font-semibold text-slate-700 mt-1">Julio 2026</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Body -->
+        <div class="prose max-w-none mt-10">
+            <h1>MANUAL DE USUARIO OFICIAL: SKMS-UNIMAR</h1>
+<h2>Sistema de Gestión del Conocimiento Científico</h2>
+<hr />
+<h2>1. Introducción y Propósito del Sistema</h2>
+<p>El <strong>SKMS-Unimar</strong> (Scientific Knowledge Management System) es la plataforma oficial del Decanato de Ingeniería y Afines de la Universidad de Margarita (UNIMAR) destinada a la gestión del ciclo de vida completo de la producción científica institucional.</p>
+<p>A diferencia de un repositorio pasivo de archivos, el SKMS-Unimar es un sistema activo basado en flujos de trabajo que guía al estudiante, tutor, jurado y coordinador de investigación a través de cada fase del desarrollo, revisión y publicación de trabajos de grado, tesis e informes de investigación.</p>
+<h3>El Ciclo de Vida del Documento</h3>
+<p>El sistema implementa un motor de estados que condiciona las acciones que cada rol puede realizar sobre un documento:</p>
+<pre><code>[ Borrador ] --(Enviar)--&gt; [ En Revisión ] --(Aprobar)--&gt; [ Aprobado ] --(Publicar)--&gt; [ Publicado ]
+    ^                             |                                                  
+    |                             v                                                  
+    +---(Correcciones)&lt;-----------+ --(Rechazar)--&gt; [ Rechazado ]                     
+</code></pre>
+<hr />
+<h2>2. Roles del Sistema y Matriz de Permisos</h2>
+<p>El acceso a las funcionalidades del SKMS-Unimar está regulado mediante Roles y Permisos estrictos:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Rol</th>
+<th style="text-align:left">Descripción Principal</th>
+<th style="text-align:left">Permisos Clave</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><strong>Estudiante</strong></td>
+<td style="text-align:left">Autor de la investigación.</td>
+<td style="text-align:left">Crear borrador, subir PDF, responder observaciones, ver progreso personal y línea de tiempo.</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>Tutor</strong></td>
+<td style="text-align:left">Mentor principal del trabajo de grado.</td>
+<td style="text-align:left">Visualizar PDF asignados, agregar observaciones estructuradas, cambiar estado a <em>Requiere Correcciones</em>, <em>Aprobado</em> o <em>Rechazado</em>.</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>Jurado</strong></td>
+<td style="text-align:left">Evaluadores académicos del documento final.</td>
+<td style="text-align:left">Visualizar PDF asignados, agregar observaciones y calificar/aprobar el trabajo.</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>Coordinador</strong></td>
+<td style="text-align:left">Responsable de investigación del Decanato.</td>
+<td style="text-align:left">Validar metadatos (Dublin Core), publicar documentos aprobados, monitorear progreso general, generar reportes de exportación y ver estadísticas.</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>Administrador</strong></td>
+<td style="text-align:left">Administrador de la plataforma.</td>
+<td style="text-align:left">Configurar programas académicos, líneas de investigación, periodos académicos, control de usuarios e historial de auditorías.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>3. Acceso y Login General</h2>
+<p>Para acceder a la plataforma:</p>
+<ol>
+<li>Ingrese a la dirección del sistema en su navegador web.</li>
+<li>Escriba su dirección de correo electrónico institucional de UNIMAR y contraseña.</li>
+<li>Haga clic en <strong>Iniciar Sesión</strong>.</li>
+</ol>
+<p><img src="screenshots/login.png" alt="Pantalla de Inicio de Sesión" /></p>
+<hr />
+<h2>4. Guía Detallada de Procesos por Rol</h2>
+<hr />
+<h3>4.1. Módulo del Estudiante (Investigador)</h3>
+<p>El estudiante tiene acceso a un portal dedicado para registrar sus propuestas, realizar entregas, monitorear las correcciones solicitadas por sus revisores y ver su progreso académico.</p>
+<h4>A. Panel Principal (Dashboard)</h4>
+<p>Al iniciar sesión, el estudiante ve de inmediato el estado de sus producciones científicas, las notificaciones pendientes y el progreso general expresado en un porcentaje estimado.</p>
+<p><img src="screenshots/student_dashboard.png" alt="Dashboard del Estudiante" /></p>
+<h4>B. Registro de Trabajo y Metadatos Dublin Core</h4>
+<p>Para iniciar el registro de un nuevo trabajo de grado o artículo científico:</p>
+<ol>
+<li>Vaya a <strong>Mis Trabajos</strong> y haga clic en <strong>Nueva Producción</strong>.</li>
+<li>Complete el formulario con los metadatos obligatorios basados en el estándar internacional <strong>Dublin Core (15 elementos)</strong>:
+<ul>
+<li><strong>Título:</strong> Título oficial del trabajo.</li>
+<li><strong>Resumen:</strong> Síntesis del contenido y resultados.</li>
+<li><strong>Palabras Clave:</strong> Términos de búsqueda separados por comas.</li>
+<li><strong>Programa Académico:</strong> Su carrera (ej. Ingeniería de Sistemas).</li>
+<li><strong>Línea de Investigación:</strong> Línea asociada al trabajo (ej. Inteligencia Artificial).</li>
+<li><strong>Tipo de Producción:</strong> Tesis de Grado o Trabajo de Investigación.</li>
+<li><strong>Archivo PDF:</strong> Carga obligatoria del documento de investigación con validación automática de tamaño y tipo de archivo.</li>
+</ul>
+</li>
+<li>Haga clic en <strong>Guardar como Borrador</strong>. Mientras el documento se encuentre en estado <strong>Borrador</strong>, podrá modificar los datos y el archivo cuantas veces lo necesite.</li>
+</ol>
+<p><img src="screenshots/student_upload.png" alt="Formulario de Registro y Metadatos" /></p>
+<h4>C. Lista de Trabajos y Envío a Revisión</h4>
+<p>Desde el listado de producciones, puede verificar el estado actual de su trabajo. Cuando el documento esté listo y cumpla con las especificaciones de su tutor, haga clic en el botón <strong>Enviar a Revisión</strong>. Esto cambiará el estado a <strong>En Revisión</strong> y bloqueará la edición del documento para el estudiante mientras el tutor lo evalúa.</p>
+<p><img src="screenshots/student_productions.png" alt="Mis Producciones Científicas" /></p>
+<h4>D. Responder Comentarios y Correcciones</h4>
+<p>Si el tutor o jurado marca el documento como <strong>Requiere Correcciones</strong>:</p>
+<ol>
+<li>Recibirá una notificación en tiempo real.</li>
+<li>Ingrese a la producción científica para ver el listado de observaciones organizadas por páginas o secciones.</li>
+<li>Marque la corrección como <em>En Progreso</em> mientras trabaja en ella y, una vez corregida en el archivo PDF, cámbiela a <em>Subsanada</em> para que el evaluador la verifique y cierre.</li>
+</ol>
+<hr />
+<h3>4.2. Módulo del Tutor y Jurado (Revisores)</h3>
+<p>Los revisores cuentan con herramientas para auditar la calidad académica sin necesidad de descargar el archivo externamente, permitiendo un flujo de retroalimentación ágil.</p>
+<h4>A. Panel de Trabajos Asignados</h4>
+<p>El tutor visualiza en su dashboard las producciones científicas donde ha sido asignado. El sistema indica con alertas visuales aquellos documentos que tienen entregas pendientes por revisar.</p>
+<p><img src="screenshots/tutor_dashboard.png" alt="Dashboard del Tutor" /></p>
+<h4>B. Visor PDF y Caja de Comentarios Estructurados</h4>
+<ol>
+<li>Al hacer clic en un trabajo asignado, se abre el <strong>Visor de PDF integrado</strong>.</li>
+<li>Puede leer la tesis página por página.</li>
+<li>A la derecha, dispone de un formulario para agregar comentarios vinculados a secciones específicas:
+<ul>
+<li>Indique la <strong>Página</strong> y <strong>Párrafo</strong> de referencia.</li>
+<li>Redacte el contenido de la observación.</li>
+<li>Guarde el comentario. El estudiante lo verá inmediatamente en su panel de progreso.</li>
+</ul>
+</li>
+</ol>
+<p><img src="screenshots/tutor_assigned.png" alt="Panel de Producciones Asignadas" /></p>
+<h4>C. Transiciones de Estado de Evaluación</h4>
+<p>Tras evaluar la entrega, el tutor/jurado puede presionar el botón de transición para:</p>
+<ul>
+<li><strong>Solicitar Correcciones:</strong> Si el documento tiene observaciones pendientes de resolver.</li>
+<li><strong>Aprobar:</strong> Si el trabajo cumple con todos los estándares. Pasa a manos del Coordinador.</li>
+<li><strong>Rechazar:</strong> Si el trabajo infringe normas metodológicas críticas.</li>
+</ul>
+<hr />
+<h3>4.3. Módulo del Coordinador de Investigación</h3>
+<p>El Coordinador supervisa el flujo general de trabajos del Decanato, valida los datos técnicos antes de la publicación definitiva y genera análisis macro.</p>
+<h4>A. Monitoreo de Progreso y Estudiantes Activos</h4>
+<p>El Coordinador puede acceder a un dashboard donde visualiza la lista de estudiantes con sus respectivos tutores asignados, estado del flujo de su tesis y el porcentaje de hitos completados.</p>
+<p><img src="screenshots/coordinator_dashboard.png" alt="Dashboard del Coordinador" /></p>
+<h4>B. Análisis Bibliométrico</h4>
+<p>Esta sección muestra de forma visual mediante gráficos:</p>
+<ul>
+<li>Cantidad de publicaciones por año y período académico.</li>
+<li>Productividad por líneas de investigación y programas.</li>
+<li>Ranking de tutores con mayor cantidad de trabajos aprobados.</li>
+</ul>
+<p><img src="screenshots/coordinator_bibliometrics.png" alt="Gráficos Bibliométricos" /></p>
+<h4>C. Reportes Institucionales y Descarga</h4>
+<p>El Coordinador puede generar reportes personalizados en formatos <strong>PDF</strong> (usando dompdf con portada institucional) y <strong>Excel</strong> con filtros por programa académico, periodos, tutores o estados de flujo.</p>
+<p><img src="screenshots/coordinator_reports.png" alt="Sección de Reportes y Descargas" /></p>
+<hr />
+<h3>4.4. Módulo de Administración (Configuración General)</h3>
+<p>El panel administrativo permite mantener actualizados los catálogos y registrar las variables globales que definen el comportamiento de la aplicación.</p>
+<h4>A. Control y CRUD de Usuarios</h4>
+<p>Permite al administrador buscar, crear, editar y asignar roles específicos a los miembros de la comunidad universitaria.</p>
+<p><img src="screenshots/admin_users.png" alt="Gestión de Usuarios" /></p>
+<h4>B. Gestión de Programas Académicos y Líneas de Investigación</h4>
+<p>CRUD para registrar las carreras (programas) dictadas en el decanato y sus respectivas líneas de investigación asociadas, facilitando la categorización de los metadatos.</p>
+<p><img src="screenshots/admin_programs.png" alt="Programas Académicos" /></p>
+<h4>C. Períodos Académicos e Hitos</h4>
+<p>Configura las fechas de inicio/cierre de los semestres académicos y los hitos obligatorios del progreso de tesis (ej. Entrega de Capítulo I, Entrega de Propuesta, Pre-defensa).</p>
+<p><img src="screenshots/admin_periods.png" alt="Períodos e Hitos" /></p>
+<hr />
+<h2>5. Interoperabilidad (OAI-PMH)</h2>
+<p>El SKMS-Unimar implementa el protocolo internacional de interoperabilidad <strong>OAI-PMH 2.0</strong> en el endpoint <code>/oai</code>.</p>
+<p>Esto permite que indexadores académicos globales (como Google Scholar, Latindex y repositorios nacionales) cosechen automáticamente las publicaciones en formato <strong>Dublin Core XML (oai_dc)</strong> tan pronto como el Coordinador de Investigación cambie el estado de un documento a <strong>Publicado</strong>.</p>
+<h3>Formato de Metadatos</h3>
+<p>Cada registro publicado expone las etiquetas estandarizadas:</p>
+<ul>
+<li><code>dc:title</code> - Título del trabajo.</li>
+<li><code>dc:creator</code> - Estudiante/Autor.</li>
+<li><code>dc:subject</code> - Línea de investigación/palabras clave.</li>
+<li><code>dc:description</code> - Resumen estructurado.</li>
+<li><code>dc:date</code> - Fecha de aprobación y publicación.</li>
+<li><code>dc:type</code> - Tipo de producción (Tesis/Artículo).</li>
+<li><code>dc:rights</code> - Licencias de uso Creative Commons especificadas.</li>
+</ul>
+<hr />
+<h2>6. Soporte y Preguntas Frecuentes (FAQ)</h2>
+<h3>¿Cómo restauro mi contraseña?</h3>
+<p>En la pantalla de inicio de sesión, haga clic en <em>¿Olvidó su contraseña?</em>, ingrese su correo institucional y siga las instrucciones enviadas para establecer una nueva clave de acceso.</p>
+<h3>¿Qué tamaño máximo de archivo PDF está permitido?</h3>
+<p>El validador integrado en el formulario de carga limita los archivos a un máximo de <strong>20 MB</strong> para asegurar un rendimiento óptimo en conexiones de banda reducida.</p>
+<h3>¿Cómo cambio mi rol de Tutor a Jurado si tengo ambos perfiles?</h3>
+<p>En la barra superior de navegación, el sistema le mostrará un selector llamado <strong>&quot;Perfil activo&quot;</strong> en donde podrá intercambiar su rol de forma instantánea sin necesidad de cerrar sesión.</p>
+
+        </div>
+    </div>
+</body>
+</html>
